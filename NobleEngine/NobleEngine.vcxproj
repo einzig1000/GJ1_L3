@@ -1,0 +1,560 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.cpp" />
+    <ClCompile Include="src\application\GameObjects\EventBus\EventBus.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Font\FontManager.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\CharacterManager.cpp" />
+    <ClCompile Include="src\application\GameObjects\Map\Terrain\FaceDataPagePool\FaceDataPagePool.cpp" />
+    <ClCompile Include="src\application\GameObjects\Map\SkyBox\SkyBox.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\SwingMining\SwingMining.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\RangeMining\RangeMining.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIElement\MiningMode\MiningMode.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIScreen\MiningModeScreen\MiningModeScreen.cpp" />
+    <ClCompile Include="src\engine\DirectX\FrameProfiler\FrameProfiler.cpp" />
+    <ClCompile Include="src\application\GameObjects\ScreenDrawer\ScreenDrawer.cpp" />
+    <ClCompile Include="src\application\Editor\ItemEditor\ItemEditor.cpp" />
+    <ClCompile Include="src\application\Editor\Editor.cpp" />
+    <ClCompile Include="src\application\Facade\App.cpp" />
+    <ClCompile Include="src\application\Application.cpp" />
+    <ClCompile Include="src\application\ResourceLoader\Data\Item\ItemDataManager.cpp" />
+    <ClCompile Include="src\application\ResourceLoader\Data\DataManager.cpp" />
+    <ClCompile Include="src\application\ResourceLoader\Data\Item\Loader\ItemDataLoader.cpp" />
+    <ClCompile Include="src\application\ResourceLoader\Data\Item\Bank\ItemDataBank.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\HaveItem\HaveItem.cpp" />
+    <ClCompile Include="src\application\GameObjects\Camera\CameraController.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\ICharacter.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\Player\Player.cpp" />
+    <ClCompile Include="src\application\GameObjects\Character\ItemInventory\ItemInventory.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIScreen\CraftScreen\CraftScreen.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIScreen\InventoryScreen\InventoryScreen.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIScreen\PauseScreen\PauseScreen.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIScreen\PlayingScreen\PlayingScreen.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIElement\Craft\Craft.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIElement\Hotbar\Hotbar.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIElement\Inventory\Inventory.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIElement\Pause\Pause.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIElement\IUIElement.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIScreen\IUIScreen.cpp" />
+    <ClCompile Include="src\application\GameObjects\UI\UIManager.cpp" />
+    <ClCompile Include="src\engine\ComputeSystem\ComputeSystem.cpp" />
+    <ClCompile Include="src\engine\ComputeSystem\ComputeObject\ComputeObject.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationComputer\AnimationComputer.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationLoader\AnimationLoader.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationBank\AnimationBank.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\allocator.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\clusterizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\indexanalyzer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\indexcodec.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\indexgenerator.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\meshletcodec.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\meshletutils.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\opacitymap.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\overdrawoptimizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\partition.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\quantization.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\rasterizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\simplifier.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\spatialorder.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\stripifier.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vcacheoptimizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vertexcodec.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vertexfilter.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vfetchoptimizer.cpp" />
+    <ClCompile Include="src\application\definition\definition.cpp" />
+    <ClCompile Include="src\engine\Editor\RenderTexturePreview\RenderTexturePreview.cpp" />
+    <ClCompile Include="src\engine\Editor\EngineEditor.cpp" />
+    <ClCompile Include="src\engine\Editor\ModelPreview\ModelPreview.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\EditorTestPhase\EditorTestPhase.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.cpp" />
+    <ClCompile Include="src\application\GameObjects\Map\Terrain\Chunk\Chunk.cpp" />
+    <ClCompile Include="src\application\GameObjects\Map\MapManager.cpp" />
+    <ClCompile Include="src\application\ResourceLoader\ResourceID.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioPlayer\AudioPlayer.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioLoader\AudioLoader.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioBank\AudioBank.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelBank\ModelBank.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelCreater\ModelCreater.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelLoader\ModelLoader.cpp" />
+    <ClCompile Include="src\application\Test\TestLine\LineDrawer.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationManager.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\application\GameManager\GameManager.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\BattlePhase\BattlePhase.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\IPhase.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\TitlePhase\TitlePhase.cpp" />
+    <ClCompile Include="src\engine\Camera\Camera.cpp" />
+    <ClCompile Include="src\engine\Camera\CameraManager.cpp" />
+    <ClCompile Include="src\engine\EngineDefinition\EngineDefinition.cpp" />
+    <ClCompile Include="src\engine\DirectX\CommandContextManager\CommandContextManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\DescriptorHeapManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\DSV\DSVManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\RTV\RTVManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\SRV_UAV\SRV_UAVManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DeviceManager\DeviceManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DirectXManager.cpp" />
+    <ClCompile Include="src\engine\RootBinding\FrameCbAllocator\FrameCbAllocator.cpp" />
+    <ClCompile Include="src\engine\DirectX\Pipeline\PipelineStateManager\PipelineStateManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\Pipeline\ShaderReflectionHelper\ShaderReflectionHelper.cpp" />
+    <ClCompile Include="src\engine\DirectX\RenderTarget\RenderTextureManager\RenderTextureManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\ResourceUtilities\ResourceUtilities.cpp" />
+    <ClCompile Include="src\engine\DirectX\RenderTarget\SwapChainManager\SwapChainManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\SynchronizationManager\SynchronizationManager.cpp" />
+    <ClCompile Include="src\engine\DrawSystem\DrawSystem.cpp" />
+    <ClCompile Include="src\engine\DrawSystem\RenderData\RenderObject.cpp" />
+    <ClCompile Include="src\engine\Engine.cpp" />
+    <ClCompile Include="src\engine\Facade\Game.cpp" />
+    <ClCompile Include="src\engine\FixFPS\FixFPS.cpp" />
+    <ClCompile Include="src\engine\ImGuiManager\ImGuiManager.cpp" />
+    <ClCompile Include="src\engine\IO\IOManager.cpp" />
+    <ClCompile Include="src\engine\IO\Keyboard\KeyboardController.cpp" />
+    <ClCompile Include="src\engine\IO\Mouse\MouseController.cpp" />
+    <ClCompile Include="src\engine\IO\Pad\PadController.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioManager.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelManager.cpp" />
+    <ClCompile Include="src\engine\AssetManager\AssetManager.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Texture\TextureManager.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\AngleConverter\AngleConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\ColorConverter\ColorConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\CoordinateConverter\CoordinateConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\StringConverter\StringConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Easing\Easing.cpp" />
+    <ClCompile Include="src\engine\Utilities\functions.cpp" />
+    <ClCompile Include="src\engine\Utilities\Json\JsonManager.cpp" />
+    <ClCompile Include="src\engine\Utilities\Logger\Logger.cpp" />
+    <ClCompile Include="src\engine\Utilities\PerlinNoise.cpp" />
+    <ClCompile Include="src\engine\Utilities\Random\Random.cpp" />
+    <ClCompile Include="src\engine\Window\WindowManager.cpp" />
+    <ClCompile Include="src\application\Test\TestAnimation\TestAnimation.cpp" />
+    <ClCompile Include="src\application\Test\TestParticle\TestParticle.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Texture\TextureBank\TextureBank.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Texture\TextureLoader\TextureLoader.cpp" />
+    <ClCompile Include="src\engine\Editor\TexturePreview\TexturePreview.cpp" />
+    <ClCompile Include="src\engine\Editor\TimeEditor\TimeEditor.cpp" />
+    <ClCompile Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.cpp" />
+    <ClCompile Include="src\application\GameObjects\Map\Terrain\Terrain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.h" />
+    <ClInclude Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.h" />
+    <ClInclude Include="src\application\GameObjects\EventBus\EventBus.h" />
+    <ClInclude Include="externals\stb\stb_truetype.h" />
+    <ClInclude Include="src\engine\AssetManager\Font\FontManager.h" />
+    <ClInclude Include="src\application\GameObjects\Character\CharacterManager.h" />
+    <ClInclude Include="src\application\GameObjects\Map\Terrain\FaceDataPagePool\FaceDataPagePool.h" />
+    <ClInclude Include="src\application\GameObjects\Map\SkyBox\SkyBox.h" />
+    <ClInclude Include="src\application\GameObjects\Character\SwingMining\SwingMining.h" />
+    <ClInclude Include="src\application\GameObjects\Character\RangeMining\RangeMining.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIElement\MiningMode\MiningMode.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIScreen\MiningModeScreen\MiningModeScreen.h" />
+    <ClInclude Include="src\engine\DirectX\FrameProfiler\FrameProfiler.h" />
+    <ClInclude Include="src\application\GameObjects\ScreenDrawer\ScreenDrawer.h" />
+    <ClInclude Include="src\application\Editor\ItemEditor\ItemEditor.h" />
+    <ClInclude Include="src\application\Editor\Editor.h" />
+    <ClInclude Include="src\application\Facade\App.h" />
+    <ClInclude Include="src\application\Application.h" />
+    <ClInclude Include="src\application\ResourceLoader\Data\Item\ItemDataManager.h" />
+    <ClInclude Include="src\application\ResourceLoader\Data\DataManager.h" />
+    <ClInclude Include="src\application\ResourceLoader\Data\Item\Loader\ItemDataLoader.h" />
+    <ClInclude Include="src\application\ResourceLoader\Data\Item\Bank\ItemDataBank.h" />
+    <ClInclude Include="src\application\GameObjects\Character\HaveItem\HaveItem.h" />
+    <ClInclude Include="src\application\GameObjects\Camera\CameraController.h" />
+    <ClInclude Include="src\application\GameObjects\Character\ICharacter.h" />
+    <ClInclude Include="src\application\GameObjects\Character\Player\Player.h" />
+    <ClInclude Include="src\application\GameObjects\Character\ItemInventory\ItemInventory.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIData.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIScreen\CraftScreen\CraftScreen.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIScreen\InventoryScreen\InventoryScreen.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIScreen\PauseScreen\PauseScreen.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIScreen\PlayingScreen\PlayingScreen.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIElement\Craft\Craft.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIElement\Hotbar\Hotbar.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIElement\Inventory\Inventory.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIElement\Pause\Pause.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIElement\IUIElement.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIScreen\IUIScreen.h" />
+    <ClInclude Include="src\application\GameObjects\UI\UIManager.h" />
+    <ClInclude Include="src\engine\ComputeSystem\ComputeSystem.h" />
+    <ClInclude Include="src\engine\ComputeSystem\ComputeObject\ComputeObject.h" />
+    <ClInclude Include="src\engine\AssetManager\Animation\AnimationComputer\AnimationComputer.h" />
+    <ClInclude Include="src\engine\AssetManager\Animation\AnimationLoader\AnimationLoader.h" />
+    <ClInclude Include="src\engine\AssetManager\Animation\AnimationBank\AnimationBank.h" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Base.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Base\Cast.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Base\DobutsuShogi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Base\RogueLike.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Base\Shogi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Base\Struct.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Board.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Board\WriteNumber.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Camera.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Camera\MatrixView.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Chrono.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Chrono\Time.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Color\RGBA.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Console.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Console\OutputNumber.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Console\OutputString.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Console\OutputStringBool.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Console\OutputView.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Cuboid.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Cuboid\MazeDig3D.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Cuboid\Rectangular.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\DTL.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Entity.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Entity\MobManager.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\AroundSum.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\GetLargestRectArea.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\GetLargestRectAreaSize.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\GetLargestSquareArea.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\GetLargestSquareAreaSize.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\Highest.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\Highest4Way.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Find\Is1Bit.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Font.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Font\Alphabet.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\ImageWrite.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Intelligence.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Intelligence\ReversiSimple.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Macros\constexpr.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Macros\nodiscard.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Random.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Random\RandomEngine.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\BasicRect.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\BasicRectangular.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectangularBase.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectangularBaseWithValue.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBase.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseDobutsuShogi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseFractal.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseMaze.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBasePerlin.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBasePerlinSolitary.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseRogueLike.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseShogi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseSimpleRogueLike.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithBattle.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithBlackWhite.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithLoopNum.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithMaxMin.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithMaxMinValue.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithValue.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithValueMaxMin.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithValuePos.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithValueXYRA.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Range\RectBaseWithVector.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Addition.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Angular.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Average.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Bucket.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\BuryPoint.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\CellularAutomaton.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Division.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Modulo.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Multiplication.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\RemovePoint.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Retouch\Subtraction.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\AscendingOrder.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\AscendingOrder2.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\Border.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\BorderOdd.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\CellularAutomatonIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\CellularAutomatonMixIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\ClusteringMaze.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\DiamondSquareAverage.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\DiamondSquareAverageCornerIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\DiamondSquareAverageIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\DobutsuShogi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\FractalIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\FractalLoopIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\HalfMixRect.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\MazeBar.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\MazeDig.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\MixRect.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\PerlinIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\PerlinLoopIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\PerlinSolitaryIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\Point.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\PointGrid.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\PointGridAndSomeBlocksWithBorder.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\PointGridWithBorder.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\RandomRect.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\RandomVoronoi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\Rect.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\Reversi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\RogueLike.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\Shogi.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\SimplePyramid.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\SimpleRogueLike.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\SimpleTruncatedSquarePyramid.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\SimpleVoronoiIsland.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\StarLine.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Shape\WhiteNoise.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileBase.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileBaseBin.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileBaseTxt.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileBMP.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileHDR.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileJPG.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileMD.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FilePBM.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FilePNG.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileSandboxOBJ_3D.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileTerrainOBJ.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileTGA.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Storage\FileTXT_0_9.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\ThirdParty.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\ThirdParty\STB\stb_image_write.h" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\ThirdParty\STB\wrapper_stb_image_write.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Cos.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Cout.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\EnableIf.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Forward.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\IntX.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Max.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Min.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\New.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\NumericLimits.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Pair.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Sin.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\SizeT.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Sort.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\SSizeT.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\ThreadLocal.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\UniquePtr.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Type\Vector.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\UnrealEngine\BlueprintFunctionLibraryDTL.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\Assign.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\Binarization.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\Camera.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\Copy.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\DrawJagged.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\DrawJaggedRandom.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\Init.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\IsOutputCast.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\MatrixWrapper.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\PerlinNoise.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\ReplaceAll.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\ReplaceSome.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Utility\VoronoiDiagram.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Version\Version.hpp" />
+    <ClInclude Include="externals\DungeonTemplateLibrary\DTL\Workaround\cstdioGets.hpp" />
+    <ClInclude Include="externals\FastNoiseLite\FastNoiseLite.h" />
+    <ClInclude Include="externals\meshoptimizer-1.1\meshoptimizer.h" />
+    <ClInclude Include="src\application\definition\constexprs.h" />
+    <ClInclude Include="src\application\definition\definition.h" />
+    <ClInclude Include="src\engine\Editor\RenderTexturePreview\RenderTexturePreview.h" />
+    <ClInclude Include="src\engine\Editor\EngineEditor.h" />
+    <ClInclude Include="src\engine\Editor\ModelPreview\ModelPreview.h" />
+    <ClInclude Include="src\application\GameManager\Phase\EditorTestPhase\EditorTestPhase.h" />
+    <ClInclude Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.h" />
+    <ClInclude Include="src\application\GameObjects\Map\Terrain\Chunk\Chunk.h" />
+    <ClInclude Include="src\application\GameObjects\Map\MapManager.h" />
+    <ClInclude Include="src\application\ResourceLoader\ResourceID.h" />
+    <ClInclude Include="src\engine\AssetManager\Audio\AudioPlayer\AudioPlayer.h" />
+    <ClInclude Include="src\engine\AssetManager\Audio\AudioLoader\AudioLoader.h" />
+    <ClInclude Include="src\engine\AssetManager\Audio\AudioBank\AudioBank.h" />
+    <ClInclude Include="src\engine\AssetManager\Model\ModelBank\ModelBank.h" />
+    <ClInclude Include="src\engine\AssetManager\Model\ModelCreater\ModelCreater.h" />
+    <ClInclude Include="src\engine\AssetManager\Model\ModelLoader\ModelLoader.h" />
+    <ClInclude Include="src\application\Test\TestLine\LineDrawer.h" />
+    <ClInclude Include="src\engine\EngineDefinition\EngineConstexprs.h" />
+    <ClInclude Include="src\engine\AssetManager\Animation\AnimationManager.h" />
+    <ClInclude Include="src\application\GameManager\GameManager.h" />
+    <ClInclude Include="src\application\GameManager\Phase\BattlePhase\BattlePhase.h" />
+    <ClInclude Include="src\application\GameManager\Phase\IPhase.h" />
+    <ClInclude Include="src\application\GameManager\Phase\TitlePhase\TitlePhase.h" />
+    <ClInclude Include="src\engine\Camera\Camera.h" />
+    <ClInclude Include="src\engine\Camera\CameraManager.h" />
+    <ClInclude Include="src\engine\EngineDefinition\EngineDefinition.h" />
+    <ClInclude Include="src\engine\DirectX\CommandContextManager\CommandContextManager.h" />
+    <ClInclude Include="src\engine\DirectX\DescriptorHeapManager\DescriptorHeapManager.h" />
+    <ClInclude Include="src\engine\DirectX\DescriptorHeapManager\DSV\DSVManager.h" />
+    <ClInclude Include="src\engine\DirectX\DescriptorHeapManager\RTV\RTVManager.h" />
+    <ClInclude Include="src\engine\DirectX\DescriptorHeapManager\SRV_UAV\SRV_UAVManager.h" />
+    <ClInclude Include="src\engine\DirectX\DeviceManager\DeviceManager.h" />
+    <ClInclude Include="src\engine\DirectX\DirectXManager.h" />
+    <ClInclude Include="src\engine\RootBinding\FrameCbAllocator\FrameCbAllocator.h" />
+    <ClInclude Include="src\engine\DirectX\Pipeline\PipelineStateManager\PipelineStateManager.h" />
+    <ClInclude Include="src\engine\DirectX\Pipeline\RenderPipelineTypes.h" />
+    <ClInclude Include="src\engine\DirectX\Pipeline\ShaderReflectionHelper\ShaderReflectionHelper.h" />
+    <ClInclude Include="src\engine\DirectX\RenderTarget\RenderTargetStruct.h" />
+    <ClInclude Include="src\engine\DirectX\RenderTarget\RenderTextureManager\RenderTextureManager.h" />
+    <ClInclude Include="src\engine\DirectX\ResourceUtilities\ResourceUtilities.h" />
+    <ClInclude Include="src\engine\DirectX\RenderTarget\SwapChainManager\SwapChainManager.h" />
+    <ClInclude Include="src\engine\DirectX\SynchronizationManager\SynchronizationManager.h" />
+    <ClInclude Include="src\engine\DrawSystem\DrawSystem.h" />
+    <ClInclude Include="src\engine\DrawSystem\RenderData\RenderObject.h" />
+    <ClInclude Include="src\engine\Engine.h" />
+    <ClInclude Include="src\engine\Facade\Game.h" />
+    <ClInclude Include="src\engine\FixFPS\FixFPS.h" />
+    <ClInclude Include="src\engine\ImGuiManager\ImGuiManager.h" />
+    <ClInclude Include="src\engine\IO\IOManager.h" />
+    <ClInclude Include="src\engine\IO\Keyboard\KeyboardController.h" />
+    <ClInclude Include="src\engine\IO\Mouse\MouseController.h" />
+    <ClInclude Include="src\engine\IO\Pad\PadController.h" />
+    <ClInclude Include="src\engine\AssetManager\Audio\AudioManager.h" />
+    <ClInclude Include="src\engine\AssetManager\Model\ModelManager.h" />
+    <ClInclude Include="src\engine\AssetManager\AssetManager.h" />
+    <ClInclude Include="src\engine\AssetManager\Texture\TextureManager.h" />
+    <ClInclude Include="src\engine\Utilities\Converter\AngleConverter\AngleConverter.h" />
+    <ClInclude Include="src\engine\Utilities\Converter\ColorConverter\ColorConverter.h" />
+    <ClInclude Include="src\engine\Utilities\Converter\CoordinateConverter\CoordinateConverter.h" />
+    <ClInclude Include="src\engine\Utilities\Converter\StringConverter\StringConverter.h" />
+    <ClInclude Include="src\engine\Utilities\Easing\Easing.h" />
+    <ClInclude Include="src\engine\Utilities\functions.h" />
+    <ClInclude Include="src\engine\Utilities\Json\JsonManager.h" />
+    <ClInclude Include="src\engine\Utilities\Logger\Logger.h" />
+    <ClInclude Include="src\engine\Utilities\PerlinNoise.h" />
+    <ClInclude Include="src\engine\Utilities\Random\Random.h" />
+    <ClInclude Include="src\engine\Window\WindowManager.h" />
+    <ClInclude Include="src\application\Test\TestAnimation\TestAnimation.h" />
+    <ClInclude Include="src\application\Test\TestParticle\TestParticle.h" />
+    <ClInclude Include="src\engine\AssetManager\Texture\TextureBank\TextureBank.h" />
+    <ClInclude Include="src\engine\AssetManager\Texture\TextureLoader\TextureLoader.h" />
+    <ClInclude Include="src\engine\Editor\TexturePreview\TexturePreview.h" />
+    <ClInclude Include="src\engine\Editor\TimeEditor\TimeEditor.h" />
+    <ClInclude Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.h" />
+    <ClInclude Include="src\application\GameObjects\Map\Terrain\Terrain.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\Block\versionInfo.md">
+      <SubType>
+      </SubType>
+    </None>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{fe937ad5-f3af-4aae-8c46-2c0155852ee8}</ProjectGuid>
+    <RootNamespace>NobleEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)generated\outputs\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)generated\obj\$(ProjectName)$(Configuration)\</IntDir>
+    <LibraryPath>$(SolutionDir)generated\outputs\$(Configuration)\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)generated\outputs\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)generated\obj\$(ProjectName)$(Configuration)\</IntDir>
+    <LibraryPath>$(SolutionDir)generated\outputs\$(Configuration)\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;_DEBUG;_WINDOWS;USE_IMGUI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src/application;$(ProjectDir)src/engine;$(ProjectDir)src/engine/Facade;$(ProjectDir)externals/assimp/include;$(ProjectDir)externals/DungeonTemplateLibrary;$(ProjectDir)src/application/Facade</AdditionalIncludeDirectories>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>imgui.lib;DirectXTex.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4049 /ignore:4048 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>$(ProjectDir)externals\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(ProjectDir)externals\dxc\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"
+copy "$(ProjectDir)externals\dxc\dxil.dll" "$(TargetDir)dxil.dll"
+xcopy /E /I /Y "$(ProjectDir)resources/*" "$(TargetDir)resources/"</Command>
+    </PostBuildEvent>
+    <FxCompile>
+      <ShaderModel>6.6</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;NDEBUG;_WINDOWS;_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src/application;$(ProjectDir)src/engine;$(ProjectDir)src/engine/Facade;$(ProjectDir)externals/assimp/include;$(ProjectDir)externals/DungeonTemplateLibrary;$(ProjectDir)src/application/Facade</AdditionalIncludeDirectories>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>imgui.lib;DirectXTex.lib;assimp-vc143-mt.lib</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4049 /ignore:4048 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>$(ProjectDir)externals\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(ProjectDir)externals\dxc\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"
+copy "$(ProjectDir)externals\dxc\dxil.dll" "$(TargetDir)dxil.dll"
+xcopy /E /I /Y "$(ProjectDir)resources/*" "$(TargetDir)resources/"</Command>
+    </PostBuildEvent>
+    <FxCompile>
+      <ShaderModel>6.6</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

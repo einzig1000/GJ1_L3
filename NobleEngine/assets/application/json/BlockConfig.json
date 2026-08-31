@@ -1,0 +1,62 @@
+{
+  "Air": {
+    "color": 1,
+    "durability": -1.0,
+    "isTransparent": true
+  },
+  "Bedrock": {
+    "color": 299875327,
+    "durability": -1.0,
+    "isTransparent": false
+  },
+  "Diamond": {
+    "color": 299875327,
+    "durability": 30.0,
+    "isTransparent": false
+  },
+  "Dirt": {
+    "color": 2740588799,
+    "durability": 8.0,
+    "isTransparent": false
+  },
+  "Glass": {
+    "color": 316717874,
+    "durability": 5.0,
+    "isTransparent": true
+  },
+  "Gold": {
+    "color": 3353285119,
+    "durability": 20.0,
+    "isTransparent": false
+  },
+  "Grass": {
+    "color": 649268991,
+    "durability": 1.0,
+    "isTransparent": false
+  },
+  "Iron": {
+    "color": 2644352511,
+    "durability": 20.0,
+    "isTransparent": false
+  },
+  "Leaf": {
+    "color": 699334911,
+    "durability": 8.0,
+    "isTransparent": false
+  },
+  "Stone": {
+    "color": 2475922431,
+    "durability": 1.0,
+    "isTransparent": false
+  },
+  "Wood": {
+    "color": 2135359743,
+    "durability": 8.0,
+    "isTransparent": false
+  },
+  "wood": {
+    "color": 2336560127,
+    "durability": 40.0,
+    "isTransparent": false
+  }
+}
