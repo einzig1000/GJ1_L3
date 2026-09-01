@@ -9,6 +9,6 @@ public:
 	float GetTimeScale() const { return timeScale_; }
 
 private:
-    float timeScale_;
+	float timeScale_ = 1.0f;
 };
 

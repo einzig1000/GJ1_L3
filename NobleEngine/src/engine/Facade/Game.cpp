@@ -97,7 +97,6 @@ namespace Game
 			{
 				return Engine::Instance().GetAssetManager()->GetFontManager()->MeasureJustTextureSize(text, charSize, startPos, extraSpacing);
 			}
-
 		}
 
 		namespace RenderTexture
