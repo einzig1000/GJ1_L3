@@ -85,7 +85,7 @@
     <ClCompile Include="src\engine\DrawSystem\RenderData\RenderObject.cpp" />
     <ClCompile Include="src\engine\Engine.cpp" />
     <ClCompile Include="src\engine\Facade\Game.cpp" />
-    <ClCompile Include="src\engine\FixFPS\FixFPS.cpp" />
+    <ClCompile Include="src\engine\TimeManager\FixFPS\FixFPS.cpp" />
     <ClCompile Include="src\engine\ImGuiManager\ImGuiManager.cpp" />
     <ClCompile Include="src\engine\IO\IOManager.cpp" />
     <ClCompile Include="src\engine\IO\Keyboard\KeyboardController.cpp" />
@@ -113,6 +113,8 @@
     <ClCompile Include="src\engine\Editor\TexturePreview\TexturePreview.cpp" />
     <ClCompile Include="src\engine\Editor\TimeEditor\TimeEditor.cpp" />
     <ClCompile Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.cpp" />
+    <ClCompile Include="src\engine\TimeManager\TimeManager.cpp" />
+    <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameManager\Phase\TestPhase\TestPhase.h" />
@@ -342,7 +344,7 @@
     <ClInclude Include="src\engine\DrawSystem\RenderData\RenderObject.h" />
     <ClInclude Include="src\engine\Engine.h" />
     <ClInclude Include="src\engine\Facade\Game.h" />
-    <ClInclude Include="src\engine\FixFPS\FixFPS.h" />
+    <ClInclude Include="src\engine\TimeManager\FixFPS\FixFPS.h" />
     <ClInclude Include="src\engine\ImGuiManager\ImGuiManager.h" />
     <ClInclude Include="src\engine\IO\IOManager.h" />
     <ClInclude Include="src\engine\IO\Keyboard\KeyboardController.h" />
@@ -370,6 +372,8 @@
     <ClInclude Include="src\engine\Editor\TexturePreview\TexturePreview.h" />
     <ClInclude Include="src\engine\Editor\TimeEditor\TimeEditor.h" />
     <ClInclude Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.h" />
+    <ClInclude Include="src\engine\TimeManager\TimeManager.h" />
+    <ClInclude Include="src\engine\TimeManager\TimeScaler\TimeScaler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\Block\versionInfo.md">

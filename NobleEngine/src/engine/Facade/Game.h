@@ -673,8 +673,10 @@ namespace Game
 
 	namespace Time
 	{
-		/// <returns>デルタタイム</returns>
-		float GetDeltaTimeMs();
+		void SetTimeScale(float timeScale);
+
+		/// <returns>スケールタイム適用済デルタタイム</returns>
+		float GetScaledDeltaTimeMs();
 
 		/// <returns>起動からの経過時間取得</returns>
 		uint32_t GetElapsedTime();
