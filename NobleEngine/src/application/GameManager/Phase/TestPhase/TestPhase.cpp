@@ -53,7 +53,7 @@ void TestPhase::Update()
 
 	Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
 	int32_t vsHeapSlot = Game::Resource::GetSRV(worldMatrixHeapSlot_);
-	Vector2int psHeapSlot{ Game::Resource::GetSRV(colorHeapSlot_), Game::Resource::GetSRV(textureIndexHeapSlot_) };
+	Vector2uint psHeapSlot{ Game::Resource::GetSRV(colorHeapSlot_), Game::Resource::GetSRV(textureIndexHeapSlot_) };
 
 	renderObject_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
 	renderObject_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
