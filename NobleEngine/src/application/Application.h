@@ -2,8 +2,6 @@
 #include <memory>
 
 class GameManager;
-class DataManager;
-class Editor;
 
 class Application
 {
@@ -25,7 +23,6 @@ public:
 
 public:
 
-	DataManager* GetDataManager() { return dataManager_.get(); }
 
 private:
 	Application() = default;
@@ -33,11 +30,5 @@ private:
 
 	// メインのゲームループ
 	std::unique_ptr<GameManager> gameManager_;
-
-	// データ管理
-	std::unique_ptr<DataManager> dataManager_;
-
-	// エディタ
-	std::unique_ptr<Editor> editor_;
 };
 

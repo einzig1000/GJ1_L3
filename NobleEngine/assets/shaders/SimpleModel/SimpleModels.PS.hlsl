@@ -12,14 +12,21 @@ struct PSOutput
     float4 color : SV_TARGET;
 };
 
-StructuredBuffer<float4> ColorList : register(t0);
-StructuredBuffer<int> TextureIndexList : register(t1);
-Texture2D<float4> textures[] : register(t2);
+cbuffer HeapSlot : register(b0)
+{
+    uint color;
+    uint textureIndex;
+};
+
+Texture2D<float4> textures[] : register(t0);
 
 SamplerState gSampler : register(s0);
 
 PSOutput main(PSInput input)
 {
+    StructuredBuffer<float4> ColorList = ResourceDescriptorHeap[color];
+    StructuredBuffer<uint> TextureIndexList = ResourceDescriptorHeap[textureIndex];
+    
     PSOutput output;
     float4 texColor = textures[TextureIndexList[input.instanceID]].Sample(gSampler, input.texCoord);
     output.color = ColorList[input.instanceID] * texColor;

@@ -141,9 +141,6 @@
     <ClCompile Include="src\engine\Engine.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\BattlePhase\BattlePhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\application\GameManager\Phase\IPhase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -195,16 +192,7 @@
     <ClCompile Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Map\MapManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Map\Terrain\Chunk\Chunk.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\application\ResourceLoader\ResourceID.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\EditorTestPhase\EditorTestPhase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\Editor\ModelPreview\ModelPreview.cpp">
@@ -300,54 +288,6 @@
     <ClCompile Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\ICharacter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\Player\Player.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIScreen\IUIScreen.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIScreen\CraftScreen\CraftScreen.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIScreen\InventoryScreen\InventoryScreen.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIScreen\PauseScreen\PauseScreen.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIScreen\PlayingScreen\PlayingScreen.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIElement\Craft\Craft.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIElement\Hotbar\Hotbar.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIElement\Inventory\Inventory.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIElement\Pause\Pause.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIElement\IUIElement.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Camera\CameraController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\ItemInventory\ItemInventory.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\HaveItem\HaveItem.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\application\ResourceLoader\Data\Item\Bank\ItemDataBank.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -366,52 +306,19 @@
     <ClCompile Include="src\application\Facade\App.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\Editor\Editor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\Editor\ItemEditor\ItemEditor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\ScreenDrawer\ScreenDrawer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\DirectX\FrameProfiler\FrameProfiler.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIScreen\MiningModeScreen\MiningModeScreen.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\UI\UIElement\MiningMode\MiningMode.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Map\SkyBox\SkyBox.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\SwingMining\SwingMining.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\RangeMining\RangeMining.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Map\Terrain\FaceDataPagePool\FaceDataPagePool.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Character\CharacterManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\AssetManager\Font\FontManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\Map\Terrain\Terrain.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObjects\EventBus\EventBus.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\GameManager\Phase\TestPhase\TestPhase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -545,9 +452,6 @@
     <ClInclude Include="src\engine\Engine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\GameManager\Phase\BattlePhase\BattlePhase.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\application\GameManager\Phase\IPhase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -602,16 +506,7 @@
     <ClInclude Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Map\MapManager.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Map\Terrain\Chunk\Chunk.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\application\ResourceLoader\ResourceID.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameManager\Phase\EditorTestPhase\EditorTestPhase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\Editor\ModelPreview\ModelPreview.h">
@@ -1157,57 +1052,6 @@
     <ClInclude Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\ICharacter.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\Player\Player.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIManager.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIScreen\IUIScreen.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIScreen\PlayingScreen\PlayingScreen.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIScreen\PauseScreen\PauseScreen.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIScreen\InventoryScreen\InventoryScreen.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIScreen\CraftScreen\CraftScreen.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIElement\Craft\Craft.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIElement\Hotbar\Hotbar.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIElement\Inventory\Inventory.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIElement\Pause\Pause.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIElement\IUIElement.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIData.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Camera\CameraController.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\ItemInventory\ItemInventory.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\HaveItem\HaveItem.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\application\ResourceLoader\Data\Item\Bank\ItemDataBank.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -1226,37 +1070,7 @@
     <ClInclude Include="src\application\Facade\App.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\Editor\Editor.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\Editor\ItemEditor\ItemEditor.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\ScreenDrawer\ScreenDrawer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\DirectX\FrameProfiler\FrameProfiler.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIScreen\MiningModeScreen\MiningModeScreen.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\UI\UIElement\MiningMode\MiningMode.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\SwingMining\SwingMining.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\RangeMining\RangeMining.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Map\SkyBox\SkyBox.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Map\Terrain\FaceDataPagePool\FaceDataPagePool.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Character\CharacterManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\AssetManager\Font\FontManager.h">
@@ -1265,16 +1079,13 @@
     <ClInclude Include="externals\stb\stb_truetype.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\GameObjects\Map\Terrain\Terrain.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObjects\EventBus\EventBus.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\GameManager\Phase\TestPhase\TestPhase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

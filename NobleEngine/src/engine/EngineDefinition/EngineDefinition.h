@@ -803,6 +803,11 @@ struct EulerTransforms
     Vector3 scale = { 1,1,1 };
     Vector3 rotate = { 0,0,0 };
     Vector3 translate = { 0,0,0 };
+
+	Matrix4x4 GetWorldMatrix() const
+	{
+		return Matrix4x4::MakeAffineMatrix(scale, rotate, translate);
+	}
 };
 struct QuaternionTransforms
 {

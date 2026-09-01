@@ -20,10 +20,15 @@ cbuffer ViewProjectionMatrix : register(b0)
     float4x4 vp;
 }
 
-StructuredBuffer<float4x4> worldList : register(t0);
+cbuffer HeapSlot : register(b1)
+{
+    uint worldMatrix;
+};
 
 VSOutput main(VSInput input)
 {
+    StructuredBuffer<float4x4> worldList = ResourceDescriptorHeap[worldMatrix];
+    
     VSOutput output;
     float4x4 world = worldList[input.instanceID];
     float4 worldPos = mul(input.position, world);

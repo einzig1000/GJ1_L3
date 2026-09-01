@@ -9,15 +9,12 @@
 
 
 // ゲームのフェーズ
-enum class PHASE
+enum class Phase
 {
     Phase_None,
     Phase_Test,
-    Phase_Test2,
     Phase_Title,
     Phase_GameScene,
-    Phase_StageSelect,
-    Phase_GameClear,
 };
 
 

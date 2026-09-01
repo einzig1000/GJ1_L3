@@ -2,16 +2,12 @@
 #include <Game.h>
 #include <definition/definition.h>
 #include <definition/constexprs.h>
-#include <DrawSystem/RenderData/RenderObject.h>
 #include <ImGuiManager/ImGuiManager.h>
 #include <memory>
 
 // フェーズ間
 struct PhaseContext
 {
-	std::string mapName = "default";
-	bool isNewGame = false;
-	uint32_t seed = 123456;
 };
 
 class IPhase
@@ -26,11 +22,11 @@ public:
 	virtual	void Draw() = 0;
 	virtual void DrawImGui() = 0;
 
-	virtual void ChangePhase(PHASE phase);
-	virtual PHASE GetNextPhase();
+	virtual void ChangePhase(Phase phase);
+	virtual Phase GetNextPhase();
 
 protected:
-	PHASE nextPhase_ = PHASE::Phase_None;
+	Phase nextPhase_ = Phase::Phase_None;
 
 	PhaseContext* context_ = nullptr;
 };

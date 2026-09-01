@@ -29,7 +29,7 @@ ModelPreview::ModelPreview(DirectXManager* dxManager, CameraManager* cameraManag
 		UINT(renderTargetSize.x),
 		UINT(renderTargetSize.y),
 		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
-		"ModelPreviewRenderTarget" ,Vector4{ 0.11f, 0.11f, 0.11f, 1.0f }
+		"ModelPreviewRenderTarget", Vector4{ 0.11f, 0.11f, 0.11f, 1.0f }
 	);
 
 	textureID = Engine::Instance().GetAssetManager()->GetTextureManager()->GetTextureLoader()->LoadTexture("assets/engine/texture/uvChecker.png");
@@ -301,6 +301,8 @@ void ModelPreview::DrawImGui()
 				ImGui::DragFloat("Radius", &sphere.radius, 0.01f, 0.01f, 100.0f);
 			}
 
+			ImGui::SetCursorPosX(imTextureSize.x + 15.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
 			if (ImGui::Button("Save"))
 			{
 				auto path = std::filesystem::path(modelData_->filePath);
