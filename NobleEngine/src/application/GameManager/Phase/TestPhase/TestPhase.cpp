@@ -12,6 +12,7 @@ TestPhase::TestPhase()
 	m_cube_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
 	m_plane_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
 	m_human_ = Game::Asset::Model::Load("assets/engine/model/human/sneakWalk.gltf");
+	m_gentleman_ = Game::Asset::Model::Load("assets/application/model/gentleman/gentleman.gltf");
 	// テクスチャ
 	t_monsterBall_ = Game::Asset::Texture::Load("assets/engine/texture/monsterBall.png");
 	t_uvChecker_ = Game::Asset::Texture::Load("assets/engine/texture/uvChecker.png");

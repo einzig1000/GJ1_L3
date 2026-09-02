@@ -741,16 +741,39 @@ namespace Game
 		/// <param name="bytes">初期化するバイト数</param>
 		void ZeroFillCompute(int32_t resourceID, size_t bytes);
 
+
 		/// <summary>
-		/// 動的リソースの更新
+		/// 連続コンテナ全体を送る。vector / 生配列 / std::array / span すべて受け付ける
 		/// </summary>
-		/// <param name="resourceID">リソースID</param>
-		/// <param name="data">更新するデータ</param>
-		template<typename T>
-		void UpdateData(int32_t resourceID, const std::vector<T>& data)
+		template<typename Range>
+			requires requires(const Range& r) { std::data(r); std::size(r); }
+		void UpdateData(int32_t resourceID, const Range& data)
 		{
-			Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, data.data(), sizeof(T), data.size());
+			using T = std::remove_cvref_t<decltype(*std::data(data))>;
+			Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, std::data(data), sizeof(T), std::size(data));
 		}
+
+		/// <summary>
+		/// 先頭ポインタ + 個数。部分送信や単体送信用
+		/// </summary>
+		template<typename T>
+		void UpdateData(int32_t resourceID, const T* data, size_t count)
+		{
+			Engine::Instance().GetStructuredBufferManager()
+				->UpdateData(resourceID, data, sizeof(T), count);
+		}
+
+
+		///// <summary>
+		///// 動的リソースの更新
+		///// </summary>
+		///// <param name="resourceID">リソースID</param>
+		///// <param name="data">更新するデータ</param>
+		//template<typename T>
+		//void UpdateData(int32_t resourceID, const std::vector<T>& data)
+		//{
+		//	Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, data.data(), sizeof(T), data.size());
+		//}
 
 		/// <summary>
 		/// リソースのSRVを取得

@@ -21,6 +21,7 @@ private:
 	int32_t m_cube_ = -1;
 	int32_t m_plane_ = -1;
 	int32_t m_human_ = -1;
+	int32_t m_gentleman_ = -1;
 	// テクスチャID
 	int32_t t_uvChecker_ = -1;
 	int32_t t_monsterBall_ = -1;
