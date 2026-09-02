@@ -42,9 +42,8 @@ struct RootParam
 	uint32_t sizeBytes = 0;     // 自身のサイズ。CBuffer用ストレージ内でどれだけのサイズが必要か。
 	uint32_t offsetBytes = 0;   // cpuStorage_ 内オフセット
 
-    // SRV/UAV用 Allocation.index
-    uint32_t srvAllocIndex = UINT32_MAX;
-    uint32_t uavAllocIndex = UINT32_MAX;
+    // SRV/UAV用 allocation.index
+    uint32_t allocIndex = UINT32_MAX;
 
     void ComputeHash()
     {

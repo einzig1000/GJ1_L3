@@ -25,7 +25,7 @@ private:
 
 	int32_t WellSRVID_ = -1;
 	int32_t vertexSRVID_ = -1;
-	std::vector<VertexData> vertices;
+	std::vector<VertexData> vertices_;
 	int32_t vertexInflenceSRVID_ = -1;
 	std::vector<VertexInfluence> vertexInfluences;
 

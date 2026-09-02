@@ -50,9 +50,20 @@ namespace Game
 				return Engine::Instance().GetAssetManager()->GetAnimationManager()->GetAnimationBank()->GetAnimationData(animationID);
 			}
 
-			void ComputeAnimationData(int32_t animationID, Skeleton& skeleton, SkinCluster& skinCluster, float& time)
+			SkinInstance CreateSkinInstance(int32_t modelID)
 			{
-				Engine::Instance().GetAssetManager()->GetAnimationManager()->GetAnimationComputer()->UpdateAnimation(animationID, skeleton, skinCluster, time);
+				const ModelData* modelData = Game::Asset::Model::GetData(modelID);
+
+				SkinInstance inst;
+				inst.skeleton = modelData->skeleton;
+				inst.palette.resize(modelData->skeleton.joints.size());
+				inst.paletteHandle = Engine::Instance().GetStructuredBufferManager()->CreateDynamic();
+				return inst;
+			}
+
+			void ComputeAnimationData(int32_t animationID, SkinInstance& skin, const SkinBindData& bind, float& time)
+			{
+				Engine::Instance().GetAssetManager()->GetAnimationManager()->GetAnimationComputer()->ComputeAnimationData(animationID, skin, bind, time);
 			}
 		}
 
@@ -579,11 +590,6 @@ namespace Game
 		void ZeroFillCompute(int32_t resourceID, size_t bytes)
 		{
 			Engine::Instance().GetStructuredBufferManager()->ZeroFillCompute(resourceID, bytes);
-		}
-
-		void UpdateData(int32_t resourceID, const void* data, size_t elementSize, size_t elementCount)
-		{
-			Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, data, elementSize, elementCount);
 		}
 
 		uint32_t GetSRV(int32_t resourceID)

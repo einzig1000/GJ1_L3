@@ -61,14 +61,16 @@ namespace Game
 			/// <returns>アニメーションデータ</returns>
 			AnimationData* GetData(int32_t animationID);
 
+			SkinInstance CreateSkinInstance(int32_t modelID);
+
 			/// <summary>
 			/// アニメーションの再生
 			/// </summary>
 			/// <param name="animationID">アニメーションID</param>
-			/// <param name="skeleton">スケルトン</param>
-			/// <param name="skinCluster">スキンクラスター</param>
+			/// <param name="skin">CreateSkinInstanceで作成したスキンインスタンス</param>
+			/// <param name="bind"></param>
 			/// <param name="time">時間</param>
-			void ComputeAnimationData(int32_t animationID, Skeleton& skeleton, SkinCluster& skinCluster, float& time);
+			void ComputeAnimationData(int32_t animationID, SkinInstance& skin, const SkinBindData& bind, float& time);
 		}
 
 		namespace Texture
@@ -744,9 +746,11 @@ namespace Game
 		/// </summary>
 		/// <param name="resourceID">リソースID</param>
 		/// <param name="data">更新するデータ</param>
-		/// <param name="elementSize">要素のサイズ</param>
-		/// <param name="elementCount">要素の数</param>
-		void UpdateData(int32_t resourceID, const void* data, size_t elementSize, size_t elementCount);
+		template<typename T>
+		void UpdateData(int32_t resourceID, const std::vector<T>& data)
+		{
+			Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, data.data(), sizeof(T), data.size());
+		}
 
 		/// <summary>
 		/// リソースのSRVを取得

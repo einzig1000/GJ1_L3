@@ -207,11 +207,11 @@ namespace ShaderReflection
                 switch (bind.Dimension)
                 {
                 case D3D_SRV_DIMENSION_TEXTURE2D:
-                    p.srvAllocIndex = 0;
+                    p.allocIndex = 0;
                     break;
 
                 case D3D_SRV_DIMENSION_TEXTURECUBE:
-                    p.srvAllocIndex = 0;
+                    p.allocIndex = 0;
                     break;
 
                 default:

@@ -417,7 +417,7 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> PipelineStateManager::CreateRootSign
             range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
             const UINT reg = static_cast<UINT>(param.key);
             range.BaseShaderRegister = reg;
-            if (param.srvAllocIndex == 0)
+            if (param.allocIndex == 0)
             {
                 range.NumDescriptors = UINT_MAX;
             }

@@ -148,8 +148,8 @@ void DrawSystem::DrawObject(const RenderObject* renderObject)
 		}
 		else if (param.paramType == ParamType::SRV)
 		{
-			assert(param.srvAllocIndex != UINT32_MAX);
-			cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(i), srvManager->GetGPUHandleAt(param.srvAllocIndex));
+			assert(param.allocIndex != UINT32_MAX);
+			cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(i), srvManager->GetGPUHandleAt(param.allocIndex));
 		}
 	}
 

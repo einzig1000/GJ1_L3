@@ -11,7 +11,7 @@ public:
 
 	void SetCBufferData(const uint32_t key, const void* data, uint32_t space = 0);
 	void SetSBufferData(const uint32_t key, const uint32_t srvAllocIndex, uint32_t space = 0);
-	void SetUAVData(const uint32_t key, const uint32_t uavAllocIndex, uint32_t space = 0);
+	void SetUAVData(const uint32_t key, const uint32_t allocIndex, uint32_t space = 0);
 
 	void Dispatch();
 

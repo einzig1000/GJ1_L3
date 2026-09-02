@@ -12,7 +12,7 @@ namespace
 {
     Matrix4x4 aiMatrix4x4ToMatrix4x4(const aiMatrix4x4& aiMat)
 	{
-		Matrix4x4 result;
+        Matrix4x4 result;
 
         result.m[0][0] = aiMat.a1;
         result.m[1][0] = aiMat.a2;
@@ -122,7 +122,7 @@ void ModelLoader::LoadModelFile(const std::string& filePath, ModelData* modelDat
 	// 頂点データ & インデックスデータの最適化
     //{
     //    std::vector<uint32_t> remap(modelData->vertices.size());
-
+    //
     //    size_t vertexCount = meshopt_generateVertexRemap(
     //        remap.data(),
     //        modelData->indices.data(),
@@ -130,17 +130,17 @@ void ModelLoader::LoadModelFile(const std::string& filePath, ModelData* modelDat
     //        modelData->vertices.data(),
     //        modelData->vertices.size(),
     //        sizeof(VertexData));
-
+    //
     //    std::vector<VertexData> vertices(vertexCount);
     //    std::vector<uint32_t> indices(modelData->indices.size());
-
+    //
     //    // インデックスバッファをリマップ
     //    meshopt_remapIndexBuffer(
     //        indices.data(),
     //        modelData->indices.data(),
     //        modelData->indices.size(),
     //        remap.data());
-
+    //
     //    // 頂点データをリマップ
     //    meshopt_remapVertexBuffer(
     //        vertices.data(),
@@ -148,18 +148,18 @@ void ModelLoader::LoadModelFile(const std::string& filePath, ModelData* modelDat
     //        modelData->vertices.size(),
     //        sizeof(VertexData),
     //        remap.data());
-
+    //
     //    // 最適なサイズに圧縮
     //    modelData->vertices.resize(vertices.size());
     //    modelData->indices.resize(indices.size());
-
+    //
     //    // 頂点キャッシュ最適化
     //    meshopt_optimizeVertexCache(
     //        modelData->indices.data(),
     //        indices.data(),
     //        indices.size(),
     //        vertexCount);
-
+    //
     //    // オーバードロー最適化
     //    meshopt_optimizeOverdraw(
     //        modelData->indices.data(),
@@ -169,7 +169,7 @@ void ModelLoader::LoadModelFile(const std::string& filePath, ModelData* modelDat
     //        vertices.size(),
     //        sizeof(VertexData),
     //        1.05f);
-
+    //
     //    // 頂点フェッチ最適化
     //    meshopt_optimizeVertexFetch(
     //        modelData->vertices.data(),
@@ -384,7 +384,7 @@ void ModelLoader::LoadModelFile(const std::string& filePath, ModelData* modelDat
     }
 
     /// スキンクラスタ作成
-    modelData->skinCluster = CreateSkinCluster(modelData);
+    modelData->skinBindData = CreateSkinBindData(modelData);
 }
 
 Node ModelLoader::ReadNode(const aiNode* node)
@@ -408,58 +408,66 @@ Node ModelLoader::ReadNode(const aiNode* node)
     return result;
 }
 
-SkinCluster ModelLoader::CreateSkinCluster(const ModelData* modelData)
+SkinBindData ModelLoader::CreateSkinBindData(const ModelData* modelData)
 {
-	SkinCluster skinCluster;
+    auto backbufferIndex = dxManager_->GetSwapChain()->GetCurrentBackBufferIndex();
+	auto* cmdList = dxManager_->GetCommandContextManager()->GetCommandList(backbufferIndex);
 
-	// palette用のResourceを作成
-	skinCluster.paletteResource = Dx12ResourceFactory::CreateBufferResource(dxManager_->GetDevice(), sizeof(WellForGPU) * modelData->skeleton.joints.size());
-	WellForGPU* wData = nullptr;
-	skinCluster.paletteResource->Map(0, nullptr, reinterpret_cast<void**>(&wData));
-	skinCluster.mappedPalette = { wData, modelData->skeleton.joints.size() };
-	SRV_UAVManager::Allocation allocation = dxManager_->GetDescriptorHeapManager()->GetSRV_UAVManager()->CreateSRVforStructuredBuffer(skinCluster.paletteResource.Get(), static_cast<UINT>(modelData->skeleton.joints.size()), sizeof(WellForGPU));
-    skinCluster.paletteSrvHandle.first = dxManager_->GetDescriptorHeapManager()->GetSRV_UAVManager()->GetCPUHandleAt(allocation.index);
-   	skinCluster.paletteSrvHandle.second = dxManager_->GetDescriptorHeapManager()->GetSRV_UAVManager()->GetGPUHandleAt(allocation.index);
+    SkinBindData bind;
+    
+    if (modelData->skinClusterData.empty() || modelData->vertices.empty())
+    {
+        return bind;
+    }
 
-	// influence用のResourceを作成
-	skinCluster.influenceResource = Dx12ResourceFactory::CreateBufferResource(dxManager_->GetDevice(), sizeof(VertexInfluence) * modelData->vertices.size());
-	VertexInfluence* iData = nullptr;
-	skinCluster.influenceResource->Map(0, nullptr, reinterpret_cast<void**>(&iData));
-	std::memset(iData, 0, sizeof(VertexInfluence) * modelData->vertices.size());
-	skinCluster.mappedInfluences = { iData, modelData->vertices.size() };
-	skinCluster.influenceBufferView.BufferLocation = skinCluster.influenceResource->GetGPUVirtualAddress();
-	skinCluster.influenceBufferView.SizeInBytes = static_cast<UINT>(sizeof(VertexInfluence) * modelData->vertices.size());
-	skinCluster.influenceBufferView.StrideInBytes = sizeof(VertexInfluence);
+    const size_t jointCount = modelData->skeleton.joints.size();
+    const size_t vertexCount = modelData->vertices.size();
 
-	skinCluster.inverseBindPoseMatrices.resize(modelData->skeleton.joints.size());
-	std::generate(skinCluster.inverseBindPoseMatrices.begin(), skinCluster.inverseBindPoseMatrices.end(), Matrix4x4::MakeIdentity4x4 );
+    // バインドポーズ逆行列
+    bind.inverseBindPoseMatrices.assign(jointCount, Matrix4x4::MakeIdentity4x4());
 
-	// modelDataのskinClusterDataからJointWeightDataを取得し、各JointのInverseBindPoseMatrixを保存する
-	for (const auto& [jointName, jointWeightData] : modelData->skinClusterData)
-	{
-		auto jointIt = modelData->skeleton.jointIndexByName.find(jointName);
-		if (jointIt != modelData->skeleton.jointIndexByName.end())
-		{
-			size_t jointIndex = jointIt->second;
-			skinCluster.inverseBindPoseMatrices[jointIndex] = jointWeightData.inverseBindPoseMatrix;
-			// 各頂点の影響を設定
-			for (const auto& vertexWeight : jointWeightData.vertexWeights)
-			{
-				VertexInfluence& influence = skinCluster.mappedInfluences[vertexWeight.vertexIndex];
-				for (size_t i = 0; i < 4; ++i)
-				{
-					if (influence.weights[i] == 0.0f)
-					{
-						influence.weights[i] = vertexWeight.weight;
-						influence.jointIndices[i] = static_cast<uint32_t>(jointIndex);
-						break;
-					}
-				}
-			}
-		}
-	}
+    // influence
+    std::vector<VertexInfluence> influences(vertexCount);
+    for (const auto& [jointName, jointWeightData] : modelData->skinClusterData)
+    {
+        auto jointIt = modelData->skeleton.jointIndexByName.find(jointName);
+        if (jointIt == modelData->skeleton.jointIndexByName.end()) continue;
 
-	return skinCluster;
+        const size_t jointIndex = jointIt->second;
+        assert(jointIndex < jointCount);
+        bind.inverseBindPoseMatrices[jointIndex] = jointWeightData.inverseBindPoseMatrix;
+
+        // 各頂点の影響を設定
+        for (const auto& vertexWeight : jointWeightData.vertexWeights)
+        {
+            assert(vertexWeight.vertexIndex < vertexCount);
+            VertexInfluence& influence = influences[vertexWeight.vertexIndex];
+            for (size_t i = 0; i < 4; ++i)
+            {
+                if (influence.weights[i] == 0.0f)
+                {
+                    influence.weights[i] = vertexWeight.weight;
+                    influence.jointIndices[i] = static_cast<int32_t>(jointIndex);
+                    break;
+                }
+            }
+        }
+    }
+
+    // DEFAULTヒープへアップ(頂点バッファと同じ流儀)
+    bind.influenceBuffer = Dx12ResourceFactory::CreateDefaultBufferResource(dxManager_->GetDevice(), sizeof(VertexInfluence) * vertexCount);
+
+    intermediateUploadResources_.push_back(
+        Dx12ResourceFactory::CreateUploadResource(bind.influenceBuffer.Get(), influences, dxManager_->GetDevice(), cmdList));
+
+    // ---- StructuredBufferとしてのSRVを作り、ヒープインデックスを保持する ----
+    // ここでインデックスを持っておくことで、アプリ側の CreateStatic() による二重確保が不要になる
+    bind.influenceHeapSlot = dxManager_->GetDescriptorHeapManager()->GetSRV_UAVManager()->CreateSRVforStructuredBuffer(
+        bind.influenceBuffer.Get(),
+        static_cast<UINT>(vertexCount),
+        static_cast<UINT>(sizeof(VertexInfluence))).index;
+
+    return bind;
 }
 
 // スケルトンの作成

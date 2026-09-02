@@ -174,6 +174,15 @@ void ModelPreview::DrawImGui()
 		ImVec2 imagePos = ImGui::GetCursorScreenPos();
 		ImGui::Image(ImTextureID(dxManager_->GetRenderTextureManager()->Get(renderTarget_)->colorsrvAlloc.gpu.ptr), imTextureSize);
 		ImGui::SameLine();
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DAD_TEXTURE_ID"))
+			{
+				IM_ASSERT(payload->DataSize == sizeof(int32_t));
+				textureID = *reinterpret_cast<const int32_t*>(payload->Data);
+			}
+			ImGui::EndDragDropTarget();
+		}
 
 		// ギズモ操作
 		Matrix4x4 viewMatrix = cameraManager_->GetCamera(cameraID_)->GetViewMatrix();
@@ -323,15 +332,6 @@ void ModelPreview::DrawImGui()
 			ImGui::SetDragDropPayload("DAD_MODEL_ID", &modelRenderObject_->modelID_, sizeof(int32_t));
 			ImGui::Text("Model ID %d", modelRenderObject_->modelID_);
 			ImGui::EndDragDropSource();
-		}
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DAD_TEXTURE_ID"))
-			{
-				IM_ASSERT(payload->DataSize == sizeof(int32_t));
-				textureID = *reinterpret_cast<const int32_t*>(payload->Data);
-			}
-			ImGui::EndDragDropTarget();
 		}
 
 		ImGui::End();

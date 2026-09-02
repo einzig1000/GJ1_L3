@@ -82,15 +82,10 @@ void ComputeSystem::DispatchComputeObject(const ComputeObject* computeObject)
 			std::memcpy(alloc.cpu, cpuStorage.data() + param.offsetBytes, param.sizeBytes);
 			cmdList->SetComputeRootConstantBufferView(static_cast<UINT>(i), alloc.gpu);
 		}
-		else if (param.paramType == ParamType::SRV)
+		else if (param.paramType == ParamType::UAV || param.paramType == ParamType::SRV)
 		{
-			assert(param.srvAllocIndex != UINT32_MAX);
-			cmdList->SetComputeRootDescriptorTable(static_cast<UINT>(i), srvUavManager->GetGPUHandleAt(param.srvAllocIndex));
-		}
-		else if (param.paramType == ParamType::UAV)
-		{
-			assert(param.uavAllocIndex != UINT32_MAX);
-			cmdList->SetComputeRootDescriptorTable(static_cast<UINT>(i), srvUavManager->GetGPUHandleAt(param.uavAllocIndex));
+			assert(param.allocIndex != UINT32_MAX);
+			cmdList->SetComputeRootDescriptorTable(static_cast<UINT>(i), srvUavManager->GetGPUHandleAt(param.allocIndex));
 		}
 	}
 

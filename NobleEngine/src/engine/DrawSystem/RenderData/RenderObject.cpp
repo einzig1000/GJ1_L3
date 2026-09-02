@@ -108,7 +108,7 @@ void RenderObject::SetSBufferData(const uint32_t key, ShaderType shaderType, con
 	if (it == rootParamHashToIndexMap_.end()) return;
 	auto& param = rootParams_.at(it->second);
 
-	param.srvAllocIndex = srvAllocIndex;
+	param.allocIndex = srvAllocIndex;
 }
 
 

@@ -60,10 +60,10 @@ void ComputeObject::SetSBufferData(const uint32_t key, const uint32_t srvAllocIn
 	if (it == rootParamHashToIndexMap_.end()) return;
 	auto& param = rootParams_.at(it->second);
 
-	param.srvAllocIndex = srvAllocIndex;
+	param.allocIndex = srvAllocIndex;
 }
 
-void ComputeObject::SetUAVData(const uint32_t key, const uint32_t uavAllocIndex, uint32_t space)
+void ComputeObject::SetUAVData(const uint32_t key, const uint32_t allocIndex, uint32_t space)
 {
 	RootParam tempParam{};
 	tempParam.paramType = ParamType::UAV;
@@ -76,7 +76,7 @@ void ComputeObject::SetUAVData(const uint32_t key, const uint32_t uavAllocIndex,
 	if (it == rootParamHashToIndexMap_.end()) return;
 	auto& param = rootParams_.at(it->second);
 
-	param.uavAllocIndex = uavAllocIndex;
+	param.allocIndex = allocIndex;
 }
 
 void ComputeObject::Dispatch()

@@ -4,41 +4,40 @@
 
 TestAnimation::TestAnimation()
 {
-	render_ = std::make_unique<RenderObject>();
-	render_->modelID_ = Game::Asset::Model::Load("assets/engine/model/human/sneakWalk.gltf");
-	render_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
-	//render_->psoConfig_.vs = "assets/shaders/Skinning/Skinning.VS.hlsl";
-	render_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModelNonIASet.VS.hlsl";
-	render_->SetupFromShaders();
+	//// アニメーションデータ
+	//animationID_ = Game::Asset::Animation::Load("assets/engine/model/human/sneakWalk.gltf", "sneakWalk");
+	//// テクスチャデータ
+	//texID_ = Game::Asset::Texture::Load("assets/engine/texture/AnimatedCube_BaseColor.png");
+	//// モデルデータ
+	//int32_t modelID = Game::Asset::Model::Load("assets/engine/model/human/sneakWalk.gltf");
 
-	compute_ = std::make_unique<ComputeObject>();
-	compute_->psoConfig_.cs = "assets/shaders/Skinning/Skinning.CS.hlsl";
-	compute_->SetupFromShaders();
+	//const ModelData* modelData = Game::Asset::Model::GetData(modelID);
+	//vertices_ = modelData->vertices;
+	//skeleton_ = modelData->skeleton;
+	//skinCluster_ = modelData->skinCluster;
+	//vertexInfluences.resize(modelData->skinCluster.mappedInfluences.size());
+	//for (int32_t i = 0; i < modelData->skinCluster.mappedInfluences.size(); i++)
+	//{
+	//	vertexInfluences[i] = modelData->skinCluster.mappedInfluences[i];
+	//}
 
-	// アニメーションデータ
-	animationID_ = Game::Asset::Animation::Load("assets/engine/model/human/sneakWalk.gltf", "sneakWalk");
-	// テクスチャデータ
-	texID_ = Game::Asset::Texture::Load("assets/engine/texture/AnimatedCube_BaseColor.png");
-	// 動的SRVの作成
-	WellSRVID_ = Game::Resource::CreateDynamic();
-	vertexSRVID_ = Game::Resource::CreateDynamic();
-	vertexInflenceSRVID_ = Game::Resource::CreateDynamic();
+	//// 動的SRVの作成
+	//WellSRVID_ = Game::Resource::CreateDynamic();
+	//vertexSRVID_ = Game::Resource::CreateDynamic();
+	//vertexInflenceSRVID_ = Game::Resource::CreateDynamic();
+	//resultSRVID_ = Game::Resource::CreateCompute(sizeof(VertexData), size_t(modelData->vertices.size()));
 
-	const ModelData* modelData = Game::Asset::Model::GetData(render_->modelID_);
-	vertices = modelData->vertices;
-	skeleton_ = modelData->skeleton;
-	skinCluster_ = modelData->skinCluster;
-	vertexInfluences.resize(modelData->skinCluster.mappedInfluences.size());
-	for (int32_t i = 0; i < modelData->skinCluster.mappedInfluences.size(); i++)
-	{
-		vertexInfluences[i] = modelData->skinCluster.mappedInfluences[i];
-	}
+	//render_ = std::make_unique<RenderObject>();
+	//render_->modelID_ = modelID;
+	//render_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+	//render_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModelNonIASet.VS.hlsl";
+	//render_->SetupFromShaders();
 
-	resultSRVID_ = Game::Resource::CreateCompute(sizeof(VertexData), size_t(modelData->vertices.size()));
-
-	compute_->size.x = int32_t(modelData->vertices.size());
-
-	compute_->RegisterOutput(resultSRVID_);
+	//compute_ = std::make_unique<ComputeObject>();
+	//compute_->psoConfig_.cs = "assets/shaders/Skinning/Skinning.CS.hlsl";
+	//compute_->SetupFromShaders();
+	//compute_->RegisterOutput(resultSRVID_);
+	//compute_->size.x = int32_t(modelData->vertices.size());
 }
 
 TestAnimation::~TestAnimation()
@@ -49,45 +48,46 @@ void TestAnimation::Initialize()
 
 void TestAnimation::Update(int32_t cameraID)
 {
-	animationTime_ += Game::Time::GetScaledDeltaTimeMs();
-	//animationTime_ = 0.5f;
+	//animationTime_ += Game::Time::GetScaledDeltaTimeMs();
 
-	Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-	Vector4 color = Vector4{ 1.0f,1.0f,1.0f,1.0f };
+	//Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
+	//Vector4 color = Vector4{ 1.0f,1.0f,1.0f,1.0f };
+	//Matrix4x4 animationMatrix = Matrix4x4::MakeIdentity4x4();
+	//Matrix4x4 worldViewProjection = animationMatrix * viewProjection;
 
-	Game::Asset::Animation::ComputeAnimationData(animationID_, skeleton_, skinCluster_, animationTime_);
+	//Game::Asset::Animation::ComputeAnimationData(animationID_, skeleton_, skinCluster_, animationTime_);
 
-	Matrix4x4 animationMatrix = Matrix4x4::MakeIdentity4x4();
-	Matrix4x4 worldViewProjection = animationMatrix * viewProjection;
 
-	Game::Resource::UpdateData(WellSRVID_, skinCluster_.mappedPalette.data(), sizeof(WellForGPU), skinCluster_.mappedPalette.size());
-	Game::Resource::UpdateData(vertexSRVID_, vertices.data(), sizeof(VertexData), vertices.size());
-	Game::Resource::UpdateData(vertexInflenceSRVID_, vertexInfluences.data(), sizeof(VertexInfluence), vertexInfluences.size());
+	//Game::Resource::UpdateData(WellSRVID_, skinCluster_.mappedPalette.data(), sizeof(WellForGPU), skinCluster_.mappedPalette.size());
+	//Game::Resource::UpdateData(vertexSRVID_, vertices_.data(), sizeof(VertexData), vertices_.size());
+	//Game::Resource::UpdateData(vertexInflenceSRVID_, vertexInfluences.data(), sizeof(VertexInfluence), vertexInfluences.size());
 
-	render_->SetCBufferData(0, ShaderType::PixelShader, &color);
-	render_->SetCBufferData(1, ShaderType::PixelShader, &texID_);
-	render_->SetCBufferData(0, ShaderType::VertexShader, &worldViewProjection);
-	render_->SetCBufferData(1, ShaderType::VertexShader, &animationMatrix);
-	render_->SetSBufferData(0, ShaderType::VertexShader, Game::Resource::GetSRV(resultSRVID_));
+	//render_->SetCBufferData(0, ShaderType::PixelShader, &color);
+	//render_->SetCBufferData(1, ShaderType::PixelShader, &texID_);
+	//render_->SetCBufferData(0, ShaderType::VertexShader, &worldViewProjection);
+	//render_->SetCBufferData(1, ShaderType::VertexShader, &animationMatrix);
+	//render_->SetSBufferData(0, ShaderType::VertexShader, Game::Resource::GetSRV(resultSRVID_));
 
-	compute_->SetSBufferData(0, Game::Resource::GetSRV(WellSRVID_));
-	compute_->SetSBufferData(1, Game::Resource::GetSRV(vertexSRVID_));
-	compute_->SetSBufferData(2, Game::Resource::GetSRV(vertexInflenceSRVID_));
-	compute_->SetUAVData(0, Game::Resource::GetUAV(resultSRVID_));
-	uint32_t numVertices = static_cast<uint32_t>(vertices.size());
-	compute_->SetCBufferData(0, &numVertices);
+	//compute_->SetSBufferData(0, Game::Resource::GetSRV(WellSRVID_));
+	//compute_->SetSBufferData(1, Game::Resource::GetSRV(vertexSRVID_));
+	//compute_->SetSBufferData(2, Game::Resource::GetSRV(vertexInflenceSRVID_));
+	//compute_->SetUAVData(0, Game::Resource::GetUAV(resultSRVID_));
+	//uint32_t numVertices = static_cast<uint32_t>(vertices_.size());
+	//compute_->SetCBufferData(0, &numVertices);
 }
 
 void TestAnimation::Draw(int32_t renderTextureID)
 {
-	render_->Draw(renderTextureID);
-	compute_->Dispatch();
+	//render_->Draw(renderTextureID);
+	//compute_->Dispatch();
 }
+
+
 
 Vector3 TestAnimation::GetVetexPos(int32_t index)
 {
 	const VertexInfluence& influence = vertexInfluences[index];
-	const Vector4& localPosition = vertices[index].position;
+	const Vector4& localPosition = vertices_[index].position;
 
 	Vector4 skinnedPosition = { 0.0f, 0.0f, 0.0f, 0.0f };
 

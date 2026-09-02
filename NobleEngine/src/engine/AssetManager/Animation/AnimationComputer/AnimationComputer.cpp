@@ -57,13 +57,27 @@ AnimationComputer::AnimationComputer(AnimationBank* bank)
 AnimationComputer::~AnimationComputer()
 {}
 
-void AnimationComputer::UpdateAnimation(int32_t animationID, Skeleton& skeleton, SkinCluster& skinCluster, float& time)
+// AnimationComputer.cpp
+void AnimationComputer::ComputeAnimationData(int32_t animationID, SkinInstance& skin, const SkinBindData& bind, float& time)
 {
 	AnimationData* animationData = bank_->GetAnimationData(animationID);
 	time = fmod(time, animationData->duration);
-	ApplyAnimation(skeleton, *animationData, time);
-	UpdateSkeleton(skeleton);
-	UpdateSkinCluster(skeleton, skinCluster);
+	ApplyAnimation(skin.skeleton, *animationData, time);
+	UpdateSkeleton(skin.skeleton);
+	UpdatePalette(skin.skeleton, bind, skin.palette);
+}
+
+void AnimationComputer::UpdatePalette(const Skeleton& skeleton, const SkinBindData& bind, std::vector<WellForGPU>& palette)
+{
+	for (size_t jointIndex = 0; jointIndex < skeleton.joints.size(); ++jointIndex)
+	{
+		assert(jointIndex < bind.inverseBindPoseMatrices.size());
+
+		const Matrix4x4 skeletonSpace = bind.inverseBindPoseMatrices[jointIndex] * skeleton.joints[jointIndex].skeletonSpaceMatrix;
+
+		palette[jointIndex].skeletonSpaceMatrix = skeletonSpace;
+		palette[jointIndex].skeletonSpaceInverseTransposeMatrix = skeletonSpace.Inverse().Transpose();
+	}
 }
 
 void AnimationComputer::ApplyAnimation(Skeleton& skeleton, const AnimationData& animation, float time)
@@ -93,17 +107,5 @@ void AnimationComputer::UpdateSkeleton(Skeleton& skeleton)
 		{
 			joint.skeletonSpaceMatrix = joint.localMatrix;
 		}
-	}
-}
-
-void AnimationComputer::UpdateSkinCluster(const Skeleton& skeleton, SkinCluster& skinCluster)
-{
-	for (size_t jointIndex = 0; jointIndex < skeleton.joints.size(); ++jointIndex)
-	{
-		assert(jointIndex < skinCluster.inverseBindPoseMatrices.size());
-		skinCluster.mappedPalette[jointIndex].skeletonSpaceMatrix =
-			skinCluster.inverseBindPoseMatrices[jointIndex] * skeleton.joints[jointIndex].skeletonSpaceMatrix;
-		skinCluster.mappedPalette[jointIndex].skeletonSpaceInverseTransposeMatrix =
-			skinCluster.mappedPalette[jointIndex].skeletonSpaceMatrix.Inverse().Transpose();
 	}
 }

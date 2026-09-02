@@ -26,7 +26,7 @@ cbuffer World : register(b1)
 StructuredBuffer<Vertex> gVertices : register(t0);
 
 VSOutput main(uint vertexID : SV_VertexID)
-{
+{    
     VSOutput output;
     Vertex vertex = gVertices[vertexID];
     output.position = mul(vertex.position, wvp);

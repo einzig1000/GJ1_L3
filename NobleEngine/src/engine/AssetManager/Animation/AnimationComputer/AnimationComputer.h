@@ -9,9 +9,10 @@ public:
 	AnimationComputer(AnimationBank* bank);
 	~AnimationComputer();
 
-	void UpdateAnimation(int32_t animationID, Skeleton& skeleton, SkinCluster& skinCluster, float& time);
+	void ComputeAnimationData(int32_t animationID, SkinInstance& skin, const SkinBindData& bind, float& time);
 
 private:
+
 	AnimationBank* bank_;
 
 	// 1,骨ごとのlocal情報を更新し
@@ -21,6 +22,6 @@ private:
 	void UpdateSkeleton(Skeleton& skeleton);
 
 	// 3,SkeltonSpaceの情報からSkinClusterの情報を更新する
-	void UpdateSkinCluster(const Skeleton& skeleton, SkinCluster& skinCluster);
+	void UpdatePalette(const Skeleton& skeleton, const SkinBindData& bind, std::vector<WellForGPU>& palette);
 };
 

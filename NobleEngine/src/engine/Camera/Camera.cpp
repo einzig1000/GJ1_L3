@@ -43,7 +43,7 @@ Camera::Camera()
 	//backToFrontMatrix_.m[2][1] = 0.00000000f;
 	//backToFrontMatrix_.m[2][2] = 0.00000000f;
 	//backToFrontMatrix_.m[2][3] = 0.00000000f;
-	backToFrontMatrix_ = Matrix4x4::MakeRotateYMatrix(3.14159265358979323846f);
+	backToFrontMatrix_ = Matrix4x4::MakeRotateYMatrix(std::numbers::pi_v<float>);
 
 	Resize();
 }
@@ -148,7 +148,7 @@ void Camera::Resize()
 	aspect_ = screenSize_.x / screenSize_.y;
 	projectionMatrix_ = Matrix4x4::MakePerspectiveFovMatrix(fovY_, aspect_, nearZ_, farZ_);
 	viewportMatrix = Matrix4x4::MakeViewPortMatrix(0.0f, 0.0f, screenSize_.x, screenSize_.y, 0.0f, 1.0f);
-	orthoProjectionMatrix_ = Matrix4x4::MakeOrthographicMatrix(0.0f, 0.0f, screenSize_.x, screenSize_.y, nearZ_, farZ_);
+	orthoProjectionMatrix_ = Matrix4x4::MakeOrthographicMatrix(0.0f, 0.0f, screenSize_.x, screenSize_.y, -300.0f, 300.0f);
 }
 
 void Camera::Draw()
