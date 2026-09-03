@@ -9,7 +9,7 @@ namespace Collision {
         const uint32_t attribute,
         const uint32_t mask)
     {
-
+        colliders.clear();
         ModelData modelData = *Game::Asset::Model::GetData(modelID);
 
         size_t aabbCount = modelData.colliderShape.aabbs.size();
@@ -32,8 +32,8 @@ namespace Collision {
         }
 
         // 2. Sphere のセット
-        for (size_t j = sphereCount; j < sphereCount; ++j) {
-            newColliders[j]->SetSphere(modelData.colliderShape.spheres[j]);
+        for (int j = 0; j < sphereCount; ++j) {
+            newColliders[aabbCount+j]->SetSphere(modelData.colliderShape.spheres[j]);
         }
 
         colliders = std::move(newColliders);

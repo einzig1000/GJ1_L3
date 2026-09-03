@@ -197,18 +197,20 @@ namespace Collision {
     AABB GetAABBWorldPos(Collider* aabb)
     {
         //中心点を考慮した座標を取得してくる
-        Vector3 pos = aabb->CalculateWorldPos();
+        EulerTransforms transform = aabb->CalculateWorldTransform();
         AABB aabbWorld = aabb->GetAABB();
-        aabbWorld.min += pos;
-        aabbWorld.max += pos;
+        aabbWorld.min = aabbWorld.min+ transform.translate;
+        aabbWorld.max = aabbWorld.max+ transform.translate;
         return aabbWorld;
     }
 
     Sphere GetSphereWorldPos(Collider* sphere)
     {
         //中心点を考慮した座標を取得してくる
+        EulerTransforms transform = sphere->CalculateWorldTransform();
+
         return Sphere{
-          .center = sphere->CalculateWorldPos(),
+          .center = transform.translate,
           .radius = sphere->GetSphere().radius
         };
     }
@@ -328,7 +330,7 @@ void CollisionManager::CheckAllCollisions() {
         collider->InitCalcuatedTisFrameFlag();
         collider->GetCollisionInfo().collided = false;
         //このフレーム内で更新をかけてみる
-        collider->CalculateWorldPos();
+        collider->CalculateWorldTransform();
     }
 
     // リスト内のペアを総当たり
