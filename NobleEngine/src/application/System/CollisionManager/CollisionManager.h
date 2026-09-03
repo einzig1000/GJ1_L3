@@ -15,12 +15,11 @@ namespace Collision {
     AABB GetAABBWorldPos(Collider* aabb);
 }
 
-
 /// @brief 衝突マネージャ
 class CollisionManager {
 public:
 
-    void LoadTags();
+    void Load();
 
     /// @brief コライダーを追加する
     /// @param collider コライダー
@@ -34,10 +33,17 @@ public:
     /// @brief 衝突判定と応答
     void CheckAllCollisions();
 
+
     //終了処理
     void Finalize();
 
+    //ImGuiにおける走査
     void DebugImGui();
+    //コライダー描画のための更新
+    void DebugUpdate(const int32_t cameraID);
+    //コライダーデバック描画
+    void DebugDraw();
+
 private:
 
 

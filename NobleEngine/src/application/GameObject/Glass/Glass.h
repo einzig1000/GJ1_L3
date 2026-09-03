@@ -2,8 +2,8 @@
 #include<Game.h>
 #include<memory>
 #include<vector>
+#include"../../System/CompoundCollider/CompoundCollider.h"
 class Collider;
-
 class Glass
 {
 public:
@@ -22,7 +22,7 @@ public:
     /// @param type 
     void SetGlassTypeAndLoadModels(const GLASS_TYPE type);
     //コライダーをゲットする
-    std::vector <std::vector<std::unique_ptr<Collider>>>& GetColliders() { return colliders_; };
+    std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 private:
 
     //グラス
@@ -45,7 +45,7 @@ private:
     std::vector<Matrix4x4> worldMatrices_;
     std::vector<Vector4> colors_;
     std::vector<int32_t> textureIndices_;
-    //モデルデータからコライダーを作るよ
-    std::vector <std::vector<std::unique_ptr<Collider>>> colliders_;
+
+    Collision::CompoundCollider comCollider_;
 };
 

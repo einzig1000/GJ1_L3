@@ -32,6 +32,8 @@ void Table::Initialize()
 
 	colors_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	textureIndices_.resize(instanceCount_, textureID_);
+
+	comCollider_.CreateFromModelData(modelID_, worldMatrices_[0], CollisionTag::GetTag("Table"), CollisionTag::GetTag("Glass"));
 }
 
 void Table::Update(const int32_t cameraID)

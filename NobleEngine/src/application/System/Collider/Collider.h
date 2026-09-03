@@ -4,12 +4,14 @@
 #include "../CollisionTag/CollisionTag.h"
 #include "../../../engine/EngineDefinition/EngineDefinition.h"
 #include"../CollisionInfo.h"
+#include"Game.h"
 
 class Camera;
 
 namespace ParentMatrix {
 	Vector3 GetWorldTransformByMatrix(const Matrix4x4& mat);
 }
+
 
 /// @brief 衝突判定オブジェクト
 class Collider {
@@ -24,8 +26,8 @@ public:
 	};
 
 private:
-	float radius_ = 1.0f;	// 衝突半径
 
+	Sphere sphere_ = { .center = {0.0f},.radius = {1.0f} };
 	AABB aabb_;
 
 	uint32_t collisionAttribute_ = 0xffffffff;	// 衝突属性
@@ -34,18 +36,32 @@ private:
 	ColliderType type_ = ColliderType::kColliderType_Sphere;
 	CollisionInfo collisionInfo_;
 	
-	//新しく中心と座標を追加
-	Vector3 center_ = {0.0f,0.0f,0.0f};
 	Matrix4x4* worldMat_ = nullptr;
 
 	Vector3 tempWorldTransform_ = {0.0f};
 
 	bool isCalculatedThisFrame_ = false; // 今フレーム計算済みかどうかのフラグ
 
+
+#ifdef _DEBUG
+
+	//=======================================
+	//==========コライダーデバック表示==========
+	//=======================================
+
+	bool isDrawCollider_ = true;
+	// 描画オブジェクト
+	std::unique_ptr<RenderObject> colliderObj_;
+	Vector4 colliderColor_ = { 0.0f };
+	//=======================================
+#endif
+
 public:
+	static void Load();
+
 	Collider();
 
-	virtual ~Collider();
+	~Collider();
 
 	void InitCalcuatedTisFrameFlag();
 	/// @brief 衝突時コールバック関数
@@ -58,15 +74,18 @@ public:
 	/// @brief ワールド座標を取得する関数の作成
 	/// @return 
 	const Vector3& CalculateWorldPos();
-	/// @brief 中心点を設定する
-	/// @param center 
-	void SetCenter(const Vector3& center) {
-		center_ = center;
+
+	/// @brief 球を設定する
+	/// @param sphere 
+	void SetSphere(const Sphere& sphere) {
+	
+		type_ = ColliderType::kColliderType_Sphere;
+		sphere_ = sphere;
+		ResetColliderType(type_);
 	};
-	/// @brief 中心を取得する
-	/// @return 中心
-	const Vector3& GetCenter() {
-		return center_;
+
+	const Sphere& GetSphere() {
+		return sphere_;
 	}
 
 	/// @brief ワールド行列のアドレスを設定する
@@ -76,21 +95,14 @@ public:
 		worldMat_ = &worldMat;
 	};
 
-	/// @brief 衝突半径を取得する
-	/// @return 衝突半径
-	float GetRadius() const { return radius_; }
-
-	/// @brief 衝突半径を設定する
-	/// @param radius 衝突半径
-	void SetRadius(float radius) { 
-		type_ = ColliderType::kColliderType_Sphere;
-		radius_ = radius; }
-
 	const AABB& GetAABB() const { return aabb_; }
-
+	/// @brief AABBをセットする
+	/// @param aabb 
 	void SetAABB(const AABB& aabb) {
 		type_ = ColliderType::kColliderType_AABB;
 		aabb_ = aabb;
+
+		ResetColliderType(type_);
 	};
 
 	ColliderType GetType() const { return type_; }
@@ -117,6 +129,15 @@ public:
 		return collisionInfo_;
 	}
 
-	void ColliderUpdate();
+	//=======================================
+	//==========コライダーデバック表示==========
+	//=======================================
+
+	void SetIsDrawCollider(const bool flag);
+	void Update(const int32_t cameraID);
+	void Draw();
+	private:
+	void ResetColliderType(const ColliderType& type);
+	//=======================================
 };
 

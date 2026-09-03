@@ -1,5 +1,6 @@
 #pragma once
 #include<Game.h>
+#include"../../System/CompoundCollider/CompoundCollider.h"
 
 class Table
 {
@@ -10,6 +11,8 @@ public:
     void Update(const int32_t cameraID);
     void Draw();
     void DrawImGui();
+    //コライダーをゲットする
+    std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 private:
     //グラス
     std::unique_ptr<RenderObject> obj_ = nullptr;
@@ -31,5 +34,7 @@ private:
     std::vector<Matrix4x4> worldMatrices_;
     std::vector<Vector4> colors_;
     std::vector<int32_t> textureIndices_;
+
+    Collision::CompoundCollider comCollider_;
 };
 
