@@ -4,6 +4,10 @@ Glass::Glass()
 {
 	//カクテルをロードする
 	SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
+
+
+	ModelData modelData = *Game::Asset::Model::GetData(modelID_);
+	modelData.colliderShape.aabbs;
 }
 
 void Glass::Initialize()
