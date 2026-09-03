@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp" />
+    <ClCompile Include="src\application\GameObject\Glass\Glass.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\TestPhase\TestPhase.cpp" />
     <ClCompile Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.cpp" />
     <ClCompile Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.cpp" />
@@ -117,6 +119,8 @@
     <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.h" />
+    <ClInclude Include="src\application\GameObject\Glass\Glass.h" />
     <ClInclude Include="src\application\GameManager\Phase\TestPhase\TestPhase.h" />
     <ClInclude Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.h" />
     <ClInclude Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.h" />

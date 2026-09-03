@@ -15,6 +15,8 @@ enum class Phase
     Phase_Test,
     Phase_Title,
     Phase_GameScene,
+	//仮に衝突テストフェーズを作成する
+	Phase_CollisionTest,
 };
 
 
