@@ -1,6 +1,6 @@
 ### workflow states badge
 
-[![DebugBuild](https://github.com/einzig1000/CG2/actions/workflows/DebugBuild.yml/badge.svg)](https://github.com/einzig1000/CG2/actions/workflows/DebugBuild.yml)
+[![DebugBuild](https://github.com/einzig1000/CG2/actions/workflows/DebugBuild.yml/badge.svg)](https://github.com/einzig1000/GJ1_L3/actions/workflows/DebugBuild.yml)
 
 ### 機能
 ## リソース系 Game::Resource
