@@ -4,12 +4,16 @@
 #include <GameManager/Phase/TitlePhase/TitlePhase.h>
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
+
+//衝突判定テスト用フェーズ
+#include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
+
 #include <Utilities/Json/JsonManager.h>
 
 
 GameManager::GameManager() 
 {
-	currentPhase_ = CreatePhase(Phase::Phase_Test);
+	currentPhase_ = CreatePhase(Phase::Phase_CollisionTest);
 	currentPhase_->SetContext(&phaseContext_);
 	currentPhase_->Initialize();
 
@@ -60,6 +64,8 @@ std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
 		return std::make_unique<TitlePhase>();
 	case Phase::Phase_GameScene:
 		return std::make_unique<GameScenePhase>();
+	case Phase::Phase_CollisionTest:
+		return std::make_unique<CollisionTestPhase>();
 	default:
 		Log("Error : 該当するフェーズクラスが存在しません");
 		assert(false);
