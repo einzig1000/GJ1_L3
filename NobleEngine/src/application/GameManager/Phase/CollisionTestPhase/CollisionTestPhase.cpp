@@ -1,6 +1,7 @@
 #include "CollisionTestPhase.h"
 #include"GameObject/Glass/Glass.h"
 #include"GameObject/Table/Table.h"
+#include"../System/CollisionManager/CollisionManager.h"
 
 CollisionTestPhase::CollisionTestPhase()
 {
@@ -10,12 +11,16 @@ CollisionTestPhase::CollisionTestPhase()
 
 CollisionTestPhase::~CollisionTestPhase()
 {
+    collisionManager_->Finalize();
 }
 
 void CollisionTestPhase::Initialize()
 {
     // フェーズ初期化
     nextPhase_ = Phase::Phase_None;
+    //コリジョン管理
+    collisionManager_ = std::make_unique<CollisionManager>();
+    collisionManager_->LoadTags();
 
     InitGameObj();
 
@@ -26,6 +31,8 @@ void CollisionTestPhase::Update()
     Game::Camera::Update(c_main_);
 
     UpdateGameObj(c_main_);
+
+    CheckColliders();
 }
 
 void CollisionTestPhase::Draw()
@@ -39,7 +46,7 @@ void CollisionTestPhase::DrawImGui()
 }
 
 void CollisionTestPhase::InitGameObj()
-{ 
+{
     //グラスの作成
     glass_ = std::make_unique<Glass>();
     glass_->Initialize();
@@ -68,4 +75,23 @@ void CollisionTestPhase::DrawImGuiObj()
 {
     glass_->DrawImGui();
     table_->DrawImGui();
+    collisionManager_->DebugImGui();
+}
+
+void CollisionTestPhase::CheckColliders()
+{
+    //コライダーリストを毎フレーム削除してみる？
+    collisionManager_->ClearColliders();
+
+    //コライダーを追加する
+    for (auto& collider : glass_->GetColliders()) {
+        for (auto& c : collider) {
+            collisionManager_->AddCollider(c.get());
+        }
+    
+    }
+
+
+    //コライダーをチェックする
+    collisionManager_->CheckAllCollisions();
 }

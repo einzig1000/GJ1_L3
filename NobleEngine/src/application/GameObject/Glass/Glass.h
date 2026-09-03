@@ -1,9 +1,11 @@
 #pragma once
 #include<Game.h>
+#include<memory>
+#include<vector>
+class Collider;
 
 class Glass
 {
-
 public:
     enum GLASS_TYPE {
         GLASS_COCKTAIL,
@@ -11,7 +13,7 @@ public:
     };
 public:
     Glass();
-    ~Glass() = default;
+    ~Glass();
     void Initialize();
     void Update(const int32_t cameraID);
     void Draw();
@@ -19,6 +21,8 @@ public:
     /// @brief グラスタイプを持たせるか基底クラスにするかは考える
     /// @param type 
     void SetGlassTypeAndLoadModels(const GLASS_TYPE type);
+    //コライダーをゲットする
+    std::vector <std::vector<std::unique_ptr<Collider>>>& GetColliders() { return colliders_; };
 private:
 
     //グラス
@@ -41,6 +45,7 @@ private:
     std::vector<Matrix4x4> worldMatrices_;
     std::vector<Vector4> colors_;
     std::vector<int32_t> textureIndices_;
-
+    //モデルデータからコライダーを作るよ
+    std::vector <std::vector<std::unique_ptr<Collider>>> colliders_;
 };
 

@@ -1,13 +1,14 @@
 #include "Glass.h"
+#include"../../System/Collider/Collider.h"
 
 Glass::Glass()
 {
 	//カクテルをロードする
 	SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
+}
 
-
-	ModelData modelData = *Game::Asset::Model::GetData(modelID_);
-	modelData.colliderShape.aabbs;
+Glass::~Glass()
+{
 }
 
 void Glass::Initialize()
@@ -31,6 +32,50 @@ void Glass::Initialize()
 	//一旦半透明にしておく
 	colors_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 0.5f));
 	textureIndices_.resize(instanceCount_, textureID_);
+
+
+	ModelData modelData = *Game::Asset::Model::GetData(modelID_);
+
+	size_t aabbCount = modelData.colliderShape.aabbs.size();
+	size_t sphereCount = modelData.colliderShape.spheres.size();
+	size_t maxCount = aabbCount + sphereCount;
+
+	//コライダーのリサイズ
+	colliders_.resize(instanceCount_);
+
+	//ここら辺ごちゃついているので後で修正　テンプレートとか出来たらいいけど
+	for (int i = 0; i < instanceCount_; ++i) {
+		
+		std::vector<std::unique_ptr<Collider>> newColliders;
+		newColliders.reserve(maxCount);
+
+		for (int j = 0; j < aabbCount; ++j) {
+			auto collider = std::make_unique<Collider>();
+			collider->SetWorldMatrixAddress(worldMatrices_[i]);
+			collider->SetCollisionAttribute(CollisionTag::GetTag("Glass"));
+			collider->SetCollisionMask(CollisionTag::GetTag("Target"));
+
+			collider->SetAABB(modelData.colliderShape.aabbs[j]);
+			newColliders.push_back(std::move(collider));
+		}
+
+		// 2. Sphere のセット
+		for (size_t j = sphereCount; j < sphereCount; ++j) {
+
+			auto collider = std::make_unique<Collider>();
+			collider->SetWorldMatrixAddress(worldMatrices_[i]);
+			collider->SetCollisionAttribute(CollisionTag::GetTag("Glass"));
+			collider->SetCollisionMask(CollisionTag::GetTag("Target"));
+
+			const auto& sphere = modelData.colliderShape.spheres[j];
+			collider->SetRadius(sphere.radius);
+			collider->SetCenter(sphere.center);
+			newColliders.push_back(std::move(collider));
+		}
+
+		colliders_[i] = std::move(newColliders);
+	}
+
 }
 
 void Glass::Update(const int32_t cameraID)

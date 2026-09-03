@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\System\CollisionTag\CollisionTag.cpp" />
+    <ClCompile Include="src\application\System\Collider\Collider.cpp" />
+    <ClCompile Include="src\application\System\CollisionManager\CollisionManager.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp" />
     <ClCompile Include="src\application\GameObject\Glass\Glass.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\TestPhase\TestPhase.cpp" />
@@ -120,6 +123,10 @@
     <ClCompile Include="src\application\GameObject\Table\Table.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\System\CollisionInfo.h" />
+    <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />
+    <ClInclude Include="src\application\System\Collider\Collider.h" />
+    <ClInclude Include="src\application\System\CollisionManager\CollisionManager.h" />
     <ClInclude Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.h" />
     <ClInclude Include="src\application\GameObject\Glass\Glass.h" />
     <ClInclude Include="src\application\GameManager\Phase\TestPhase\TestPhase.h" />
