@@ -1,26 +1,27 @@
-#include "Glass.h"
+#include "Table.h"
 
-Glass::Glass()
+Table::Table()
 {
-	//カクテルをロードする
-	SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
+	const std::string directory = "assets/application/model/Table/";
+	const std::string filePath = directory +"Table.obj";
+	const std::string textureFilePath = directory+"Table.png";
 
-
-	ModelData modelData = *Game::Asset::Model::GetData(modelID_);
-	modelData.colliderShape.aabbs;
+	//モデルとテクスチャIDをセットする
+	modelID_ = Game::Asset::Model::Load(filePath);
+	textureID_ = Game::Asset::Texture::Load(textureFilePath);
 }
 
-void Glass::Initialize()
+void Table::Initialize()
 {
 	//レンダーオブジェクトのインスタンス作成
-	glassObj_ = std::make_unique<RenderObject>();
+	obj_ = std::make_unique<RenderObject>();
 	//シンプルモデルのシェーダー適用
-	glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
-	glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
-	glassObj_->SetupFromShaders();
+	obj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
+	obj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
+	obj_->SetupFromShaders();
 
-	glassObj_->modelID_ = modelID_;
-	glassObj_->instanceNum_ = instanceCount_;
+	obj_->modelID_ = modelID_;
+	obj_->instanceNum_ = instanceCount_;
 
 	worldMatrixHeapSlot_ = Game::Resource::CreateDynamic();
 	colorHeapSlot_ = Game::Resource::CreateDynamic();
@@ -28,12 +29,12 @@ void Glass::Initialize()
 
 	transforms_.resize(instanceCount_, EulerTransforms());
 	worldMatrices_.resize(instanceCount_, Matrix4x4());
-	//一旦半透明にしておく
-	colors_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 0.5f));
+
+	colors_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	textureIndices_.resize(instanceCount_, textureID_);
 }
 
-void Glass::Update(const int32_t cameraID)
+void Table::Update(const int32_t cameraID)
 {
 	for (int i = 0; i < instanceCount_; i++)
 	{
@@ -48,21 +49,21 @@ void Glass::Update(const int32_t cameraID)
 	int32_t vsHeapSlot = Game::Resource::GetSRV(worldMatrixHeapSlot_);
 	Vector2uint psHeapSlot{ Game::Resource::GetSRV(colorHeapSlot_), Game::Resource::GetSRV(textureIndexHeapSlot_) };
 
-	glassObj_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
-	glassObj_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
-	glassObj_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
+	obj_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
+	obj_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
+	obj_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
 }
 
-void Glass::Draw()
+void Table::Draw()
 {
-	glassObj_->Draw();
+	obj_->Draw();
 }
 
-void Glass::DrawImGui()
+void Table::DrawImGui()
 {
 	ImGui::Begin("GameObj");
 
-	if (ImGui::TreeNode("Glass")) {
+	if (ImGui::TreeNode("Table")) {
 		for (int i = 0; i < instanceCount_; i++)
 		{
 			if (ImGui::TreeNode(("Instance " + std::to_string(i)).c_str()))
@@ -75,31 +76,8 @@ void Glass::DrawImGui()
 			}
 		}
 		ImGui::TreePop();
-	
 	}
 
 
 	ImGui::End();
-}
-
-void Glass::SetGlassTypeAndLoadModels(const GLASS_TYPE type)
-{
-
-	std::string filePath;
-	std::string textureFilePath = "assets/engine/texture/white1x1.png";
-
-	switch (type)
-	{
-	case Glass::GLASS_COCKTAIL:
-		filePath = "assets/application/model/Cocktail/Cocktail.obj"; 
-		break;
-	default:
-		//デフォルトはカクテル
-		filePath = "assets/application/model/Cocktail/Cocktail.obj";
-		break;
-	}
-
-	//モデルとテクスチャIDをセットする
-	modelID_ = Game::Asset::Model::Load(filePath);
-	textureID_ = Game::Asset::Texture::Load(textureFilePath);
 }

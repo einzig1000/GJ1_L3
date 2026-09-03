@@ -117,6 +117,7 @@
     <ClCompile Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.cpp" />
     <ClCompile Include="src\engine\TimeManager\TimeManager.cpp" />
     <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp" />
+    <ClCompile Include="src\application\GameObject\Table\Table.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.h" />
@@ -378,6 +379,7 @@
     <ClInclude Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.h" />
     <ClInclude Include="src\engine\TimeManager\TimeManager.h" />
     <ClInclude Include="src\engine\TimeManager\TimeScaler\TimeScaler.h" />
+    <ClInclude Include="src\application\GameObject\Table\Table.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\Block\versionInfo.md">

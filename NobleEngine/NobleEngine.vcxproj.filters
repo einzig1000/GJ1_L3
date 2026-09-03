@@ -333,6 +333,9 @@
     <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="src\application\GameObject\Table\Table.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\Camera\Camera.h">
@@ -1110,6 +1113,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\GameObject\Table\Table.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

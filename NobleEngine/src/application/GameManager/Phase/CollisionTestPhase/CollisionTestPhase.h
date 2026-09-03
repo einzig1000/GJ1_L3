@@ -3,6 +3,7 @@
 #include <GameManager/Phase/IPhase.h>
 //前方宣言
 class Glass;
+class Table;
 
 class CollisionTestPhase :
 	public IPhase
@@ -30,7 +31,7 @@ private:
 #pragma region
 	//ゲームオブジェクト
 	std::unique_ptr<Glass>glass_ = nullptr;
-
+	std::unique_ptr<Table>table_ = nullptr;
 #pragma endregion
 };
 
