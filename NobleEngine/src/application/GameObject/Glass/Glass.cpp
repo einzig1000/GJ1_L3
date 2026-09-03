@@ -1,9 +1,16 @@
 #include "Glass.h"
+#include"Utilities/Json/JsonManager.h"
+namespace {
+    //グラス共通の変数
+    float deadLine_ = 0.0f;
+}
 
 Glass::Glass()
 {
     //カクテルをロードする
     SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
+
+    JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 }
 
 Glass::~Glass()
@@ -12,6 +19,9 @@ Glass::~Glass()
 
 void Glass::Initialize()
 {
+    //床との当たり判定
+    isHitFloor_ = false;
+
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
     //シンプルモデルのシェーダー適用
@@ -41,6 +51,19 @@ void Glass::Initialize()
 
 void Glass::Update(const int32_t cameraID)
 {
+    //毎フレーム当たり判定を初期化する
+    isHitFloor_ = false;
+
+    for (int i = 0; i < instanceCount_; i++)
+    {
+        if (transforms_[i].translate.y <= deadLine_) {
+            //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
+            isHitFloor_ = true;
+            break;
+        }
+    }
+    
+
     for (int i = 0; i < instanceCount_; i++)
     {
         worldMatrices_[i] = transforms_[i].GetWorldMatrix();
@@ -68,7 +91,12 @@ void Glass::DrawImGui()
 {
     ImGui::Begin("GameObj");
 
+
+
     if (ImGui::TreeNode("Glass")) {
+
+        ImGui::Checkbox("isHitFloor", &isHitFloor_);
+
         for (int i = 0; i < instanceCount_; i++)
         {
             if (ImGui::TreeNode(("Instance " + std::to_string(i)).c_str()))

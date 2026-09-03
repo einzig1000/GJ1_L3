@@ -391,6 +391,7 @@
     <ClInclude Include="src\application\GameObject\Table\Table.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\application\json\Glass\Glass.json" />
     <None Include="resources\shaders\Block\versionInfo.md">
       <SubType>
       </SubType>
