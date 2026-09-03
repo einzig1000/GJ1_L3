@@ -20,7 +20,7 @@ void CollisionTestPhase::Initialize()
     nextPhase_ = Phase::Phase_None;
     //コリジョン管理
     collisionManager_ = std::make_unique<CollisionManager>();
-    collisionManager_->LoadTags();
+    collisionManager_->Load();
 
     InitGameObj();
 
@@ -43,6 +43,9 @@ void CollisionTestPhase::Draw()
 void CollisionTestPhase::DrawImGui()
 {
     DrawImGuiObj();
+
+
+
 }
 
 void CollisionTestPhase::InitGameObj()
@@ -60,6 +63,12 @@ void CollisionTestPhase::UpdateGameObj(const int32_t cameraID)
 {
     glass_->Update(cameraID);
     table_->Update(cameraID);
+
+
+    //コライダー描画のための更新
+    collisionManager_->DebugUpdate(cameraID);
+
+
 }
 
 void CollisionTestPhase::DrawGameObj()
@@ -68,6 +77,9 @@ void CollisionTestPhase::DrawGameObj()
     table_->Draw();
     //グラスは半透明なので後に描画する
     glass_->Draw();
+
+    //コライダーデバック描画
+    collisionManager_->DebugDraw();
 
 }
 
@@ -85,13 +97,11 @@ void CollisionTestPhase::CheckColliders()
 
     //コライダーを追加する
     for (auto& collider : glass_->GetColliders()) {
-        for (auto& c : collider) {
-            collisionManager_->AddCollider(c.get());
-        }
-    
+     collisionManager_->AddCollider(collider.get());
     }
-
-
+    for (auto& collider : table_->GetColliders()) {
+        collisionManager_->AddCollider(collider.get());
+    }
     //コライダーをチェックする
     collisionManager_->CheckAllCollisions();
 }

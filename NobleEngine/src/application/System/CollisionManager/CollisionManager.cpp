@@ -4,8 +4,10 @@
 #include "Utilities/functions.h"
 #include"Game.h"
 
-void CollisionManager::LoadTags()
+void CollisionManager::Load()
 {
+    Collider::Load();
+
     CollisionTag::LoadTagNames();
     //グラス
     CollisionTag::AddTag("Glass");
@@ -15,6 +17,8 @@ void CollisionManager::LoadTags()
     CollisionTag::AddTag("Chair");
     //障害物
     CollisionTag::AddTag("Obstacles");
+    //障害物
+    CollisionTag::AddTag("Table");
 
     CollisionTag::SaveTagNames();
 }
@@ -51,29 +55,11 @@ namespace Collision {
     void CheckCollider(Collider& collider, const char* label) {
 
         if (ImGui::TreeNode(label)) {
-            //Center
-            Vector3 center = collider.GetCenter();
-            ImGui::SliderFloat3("center", &center.x, -1000.0f, 1000.0f);
-            collider.SetCenter(center);
+
             //MeshType
             const char* type[] = { "Sphere", "AABB" };
             int type_current = collider.GetType();
-
-            if (ImGui::Combo("colliderType", &type_current, type, IM_ARRAYSIZE(type))) {
-                collider.SetType(static_cast<Collider::ColliderType>(type_current % IM_ARRAYSIZE(type)));
-            };
-
-            if (collider.GetType() == Collider::ColliderType::kColliderType_Sphere) {
-                float radius = collider.GetRadius();
-                ImGui::SliderFloat("radius", &radius, 0.0f, 1000.0f);
-                collider.SetRadius(radius);
-            }
-
-            if (collider.GetType() == Collider::ColliderType::kColliderType_AABB) {
-                AABB aabb = collider.GetAABB();
-                CheckAABB(aabb, "colliderAABB");
-                collider.SetAABB(aabb);
-            }
+            ImGui::Text(type[type_current]);
 
             //InFo
             if (ImGui::TreeNode("CollisionInfo")) {
@@ -134,7 +120,7 @@ namespace Collision {
                 ImGui::EndCombo();
             }
 
-           
+
             ImGui::TreePop();
         }
 
@@ -170,6 +156,7 @@ namespace Collision {
         }
 
     }
+   
 }
 
 #endif //USE_IMGUI
@@ -182,7 +169,7 @@ void CollisionManager::DebugImGui()
     if (ImGui::TreeNode("CollisionManager")) {
 
         Collision::CheckAllTag();
-        
+
         int i = 0;
 
         for (auto& collider : colliders_)
@@ -222,7 +209,7 @@ namespace Collision {
         //中心点を考慮した座標を取得してくる
         return Sphere{
           .center = sphere->CalculateWorldPos(),
-          .radius = sphere->GetRadius()
+          .radius = sphere->GetSphere().radius
         };
     }
 
@@ -340,6 +327,8 @@ void CollisionManager::CheckAllCollisions() {
     for (auto& collider : colliders_) {
         collider->InitCalcuatedTisFrameFlag();
         collider->GetCollisionInfo().collided = false;
+        //このフレーム内で更新をかけてみる
+        collider->CalculateWorldPos();
     }
 
     // リスト内のペアを総当たり
@@ -358,6 +347,30 @@ void CollisionManager::CheckAllCollisions() {
 
         }
     }
+
+}
+
+void CollisionManager::DebugUpdate(const int32_t cameraID)
+{
+#ifdef _DEBUG
+
+    for (auto& collider : colliders_) {
+
+        collider->Update(cameraID);
+    }
+
+#endif
+}
+
+void CollisionManager::DebugDraw()
+{
+#ifdef _DEBUG
+
+    for (auto& collider : colliders_) {
+        collider->Draw();
+    }
+
+#endif
 }
 
 
