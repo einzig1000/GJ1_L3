@@ -14,6 +14,11 @@ Vector3 ParentMatrix::GetWorldTransformByMatrix(const Matrix4x4& mat)
     return { mat.m[3][0], mat.m[3][1], mat.m[3][2] };
 }
 
+Vector3 ParentMatrix::GetParentScaleByMatrix(const Matrix4x4& mat)
+{
+    return { mat.m[0][0], mat.m[1][1], mat.m[2][2] };
+}
+
 void Collider::InitCalcuatedTisFrameFlag()
 {
     isCalculatedThisFrame_ = false;
@@ -49,34 +54,38 @@ Collider::~Collider()
 {
 }
 
-const Vector3& Collider::CalculateWorldPos()
+const EulerTransforms& Collider::CalculateWorldTransform()
 {
     if (isCalculatedThisFrame_) {
         //計算のスキップをする
         return tempWorldTransform_;
     }
 
-    if (worldMat_ == nullptr) {
+    if (parentWorldMat_ == nullptr) {
         Log("ワールド行列がありませんでした。");
         //仮に原点とする
-        tempWorldTransform_ = { 0.0f,0.0f,0.0f };
+        tempWorldTransform_ = {
+            .scale = {1.0f,1.0f,1.0f},
+            .rotate = { 0.0f, 0.0f, 0.0f } ,
+             .translate = { 0.0f, 0.0f, 0.0f }
+        };
+
         return tempWorldTransform_;
     }
 
     //センターからワールド行列を作成する
     Vector3 center{};
     if (type_ == kColliderType_AABB) {
-        center = aabb_.center();
+        center = { 0.0f,0.0f,0.0f };
     } else {
         center = sphere_.center;
     }
 
-    Matrix4x4 child;
-    child.MakeTranslateMatrix(center);
-    child = child* *worldMat_;
+    Matrix4x4 child = Matrix4x4::MakeTranslateMatrix(center);
+    child = child * *parentWorldMat_;
 
     //ワールド座標の取得
-    tempWorldTransform_ = ParentMatrix::GetWorldTransformByMatrix(child);
+    tempWorldTransform_.translate = ParentMatrix::GetWorldTransformByMatrix(child);
 
     //計算終了
     isCalculatedThisFrame_ = true;
@@ -106,27 +115,28 @@ void Collider::Update(const int32_t cameraID)
 
     const Matrix4x4& viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
 
-    Vector3 center;
     Vector3 halfExtent;
 
     //一旦AABBとそれ以外で分岐する
     if (type_ == kColliderType_AABB) {
-        center = aabb_.center();
         halfExtent = (aabb_.max - aabb_.min);
     } else {
-        center = sphere_.center;
-        halfExtent = Vector3(sphere_.radius, sphere_.radius, sphere_.radius);
+        float size = sphere_.radius*2.0f;
+        halfExtent = Vector3(size, size, size);
     }
+    // コライダーの中心点オフセット
+    Vector3 center = (type_ == kColliderType_AABB) ? aabb_.center() : sphere_.center;
 
+    // コライダー自身のローカルアフィン行列（サイズ拡大 + オフセット移動）
     Matrix4x4 colliderLocal = Matrix4x4::MakeAffineMatrix(halfExtent, Vector3(0.0f, 0.0f, 0.0f), center);
-  
+
     Matrix4x4 colliderWorld{};
 
-    if (worldMat_) {
-        //一応？安全設計
-        colliderWorld = colliderLocal** worldMat_;
+    if (parentWorldMat_) {
+        // ローカルアフィン行列に直接親のワールド行列を掛ける（これで二重適用を回避）
+        colliderWorld = colliderLocal * *parentWorldMat_;
     } else {
-        colliderWorld = Matrix4x4::MakeIdentity4x4();
+        colliderWorld = colliderLocal;
     }
 
     Matrix4x4 colliderWvp = colliderWorld * viewProjection;

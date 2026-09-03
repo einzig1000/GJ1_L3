@@ -174,6 +174,13 @@ struct Vector3
     {
         return Vector3(x - rhs.x, y - rhs.y, z - rhs.z);
     }
+
+    //すみません追加しました。ヨシダ
+    Vector3 operator*(const Vector3& rhs) const
+    {
+        return Vector3(x * rhs.x, y * rhs.y, z * rhs.z);
+    }
+
     Vector3 operator*(float scalar) const
     {
         return Vector3(x * scalar, y * scalar, z * scalar);
@@ -233,6 +240,14 @@ struct Vector3
         return !(*this == rhs);
     }
 
+    //すみません追加しました。ヨシダ
+    Vector3& operator*=(Vector3 rhs)
+    {
+        x*=rhs.x;
+        y*=rhs.y;
+        z*=rhs.z;
+        return *this;
+    }
     // ベクトルの長さ
     float Length() const;
     // 平方根計算をしてない長澤
@@ -704,6 +719,7 @@ struct AABB
     {
         return AABB{ min + rhs, max + rhs };
 	}
+
 };
 
 // OBB

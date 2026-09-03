@@ -10,6 +10,8 @@ class Camera;
 
 namespace ParentMatrix {
 	Vector3 GetWorldTransformByMatrix(const Matrix4x4& mat);
+	//複合的な親子関係は対応していない
+	Vector3 GetParentScaleByMatrix(const Matrix4x4& mat);
 }
 
 
@@ -36,9 +38,9 @@ private:
 	ColliderType type_ = ColliderType::kColliderType_Sphere;
 	CollisionInfo collisionInfo_;
 	
-	Matrix4x4* worldMat_ = nullptr;
+	Matrix4x4* parentWorldMat_ = nullptr;
 
-	Vector3 tempWorldTransform_ = {0.0f};
+	EulerTransforms tempWorldTransform_ = {0.0f};
 
 	bool isCalculatedThisFrame_ = false; // 今フレーム計算済みかどうかのフラグ
 
@@ -71,9 +73,9 @@ public:
 		OnCollisionCollider();
 	};
 
-	/// @brief ワールド座標を取得する関数の作成
+	/// @brief ワールドトランスフォームを取得する関数の作成
 	/// @return 
-	const Vector3& CalculateWorldPos();
+	const EulerTransforms& CalculateWorldTransform();
 
 	/// @brief 球を設定する
 	/// @param sphere 
@@ -92,7 +94,7 @@ public:
 	/// @param worldMat 
 	void SetWorldMatrixAddress(Matrix4x4& worldMat) {
 		assert(&worldMat);
-		worldMat_ = &worldMat;
+		parentWorldMat_ = &worldMat;
 	};
 
 	const AABB& GetAABB() const { return aabb_; }
@@ -128,6 +130,7 @@ public:
 	CollisionInfo& GetCollisionInfo() {
 		return collisionInfo_;
 	}
+
 
 	//=======================================
 	//==========コライダーデバック表示==========
