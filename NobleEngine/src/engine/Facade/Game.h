@@ -53,7 +53,7 @@ namespace Game
 			/// <param name="animationName">アニメーション名</param>
 			/// <returns>アニメーションID</returns>
 			int32_t Load(const std::string& filePath, const std::string& animationName);
-		
+
 			/// <summary>
 			/// アニメーションデータ取得
 			/// </summary>
@@ -247,8 +247,9 @@ namespace Game
 		/// </summary>
 		/// <param name="audioId">オーディオID(LoadAudioで取得)</param>
 		/// <param name="loop">ループ再生するか否か</param>
+		/// <param name="volume">音量(0.0f～1.0f)</param>
 		/// <returns>再生インスタンスID、失敗時は-1</returns>
-		int32_t PlayAudio(const int32_t& audioId, bool loop);
+		int32_t PlayAudio(const int32_t& audioId, bool loop, float volume = 1.0f);
 
 		/// <summary>
 		/// 再生停止
@@ -480,7 +481,7 @@ namespace Game
 			/// <returns>カメラの向き</returns>
 			Vector3 GetCameraDirection(int32_t cameraID);
 			/// <returns>カメラのワールド座標</returns>
-			Vector3 GetTranslate(int32_t cameraID);
+			Vector3 GetWorldPosition(int32_t cameraID);
 			/// <returns>カメラのCenterまでの距離</returns>
 			float GetDistance(int32_t cameraID);
 			/// <returns>カメラのビュープロジェクション行列</returns>
@@ -504,7 +505,7 @@ namespace Game
 			/// <param name="duration">変更にかけるフレーム数(0で即時変更)</param>
 			/// <param name="easeType">変更補完イージングタイプ</param>
 			void SetCenter(Vector3 target, float durationSec, EaseType easetype, int32_t cameraID);
-			
+
 			/// <summary>
 			///	カメラの回転量変更
 			/// </summary>
@@ -529,7 +530,7 @@ namespace Game
 			/// <param name="easetype">変更補完イージングタイプ</param>
 			/// <param name="cameraID">カメラID</param>
 			void SetScreenSize(Vector2 target, float durationSec, EaseType easetype, int32_t cameraID);
-			
+
 			/// <summary>
 			/// カメラのfovY変更
 			/// </summary>
@@ -673,6 +674,7 @@ namespace Game
 		Vector3 YawPitchFromDirection(const Vector3& dir);
 	};
 
+
 	namespace Time
 	{
 		void SetTimeScale(float timeScale);
@@ -741,29 +743,6 @@ namespace Game
 		/// <param name="bytes">初期化するバイト数</param>
 		void ZeroFillCompute(int32_t resourceID, size_t bytes);
 
-
-		/// <summary>
-		/// 連続コンテナ全体を送る。vector / 生配列 / std::array / span すべて受け付ける
-		/// </summary>
-		template<typename Range>
-			requires requires(const Range& r) { std::data(r); std::size(r); }
-		void UpdateData(int32_t resourceID, const Range& data)
-		{
-			using T = std::remove_cvref_t<decltype(*std::data(data))>;
-			Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, std::data(data), sizeof(T), std::size(data));
-		}
-
-		/// <summary>
-		/// 先頭ポインタ + 個数。部分送信や単体送信用
-		/// </summary>
-		template<typename T>
-		void UpdateData(int32_t resourceID, const T* data, size_t count)
-		{
-			Engine::Instance().GetStructuredBufferManager()
-				->UpdateData(resourceID, data, sizeof(T), count);
-		}
-
-
 		///// <summary>
 		///// 動的リソースの更新
 		///// </summary>
@@ -774,6 +753,16 @@ namespace Game
 		//{
 		//	Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, data.data(), sizeof(T), data.size());
 		//}
+		/// <summary>
+		/// 連続コンテナ全体を送る。vector / 生配列 / std::array / span すべて受け付ける
+		/// </summary>
+		template<typename Range>
+			requires requires(const Range& r) { std::data(r); std::size(r); }
+		void UpdateData(int32_t resourceID, const Range& data)
+		{
+			using T = std::remove_cvref_t<decltype(*std::data(data))>;
+			Engine::Instance().GetStructuredBufferManager()->UpdateData(resourceID, std::data(data), sizeof(T), std::size(data));
+		}
 
 		/// <summary>
 		/// リソースのSRVを取得

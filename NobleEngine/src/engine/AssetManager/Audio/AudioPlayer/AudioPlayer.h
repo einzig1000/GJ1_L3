@@ -19,7 +19,7 @@ public:
     /// <param name="audioId">オーディオID(LoadAudioで取得)</param>
     /// <param name="loop">ループ再生するか否か</param>
     /// <returns>再生インスタンスID、失敗時は-1</returns>
-    int32_t PlayAudio(const int32_t& audioId, bool loop);
+    int32_t PlayAudio(const int32_t& audioId, bool loop, float volume);
 
     /// <summary>
     /// 再生停止

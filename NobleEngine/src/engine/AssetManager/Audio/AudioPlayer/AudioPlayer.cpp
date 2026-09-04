@@ -79,7 +79,7 @@ void AudioPlayer::Update()
 }
 
 
-int32_t AudioPlayer::PlayAudio(const int32_t& audioId, bool loop)
+int32_t AudioPlayer::PlayAudio(const int32_t& audioId, bool loop, float volume)
 {
     const AudioData* audioData = bank_->GetAudioData(audioId);
     if (!audioData)
@@ -94,7 +94,7 @@ int32_t AudioPlayer::PlayAudio(const int32_t& audioId, bool loop)
     HRESULT hr = pXAudio2->CreateSourceVoice(&voice, audioData->pWfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr);
     if (FAILED(hr))
     {
-		Log("Voiceの作成に失敗しました。ID: %u HRESULT: 0x%X", audioId, hr);
+        Log("Voiceの作成に失敗しました。ID: %u HRESULT: 0x%X", audioId, hr);
         assert(0);
         return -1;
     }
@@ -107,7 +107,7 @@ int32_t AudioPlayer::PlayAudio(const int32_t& audioId, bool loop)
     hr = voice->SubmitSourceBuffer(&buffer);
     if (FAILED(hr))
     {
-		Log("オーディオのバッファ送信に失敗しました。 ID: %u HRESULT: 0x%X", audioId, hr);
+        Log("オーディオのバッファ送信に失敗しました。 ID: %u HRESULT: 0x%X", audioId, hr);
         voice->DestroyVoice();
         assert(0);
         return -1;
@@ -121,6 +121,8 @@ int32_t AudioPlayer::PlayAudio(const int32_t& audioId, bool loop)
         assert(0);
         return -1;
     }
+
+    voice->SetVolume(volume);
 
     int32_t playId = nextPlayId_++;
     activeVoices_[playId] = voice;

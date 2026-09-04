@@ -1,4 +1,5 @@
 #include <Facade/Game.h>
+
 #include <Camera/CameraManager.h>
 #include <Camera/Camera.h>
 #include <AssetManager/AssetManager.h>
@@ -108,6 +109,7 @@ namespace Game
 			{
 				return Engine::Instance().GetAssetManager()->GetFontManager()->MeasureJustTextureSize(text, charSize, startPos, extraSpacing);
 			}
+
 		}
 
 		namespace RenderTexture
@@ -169,9 +171,9 @@ namespace Game
 
 	namespace Audio
 	{
-		int32_t PlayAudio(const int32_t& audioId, bool loop)
+		int32_t PlayAudio(const int32_t& audioId, bool loop, float volume)
 		{
-			return Engine::Instance().GetAssetManager()->GetAudioManager()->GetAudioPlayer()->PlayAudio(audioId, loop);
+			return Engine::Instance().GetAssetManager()->GetAudioManager()->GetAudioPlayer()->PlayAudio(audioId, loop, volume);
 		}
 		void StopAudio(const int32_t& playId)
 		{
@@ -353,7 +355,7 @@ namespace Game
 			{
 				return Engine::Instance().GetCameraManager()->GetCamera(cameraID)->GetCameraDirection();
 			}
-			Vector3 GetTranslate(int32_t cameraID)
+			Vector3 GetWorldPosition(int32_t cameraID)
 			{
 				return Engine::Instance().GetCameraManager()->GetCamera(cameraID)->GetTranslate();
 			}
@@ -570,7 +572,7 @@ namespace Game
 
 			// DirectXのリサイズ処理
 			Engine::Instance().GetDirectXManager()->Resize();
-			
+
 			// カメラのアスペクト比更新
 			//Engine::Instance().GetCameraManager()->Resize();
 		}
