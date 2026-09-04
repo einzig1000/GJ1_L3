@@ -174,9 +174,26 @@ TestPhase::TestPhase()
 	m_plane_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
 	m_human_ = Game::Asset::Model::Load("assets/engine/model/human/sneakWalk.gltf");
 	m_water_ = Game::Asset::Model::Create(CreateLiquidMeshVertices(0.5f, 0.5f, 1.0f, 32, 32, 32), "Water");
+
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/Bottle/Bottle.obj"));
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/Champagne/Champagne.obj"));
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/Cocktail/Cocktail.obj"));
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/Gin/Gin.obj"));
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/JapaneseSake/JapaneseSake.obj"));
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/Plumwine/Plumwine.obj"));
+	m_alcohol_.push_back(Game::Asset::Model::Load("assets/application/Alcohol/Whiskey/Whiskey.obj"));
 	// テクスチャ
 	t_monsterBall_ = Game::Asset::Texture::Load("assets/engine/texture/monsterBall.png");
 	t_uvChecker_ = Game::Asset::Texture::Load("assets/engine/texture/uvChecker.png");
+
+	t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/Bottle/Bottle.png"));
+	t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/Champagne/Champagne.png"));
+	//t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/Cocktail/Cocktail.png"));
+	t_alcohol_.push_back(t_uvChecker_);
+	t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/Gin/Gin.png"));
+	t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/JapaneseSake/JapaneseSake.png"));
+	t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/Plumwine/Plumwine.png"));
+	t_alcohol_.push_back(Game::Asset::Texture::Load("assets/application/Alcohol/Whiskey/Whiskey.png"));
 	// アニメーション
 	a_sneakWalk_ = Game::Asset::Animation::Load("assets/engine/model/human/sneakWalk.gltf", "sneakWalk");
 	// サウンド
@@ -191,9 +208,9 @@ void TestPhase::Initialize()
 	// フェーズ初期化
 	nextPhase_ = Phase::Phase_None;
 
-	//Initialize_SimpleModels();
+	Initialize_SimpleModels();
 	Initialize_Sprite();
-	//Initialize_Animation();
+	Initialize_Animation();
 	Initialize_Water();
 }
 
@@ -201,17 +218,17 @@ void TestPhase::Update()
 {
 	Game::Camera::Update(c_main_);
 
-	//Update_SimpleModels();
+	Update_SimpleModels();
 	Update_Sprite();
-	//Update_Animation();
+	Update_Animation();
 	Update_Water();
 }
 
 void TestPhase::Draw()
 {
-	//Draw_SimpleModels();
+	Draw_SimpleModels();
 	Draw_Sprite();
-	//Draw_Animation();
+	Draw_Animation();
 	Draw_Water();
 }
 
@@ -512,3 +529,34 @@ void TestPhase::DrawImGui_Water()
 
 	ImGui::End();
 }
+
+
+
+void TestPhase::Initialize_Collider()
+{
+
+	//for (size_t i = 0; i < m_Alcohol_.size(); i++)
+	//{
+	//	colliderObjects_.emplace_back(std::make_unique<RenderObject>());
+	//	colliderObjects_[i].renderObject->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
+	//	colliderObjects_[i].renderObject->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
+	//	colliderObjects_[i].renderObject->SetupFromShaders();
+	//	colliderObjects_[i].renderObject->modelID_ = m_Alcohol_[i];
+	//}
+}
+
+void TestPhase::Update_Collider()
+{
+
+}
+
+void TestPhase::Draw_Collider()
+{
+	//for (size_t i = 0; i < colliderObjects_.size(); i++)
+	//{
+	//	colliderObjects_[i].renderObject->Draw();
+	//}
+}
+
+void TestPhase::DrawImGui_Collider()
+{}
