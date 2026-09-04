@@ -39,8 +39,9 @@ private:
 	uint32_t collisionMask_ = 0xffffffff;		// 衝突マスク
 
 	ColliderType type_ = ColliderType::kColliderType_Sphere;
-	CollisionInfo collisionInfo_;
-	
+	//CollisionInfo collisionInfo_;
+	//速度と質量が入っている。
+	PhysicsBody physicsBody_;
 	Matrix4x4* parentWorldMat_ = nullptr;
 
 	EulerTransforms tempWorldTransform_ = {0.0f};
@@ -132,10 +133,16 @@ public:
 	void SetCollisionMask(uint32_t mask) { collisionMask_ = mask; }
 
 	void OnCollisionCollider();
-	void SetCollisionInfo(const CollisionInfo& info) { collisionInfo_ = info; };
-	CollisionInfo& GetCollisionInfo() {
-		return collisionInfo_;
-	}
+	//void SetCollisionInfo(const CollisionInfo& info) { collisionInfo_ = info; };
+	//CollisionInfo& GetCollisionInfo() {
+	//	return collisionInfo_;
+	//}
+
+	void SetMass(const float mass) { physicsBody_.mass = mass; };
+
+	void SetVelocity(const Vector3 velocity) { physicsBody_.velocity = velocity; }
+	
+	const PhysicsBody GetPhysicsBody() { return physicsBody_; }
 
 	//=======================================
 	//==========コライダーデバック表示==========

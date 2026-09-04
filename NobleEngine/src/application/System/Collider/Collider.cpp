@@ -37,9 +37,9 @@ void Collider::Load()
 
 Collider::Collider()
 {
-    collisionInfo_.collided = false;
-    collisionInfo_.normal = { 0.0f,0.0f,0.0f };
-    collisionInfo_.penetration = { 0.0f };
+    //collisionInfo_.collided = false;
+    //collisionInfo_.normal = { 0.0f,0.0f,0.0f };
+    //collisionInfo_.penetration = { 0.0f };
 
     sphere_ = { .center = { 0.0f,0.0f,0.0f },.radius =  1.0f};
 
