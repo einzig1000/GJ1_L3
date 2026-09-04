@@ -105,9 +105,11 @@ private:
 	int32_t m_plane_ = -1;
 	int32_t m_human_ = -1;
 	int32_t m_water_ = -1;
+	std::vector<int32_t> m_alcohol_;
 	// テクスチャID
 	int32_t t_uvChecker_ = -1;
 	int32_t t_monsterBall_ = -1;
+	std::vector<int32_t> t_alcohol_;
 	// アニメーションID
 	int32_t a_sneakWalk_ = -1;
 	// サウンドID
@@ -164,4 +166,19 @@ private:
 	WaterColorCB waterColorCB_;
 	WaterLightingCB waterLightingCB_;
 
+
+	struct Object
+	{
+		VectorDynamics tlanslate;
+		VectorDynamics rotate;
+		VectorDynamics scale;
+
+		std::unique_ptr<RenderObject> renderObject;
+	};
+
+	void Initialize_Collider();
+	void Update_Collider();
+	void Draw_Collider();
+	void DrawImGui_Collider();
+	std::vector<Object> colliderObjects_;
 };
