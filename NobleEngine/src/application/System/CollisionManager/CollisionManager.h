@@ -8,11 +8,22 @@ class Collider;
 class Camera;
 
 namespace Collision {
+    
+    struct Circle {
+        Vector2 center;
+        float radius;
+    };
+    
     CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB);
     CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b);
     void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info);
     Sphere GetSphereWorldPos(Collider* sphere);
+    Circle GetXZCircleWorldPos(Collider* circle);
     AABB GetAABBWorldPos(Collider* aabb);
+
+    float Distance(const Circle& p1, const Circle& p2);
+
+    bool IsCollision(const Circle& c1, const Circle& c2);
 }
 
 /// @brief 衝突マネージャ
@@ -45,27 +56,27 @@ public:
     void DebugDraw();
 
 private:
-
-
     // コライダーのリスト
     std::list<Collider*> colliders_;
 
     void  CheckCollisionPair(Collider* a, Collider* b);
     void OnCollision(Collider* a, Collider* b);
+
+    /// @brief XZサークル同士の衝突判定
+    /// @param colliderA コライダーA
+    /// @param colliderB コライダーB
+    void CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB);
     /// @brief コライダー2つの衝突判定と応答
     /// @param colliderA コライダーA
     /// @param colliderB コライダーB
-    /// @param score スコアポインタ
     void CheckCollisionSpherePair(Collider* colliderA, Collider* colliderB);
 
 /// @brief コライダー2つの衝突判定と応答
 /// @param colliderA コライダーA
 /// @param colliderB コライダーB
-/// @param score スコアポインタ
     void CheckCollisionAABBPair(Collider* colliderA, Collider* colliderB);
  /// @brief コライダー2つの衝突判定と応答
 /// @param colliderA コライダーA
 /// @param colliderB コライダーB
-/// @param score スコアポインタ
     void CheckCollisionSphereAABBPair(Collider* colliderA, Collider* colliderB);
 };

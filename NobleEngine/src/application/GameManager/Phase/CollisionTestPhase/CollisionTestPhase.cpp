@@ -110,6 +110,12 @@ void CollisionTestPhase::CheckColliders()
     for (auto& collider : table_->GetColliders()) {
         collisionManager_->AddCollider(collider.get());
     }
+    //人間
+    for (auto& collider : humanModel_->GetColliders()) {
+        collisionManager_->AddCollider(collider.get());
+    }
+
+   
     //コライダーをチェックする
     collisionManager_->CheckAllCollisions();
 }
