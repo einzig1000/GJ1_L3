@@ -8,32 +8,22 @@ class Collider;
 class Camera;
 
 namespace Collision {
-    CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB);
-    CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b);
-    void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info);
-    Sphere GetSphereWorldPos(Collider* sphere);
-    AABB GetAABBWorldPos(Collider* aabb);
-
+    
     struct Circle {
         Vector2 center;
         float radius;
     };
-    float Distance(const Circle& p1, const Circle& p2) {
-        Vector2 distance = p1.center - p2.center;
-        distance.Length();
-        return  distance.Length();
-    }
+    
+    CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB);
+    CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b);
+    void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info);
+    Sphere GetSphereWorldPos(Collider* sphere);
+    Circle GetXZCircleWorldPos(Collider* circle);
+    AABB GetAABBWorldPos(Collider* aabb);
 
-    bool IsCollision(const Circle& c1, const Circle& c2)
-    {
-        //2つの急の中心点間距離を求める 
-        if (Distance(c1, c2) <= c1.radius + c2.radius) {
-            return true;
-        }
+    float Distance(const Circle& p1, const Circle& p2);
 
-        return false;
-    }
-
+    bool IsCollision(const Circle& c1, const Circle& c2);
 }
 
 /// @brief 衝突マネージャ
@@ -66,8 +56,6 @@ public:
     void DebugDraw();
 
 private:
-
-
     // コライダーのリスト
     std::list<Collider*> colliders_;
 
@@ -78,7 +66,6 @@ private:
     /// @param colliderA コライダーA
     /// @param colliderB コライダーB
     void CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB);
-
     /// @brief コライダー2つの衝突判定と応答
     /// @param colliderA コライダーA
     /// @param colliderB コライダーB

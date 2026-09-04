@@ -5,6 +5,7 @@ namespace {
     // コライダーの描画用モデルID
      int32_t colliderCubeModelID = -1;
      int32_t colliderSphereModelID = -1;
+     int32_t colliderCylinderModelID = -1;
     // コライダーの描画用テクスチャID
      int32_t colliderTextureID =-1;
 }
@@ -29,6 +30,7 @@ void Collider::Load()
 #ifdef _DEBUG
     colliderCubeModelID = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
     colliderSphereModelID = Game::Asset::Model::Load("assets/engine/model/sphere/sphere.obj");
+    colliderCylinderModelID = Game::Asset::Model::Load("assets/engine/model/cylinder/cylinder.obj");
     colliderTextureID = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
 #endif
 }
@@ -177,7 +179,24 @@ void Collider::ResetColliderType(const ColliderType& type)
 #ifdef _DEBUG
     isDrawCollider_ = true;
     colliderObj_ = std::make_unique<RenderObject>();
-    colliderObj_->modelID_ = (type == kColliderType_AABB) ? colliderCubeModelID : colliderSphereModelID;
+
+    uint32_t modelID = -1;
+    switch (type)
+    {
+    case kColliderType_AABB:
+        modelID = colliderCubeModelID;
+        break;
+    case kColliderType_Sphere:
+        modelID = colliderSphereModelID;
+        break;
+    case kColliderType_XZ_Circle:
+        modelID = colliderCylinderModelID;
+        break;
+    default:
+        modelID = colliderCubeModelID;
+        break;
+    }
+    colliderObj_->modelID_ = modelID;
     colliderObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
     colliderObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
     colliderObj_->psoConfig_.rasterizerID = RasterizerID::Wireframe_NoCull;

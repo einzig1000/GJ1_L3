@@ -1,5 +1,6 @@
 #pragma once
 #include<Game.h>
+#include"../../System/CompoundCollider/CompoundCollider.h"
 
 class HumanModel
 {
@@ -11,12 +12,17 @@ public:
     void Update(const int32_t cameraID);
     void Draw();
     void DrawImGui();
+    //コライダーをゲットする
+    std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 private:
     std::unique_ptr<RenderObject>obj_ = nullptr;
     //モデル
     int32_t model_ = -1;
     //テクスチャ
     int32_t texture_ = -1;
+
+    EulerTransforms transform_{};
+    Matrix4x4 worldMatrix_;
 
     std::string currentAnimationName_ = "Idle";
     //アニメーションID
@@ -30,5 +36,7 @@ private:
     SkinInstance skinInstance_;
     const ModelData* modelData_ = nullptr;
 
+
+    Collision::CompoundCollider comCollider_;
 };
 

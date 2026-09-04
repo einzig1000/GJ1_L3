@@ -57,7 +57,7 @@ namespace Collision {
         if (ImGui::TreeNode(label)) {
 
             //MeshType
-            const char* type[] = { "Sphere", "AABB" };
+            const char* type[] = { "Sphere", "AABB","Circle"};
             int type_current = collider.GetType();
             ImGui::Text(type[type_current]);
 
@@ -156,49 +156,29 @@ namespace Collision {
         }
 
     }
-   
-}
-
-#endif //USE_IMGUI
-void CollisionManager::DebugImGui()
-{
-#ifdef USE_IMGUI
-
-    ImGui::Begin("GameSystem");
-
-    if (ImGui::TreeNode("CollisionManager")) {
-
-        Collision::CheckAllTag();
-
-        int i = 0;
-
-        for (auto& collider : colliders_)
-        {
-            std::string label = "Collider" + std::to_string(i);
-
-            Collision::CheckCollider(*collider, label.c_str());
 
 
-            ++i;
+    float Distance(const Circle& p1, const Circle& p2) {
+        Vector2 distance = p1.center - p2.center;
+        distance.Length();
+        return  distance.Length();
+    }
+
+    bool IsCollision(const Circle& c1, const Circle& c2)
+    {
+        //2つの急の中心点間距離を求める 
+        if (Distance(c1, c2) <= c1.radius + c2.radius) {
+            return true;
         }
 
-
-
-        ImGui::TreePop();
+        return false;
     }
-    ImGui::End();
-
-#endif
-}
-
-
-namespace Collision {
 
     AABB GetAABBWorldPos(Collider* aabb)
     {
         //中心点を考慮した座標を取得してくる
         EulerTransforms transform = aabb->CalculateWorldTransform();
-    
+
         Vector3 halfScale = transform.scale * 0.5f;
         AABB aabbWorld;
         aabbWorld.min = -halfScale + transform.translate;
@@ -213,6 +193,19 @@ namespace Collision {
 
         return Sphere{
           .center = transform.translate,
+          //Xスケールのみを半径とする
+          .radius = transform.scale.x
+        };
+    }
+
+    Circle GetXZCircleWorldPos(Collider* circle)
+    {
+        //中心点を考慮した座標を取得してくる
+        EulerTransforms transform = circle->CalculateWorldTransform();
+
+        return Circle{
+            //XZ平面の円を取得する
+          .center = {transform.translate.x,transform.translate.z},
           //Xスケールのみを半径とする
           .radius = transform.scale.x
         };
@@ -324,6 +317,40 @@ namespace Collision {
         }
     }
 }
+#endif //USE_IMGUI
+void CollisionManager::DebugImGui()
+{
+#ifdef USE_IMGUI
+
+    ImGui::Begin("GameSystem");
+
+    if (ImGui::TreeNode("CollisionManager")) {
+
+        Collision::CheckAllTag();
+
+        int i = 0;
+
+        for (auto& collider : colliders_)
+        {
+            std::string label = "Collider" + std::to_string(i);
+
+            Collision::CheckCollider(*collider, label.c_str());
+
+
+            ++i;
+        }
+
+
+
+        ImGui::TreePop();
+    }
+    ImGui::End();
+
+#endif
+}
+
+
+
 
 void CollisionManager::CheckAllCollisions() {
 
@@ -376,6 +403,13 @@ void CollisionManager::DebugDraw()
     }
 
 #endif
+}
+void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB)
+{
+    // 衝突判定
+    if (IsCollision(Collision::GetXZCircleWorldPos(colliderA), Collision::GetXZCircleWorldPos(colliderB))) {
+        OnCollision(colliderA, colliderB);
+    }
 }
 
 
@@ -430,7 +464,7 @@ void CollisionManager::CheckCollisionPair(Collider* a, Collider* b) {
 
 
     if (typeA == Collider::kColliderType_XZ_Circle && typeB == Collider::kColliderType_XZ_Circle) {
-
+        CheckCollisionCirclePair(a, b);
     } else if (typeA == Collider::kColliderType_Sphere && typeB == Collider::kColliderType_Sphere) {
         CheckCollisionSpherePair(a, b);
     } else if (typeA == Collider::kColliderType_Sphere && typeB == Collider::kColliderType_AABB) {
@@ -448,9 +482,3 @@ void CollisionManager::OnCollision(Collider* a, Collider* b)
     b->OnCollision(a);
 }
 
-void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB)
-{
-
-
-
-}
