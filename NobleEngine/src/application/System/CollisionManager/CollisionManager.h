@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include<utility>
 #include"../CollisionInfo.h"
 #include "../../../engine/EngineDefinition/EngineDefinition.h"
 
@@ -14,8 +15,8 @@ namespace Collision {
         float radius;
     };
     
-    CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB);
-    CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b);
+    //CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB);
+    //CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b);
     void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info);
     Sphere GetSphereWorldPos(Collider* sphere);
     Circle GetXZCircleWorldPos(Collider* circle);
@@ -24,6 +25,25 @@ namespace Collision {
     float Distance(const Circle& p1, const Circle& p2);
 
     bool IsCollision(const Circle& c1, const Circle& c2);
+    /// @brief 射影関数
+    /// @param v1 ベクトル1
+    /// @param v2 ベクトル2
+    /// @return 正射影ベクトル
+    Vector3 Project(const Vector3& v1, const Vector3& v2);
+
+    /// @brief 物体同士の衝突後の速度を求める
+    /// @param pb1 質量と速度1
+    /// @param pb2 質量と速度2
+    /// @param coefficiendOfRestituion 
+    /// @param normal 法線
+    /// @return　Vector3のペア 
+    std::pair<Vector3, Vector3> ComputeCollisionVelocities(
+        const PhysicsBody& pb1,
+        const PhysicsBody& pb2,
+        float coefficiendOfRestituion,
+        const Vector3& normal
+    );
+
 }
 
 /// @brief 衝突マネージャ

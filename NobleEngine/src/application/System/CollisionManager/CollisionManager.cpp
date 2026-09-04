@@ -2,6 +2,8 @@
 #include "../Collider/Collider.h"
 #include<algorithm>
 #include "Utilities/functions.h"
+#include"Utilities/Logger/Logger.h"
+
 #include"Game.h"
 
 void CollisionManager::Load()
@@ -62,14 +64,23 @@ namespace Collision {
             ImGui::Text(type[type_current]);
 
             //InFo
-            if (ImGui::TreeNode("CollisionInfo")) {
-                auto& info = collider.GetCollisionInfo();
-                ImGui::Checkbox("collided", &info.collided);
-                ImGui::SliderFloat3("normal", &info.normal.x, -1000.0f, 1000.0f);
-                ImGui::SliderFloat("penetration", &info.penetration, -1000.0f, 1000.0f);
+            //if (ImGui::TreeNode("CollisionInfo")) {
+            //    auto& info = collider.GetCollisionInfo();
+            //    ImGui::Checkbox("collided", &info.collided);
+            //    ImGui::SliderFloat3("normal", &info.normal.x, -1000.0f, 1000.0f);
+            //    ImGui::SliderFloat("penetration", &info.penetration, -1000.0f, 1000.0f);
+            //    ImGui::TreePop();
+            //}
+
+            //物理ボディ
+            if (ImGui::TreeNode("PhysicsBody")) {
+                auto phybody = collider.GetPhysicsBody();
+                ImGui::SliderFloat3("velocity", &phybody.velocity.x, -1000.0f, 1000.0f);
+                ImGui::SliderFloat("mass", &phybody.mass, 0.001f, 1000.0f);
+                collider.SetVelocity(phybody.velocity);
+                collider.SetMass(phybody.mass);
                 ImGui::TreePop();
             }
-
             ImGui::Text("attribute : %X", collider.GetCollisionAttribute());
             ImGui::Text("     mask : %X", collider.GetCollisionMask());
 
@@ -173,6 +184,48 @@ namespace Collision {
 
         return false;
     }
+  
+    Vector3 Project(const Vector3& v1, const Vector3& v2)
+    {
+        Vector3 v2n = v2;
+        v2n.Normalize();
+        float d = v2n.Dot(v1);
+        return v2n * d;
+    }
+       std::pair<Vector3, Vector3> ComputeCollisionVelocities(
+        const PhysicsBody& pb1,
+        const PhysicsBody& pb2,
+        float coefficiendOfRestituion,
+        const Vector3& normal
+    )
+    {
+        //衝突面法線方向等　速度を分解する　
+        //これが資料で言うC
+        Vector3 project1 = Project(pb1.velocity, normal);
+        Vector3 project2 = Project(pb2.velocity, normal);
+        //これが資料で言うB　
+       Vector3 sub1 = pb1.velocity - project1;
+       Vector3 sub2 = pb2.velocity - project2;
+
+        //衝突後の速度を計算する
+       Vector3 m1v1 = pb1.velocity * pb1.mass;
+       Vector3 m2v2 = pb2.velocity * pb2.mass;
+
+        float massSum = pb1.mass + pb2.mass;
+
+       Vector3 affter1 = m1v1 + m2v2 +  (pb2.velocity - pb1.velocity)* (coefficiendOfRestituion * pb2.mass);
+       Vector3 affter2 = m1v1 + m2v2 + (pb1.velocity - pb2.velocity) * (coefficiendOfRestituion * pb1.mass);
+        if (massSum > 0.0f) {
+            affter1 /= massSum;
+            affter2 /= massSum;
+        } else {
+            Log("This is Zero mass!!");
+        }
+
+
+
+        return std::make_pair(affter1*normal+sub1, affter2*normal + sub2);
+    }
 
     AABB GetAABBWorldPos(Collider* aabb)
     {
@@ -211,98 +264,98 @@ namespace Collision {
         };
     }
 
-    CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB) {
+    //CollisionInfo GetCollisionInfo(const Sphere& sphere, const AABB& AABB) {
 
-        CollisionInfo result;
-        // 最近接点をAABB内から計算（クランプ）
-        Vector3 closestPoint;
+    //    CollisionInfo result;
+    //    // 最近接点をAABB内から計算（クランプ）
+    //    Vector3 closestPoint;
 
-        closestPoint.x = std::clamp(sphere.center.x, AABB.min.x, AABB.max.x);
-        closestPoint.y = std::clamp(sphere.center.y, AABB.min.y, AABB.max.y);
-        closestPoint.z = std::clamp(sphere.center.z, AABB.min.z, AABB.max.z);
+    //    closestPoint.x = std::clamp(sphere.center.x, AABB.min.x, AABB.max.x);
+    //    closestPoint.y = std::clamp(sphere.center.y, AABB.min.y, AABB.max.y);
+    //    closestPoint.z = std::clamp(sphere.center.z, AABB.min.z, AABB.max.z);
 
-        // 最近接点と球の中心の距離の2乗を計算
-        Vector3 difference = sphere.center - closestPoint;
-        float distanceSquared = difference.Dot(difference);
+    //    // 最近接点と球の中心の距離の2乗を計算
+    //    Vector3 difference = sphere.center - closestPoint;
+    //    float distanceSquared = difference.Dot(difference);
 
-        result.collided = distanceSquared <= (sphere.radius * sphere.radius);
+    //    result.collided = distanceSquared <= (sphere.radius * sphere.radius);
 
-        // 球の半径の2乗と比較
-        if (!result.collided) {
-            return result;
-        }
+    //    // 球の半径の2乗と比較
+    //    if (!result.collided) {
+    //        return result;
+    //    }
 
-        result.collided = true;
+    //    result.collided = true;
 
-        // 2. 球の中心がAABBの外側にある場合（表面での接触）
-        if (distanceSquared > 1e-6f) {
-            float distance = std::sqrt(distanceSquared);
-            result.normal = difference / distance; // 正規化（AABBからSphereへ向かうベクトル）
-            result.penetration = sphere.radius - distance;
-            return result;
-        }
+    //    // 2. 球の中心がAABBの外側にある場合（表面での接触）
+    //    if (distanceSquared > 1e-6f) {
+    //        float distance = std::sqrt(distanceSquared);
+    //        result.normal = difference / distance; // 正規化（AABBからSphereへ向かうベクトル）
+    //        result.penetration = sphere.radius - distance;
+    //        return result;
+    //    }
 
-        // 3. 球の中心がAABBの完全に内側にある場合（深くめり込んだ場合）
-        // 各面への距離を計算
-        float distX_min = sphere.center.x - AABB.min.x;
-        float distX_max = AABB.max.x - sphere.center.x;
-        float distY_min = sphere.center.y - AABB.min.y;
-        float distY_max = AABB.max.y - sphere.center.y;
-        float distZ_min = sphere.center.z - AABB.min.z;
-        float distZ_max = AABB.max.z - sphere.center.z;
+    //    // 3. 球の中心がAABBの完全に内側にある場合（深くめり込んだ場合）
+    //    // 各面への距離を計算
+    //    float distX_min = sphere.center.x - AABB.min.x;
+    //    float distX_max = AABB.max.x - sphere.center.x;
+    //    float distY_min = sphere.center.y - AABB.min.y;
+    //    float distY_max = AABB.max.y - sphere.center.y;
+    //    float distZ_min = sphere.center.z - AABB.min.z;
+    //    float distZ_max = AABB.max.z - sphere.center.z;
 
-        // 最も近い面を探す
-        float minDist = distX_min;
-        Vector3 normal = Vector3(-1, 0, 0); // Xマイナス面
+    //    // 最も近い面を探す
+    //    float minDist = distX_min;
+    //    Vector3 normal = Vector3(-1, 0, 0); // Xマイナス面
 
-        if (distX_max < minDist) { minDist = distX_max; normal = Vector3(1, 0, 0); }
-        if (distY_min < minDist) { minDist = distY_min; normal = Vector3(0, -1, 0); }
-        if (distY_max < minDist) { minDist = distY_max; normal = Vector3(0, 1, 0); }
-        if (distZ_min < minDist) { minDist = distZ_min; normal = Vector3(0, 0, -1); }
-        if (distZ_max < minDist) { minDist = distZ_max; normal = Vector3(0, 0, 1); }
+    //    if (distX_max < minDist) { minDist = distX_max; normal = Vector3(1, 0, 0); }
+    //    if (distY_min < minDist) { minDist = distY_min; normal = Vector3(0, -1, 0); }
+    //    if (distY_max < minDist) { minDist = distY_max; normal = Vector3(0, 1, 0); }
+    //    if (distZ_min < minDist) { minDist = distZ_min; normal = Vector3(0, 0, -1); }
+    //    if (distZ_max < minDist) { minDist = distZ_max; normal = Vector3(0, 0, 1); }
 
-        result.normal = normal;
-        result.penetration = sphere.radius + minDist;
+    //    result.normal = normal;
+    //    result.penetration = sphere.radius + minDist;
 
-        return result;
-    }
+    //    return result;
+    //}
 
-    CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b) {
+    //CollisionInfo GetCollisionInfo(const AABB& a, const AABB& b) {
 
-        CollisionInfo result;
+    //    CollisionInfo result;
 
-        if (!IsCollision(a, b)) {
-            result.collided = false;
-            return result;
-        }
+    //    if (!IsCollision(a, b)) {
+    //        result.collided = false;
+    //        return result;
+    //    }
 
-        result.collided = true;
-        //オーバーラップを調べる
-        float overlapX = std::min(a.max.x - b.min.x, b.max.x - a.min.x);
-        float overlapY = std::min(a.max.y - b.min.y, b.max.y - a.min.y);
-        float overlapZ = std::min(a.max.z - b.min.z, b.max.z - a.min.z);
+    //    result.collided = true;
+    //    //オーバーラップを調べる
+    //    float overlapX = std::min(a.max.x - b.min.x, b.max.x - a.min.x);
+    //    float overlapY = std::min(a.max.y - b.min.y, b.max.y - a.min.y);
+    //    float overlapZ = std::min(a.max.z - b.min.z, b.max.z - a.min.z);
 
-        Vector3 centerA = a.center();
-        Vector3 centerB = b.center();
+    //    Vector3 centerA = a.center();
+    //    Vector3 centerB = b.center();
 
-        //最小のオーバーラップ軸を分離する
-        if (overlapX <= overlapY && overlapX <= overlapZ) {
+    //    //最小のオーバーラップ軸を分離する
+    //    if (overlapX <= overlapY && overlapX <= overlapZ) {
 
-            result.penetration = overlapX;
-            result.normal = (centerA.x < centerB.x) ? Vector3(-1.0f, 0.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
+    //        result.penetration = overlapX;
+    //        result.normal = (centerA.x < centerB.x) ? Vector3(-1.0f, 0.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
 
-        } else if (overlapY <= overlapZ) {
-            result.penetration = overlapY;
-            result.normal = (centerA.y < centerB.y) ? Vector3(0.0f, -1.0f, 0.0f) : Vector3(0.0f, 1.0f, 0.0f);
-        } else {
-            result.penetration = overlapZ;
-            result.normal = (centerA.z < centerB.z) ? Vector3(0.0f, 0.0f, -1.0f) : Vector3(0.0f, 0.0f, 1.0f);
-        }
+    //    } else if (overlapY <= overlapZ) {
+    //        result.penetration = overlapY;
+    //        result.normal = (centerA.y < centerB.y) ? Vector3(0.0f, -1.0f, 0.0f) : Vector3(0.0f, 1.0f, 0.0f);
+    //    } else {
+    //        result.penetration = overlapZ;
+    //        result.normal = (centerA.z < centerB.z) ? Vector3(0.0f, 0.0f, -1.0f) : Vector3(0.0f, 0.0f, 1.0f);
+    //    }
 
-        return result;
+    //    return result;
 
 
-    }
+    //}
 
     void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info) {
 
@@ -340,8 +393,6 @@ void CollisionManager::DebugImGui()
             ++i;
         }
 
-
-
         ImGui::TreePop();
     }
     ImGui::End();
@@ -349,16 +400,13 @@ void CollisionManager::DebugImGui()
 #endif
 }
 
-
-
-
 void CollisionManager::CheckAllCollisions() {
 
 
     //全ての衝突判定を初期化する
     for (auto& collider : colliders_) {
         collider->InitCalcuatedTisFrameFlag();
-        collider->GetCollisionInfo().collided = false;
+        //collider->GetCollisionInfo().collided = false;
         //このフレーム内で更新をかけてみる
         collider->CalculateWorldTransform();
     }
@@ -406,8 +454,42 @@ void CollisionManager::DebugDraw()
 }
 void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB)
 {
+
+    Collision::Circle worldCircleA = Collision::GetXZCircleWorldPos(colliderA);
+    Collision::Circle worldCircleB = Collision::GetXZCircleWorldPos(colliderB);
+
     // 衝突判定
-    if (IsCollision(Collision::GetXZCircleWorldPos(colliderA), Collision::GetXZCircleWorldPos(colliderB))) {
+    if (IsCollision(worldCircleA, worldCircleB)) {
+        
+        //XZ平面のお話 仮でZに0を入れておく
+        //法線を求める
+        Vector3 normal =
+            Vector3 {
+            worldCircleA.center.x,
+              worldCircleA.center.y,
+             0.0f
+        } - Vector3{
+            worldCircleB.center.x,
+            worldCircleB.center.y,
+            0.0f
+        };
+
+        normal.Normalize();
+
+        //反発係数
+        auto [a, b] = Collision::ComputeCollisionVelocities(
+            colliderA->GetPhysicsBody(),
+            colliderB->GetPhysicsBody(),
+            1.0f,
+            normal
+        );
+
+        //Vector2のyをZとして扱うためa.yとしている。
+        Vector3 newA = { a.x,colliderA->GetPhysicsBody().velocity.y,a.y };
+        Vector3 newB = { b.x,colliderB->GetPhysicsBody().velocity.y,b.y };
+        colliderA->SetVelocity(newA);
+        colliderB->SetVelocity(newB);
+
         OnCollision(colliderA, colliderB);
     }
 }
@@ -415,8 +497,27 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
 
 void CollisionManager::CheckCollisionSpherePair(Collider* colliderA, Collider* colliderB)
 {
+
+    Sphere worldSphere1 = Collision::GetSphereWorldPos(colliderA);
+    Sphere worldSphere2 = Collision::GetSphereWorldPos(colliderB);
+
     // 衝突判定
-    if (IsCollision(Collision::GetSphereWorldPos(colliderA), Collision::GetSphereWorldPos(colliderB))) {
+    if (IsCollision(worldSphere1, worldSphere2)) {
+        
+        Vector3 normal  = worldSphere1.center-worldSphere2.center;
+        normal.Normalize();
+
+        //反発係数
+        auto [a, b] = Collision::ComputeCollisionVelocities(
+            colliderA->GetPhysicsBody(),
+            colliderB->GetPhysicsBody(),
+            1.0f,
+            normal
+            );
+        
+        colliderA->SetVelocity(a);
+        colliderB->SetVelocity(b);
+
         OnCollision(colliderA, colliderB);
     }
 }
@@ -426,11 +527,11 @@ void CollisionManager::CheckCollisionAABBPair(Collider* colliderA, Collider* col
     AABB worldPosA = Collision::GetAABBWorldPos(colliderA);
     AABB worldPosB = Collision::GetAABBWorldPos(colliderB);
 
-    colliderA->SetCollisionInfo(Collision::GetCollisionInfo(worldPosA, worldPosB));
-    colliderB->SetCollisionInfo(Collision::GetCollisionInfo(worldPosB, worldPosA));
+    //colliderA->SetCollisionInfo(Collision::GetCollisionInfo(worldPosA, worldPosB));
+    //colliderB->SetCollisionInfo(Collision::GetCollisionInfo(worldPosB, worldPosA));
 
     // 衝突判定
-    if (colliderA->GetCollisionInfo().collided && colliderB->GetCollisionInfo().collided) {
+    if (IsCollision(worldPosA, worldPosB)) {
         OnCollision(colliderA, colliderB);
     }
 }
@@ -441,27 +542,28 @@ void CollisionManager::CheckCollisionSphereAABBPair(Collider* sphereC, Collider*
     Sphere worldSphereC = Collision::GetSphereWorldPos(sphereC);
     AABB worldAABBC = Collision::GetAABBWorldPos(aabbC);
 
-    CollisionInfo info = Collision::GetCollisionInfo(worldSphereC, worldAABBC);
-
-    // 衝突判定
-    if (info.collided) {
-        // Sphere側にはそのままセット
-
-        sphereC->SetCollisionInfo(info);
-        // AABB側には法線を逆向きにしてセット
-        CollisionInfo aabbInfo = info;
-        aabbInfo.normal = { -info.normal.x, -info.normal.y, -info.normal.z };
-        aabbC->SetCollisionInfo(aabbInfo);
-
+    //CollisionInfo info = Collision::GetCollisionInfo(worldSphereC, worldAABBC);
+    if (IsCollision(worldAABBC, worldSphereC)) {
         OnCollision(aabbC, sphereC);
     }
+
+    //// 衝突判定
+    //if (info.collided) {
+    //    // Sphere側にはそのままセット
+
+    //    sphereC->SetCollisionInfo(info);
+    //    // AABB側には法線を逆向きにしてセット
+    //    CollisionInfo aabbInfo = info;
+    //    aabbInfo.normal = { -info.normal.x, -info.normal.y, -info.normal.z };
+    //    aabbC->SetCollisionInfo(aabbInfo);
+
+    //}
 }
 
 void CollisionManager::CheckCollisionPair(Collider* a, Collider* b) {
 
     const Collider::ColliderType typeA = a->GetType();
     const Collider::ColliderType typeB = b->GetType();
-
 
     if (typeA == Collider::kColliderType_XZ_Circle && typeB == Collider::kColliderType_XZ_Circle) {
         CheckCollisionCirclePair(a, b);
