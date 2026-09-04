@@ -1148,5 +1148,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\Block\versionInfo.md" />
+    <None Include="assets\application\json\Glass\Glass.json" />
   </ItemGroup>
 </Project>

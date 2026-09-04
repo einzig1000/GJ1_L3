@@ -75,10 +75,13 @@ const EulerTransforms& Collider::CalculateWorldTransform()
 
     //センターからワールド行列を作成する
     Vector3 center{};
+    Vector3 halfScale{};
     if (type_ == kColliderType_AABB) {
-        center = { 0.0f,0.0f,0.0f };
+        center = aabb_.center();
+        halfScale = aabb_.max - aabb_.min;
     } else {
         center = sphere_.center;
+        halfScale = { sphere_.radius,sphere_.radius,sphere_.radius };
     }
 
     Matrix4x4 child = Matrix4x4::MakeTranslateMatrix(center);
@@ -86,6 +89,10 @@ const EulerTransforms& Collider::CalculateWorldTransform()
 
     //ワールド座標の取得
     tempWorldTransform_.translate = ParentMatrix::GetWorldTransformByMatrix(child);
+
+    Matrix4x4 scaleMatrix = Matrix4x4::MakeScaleMatrix(halfScale);
+    scaleMatrix = scaleMatrix * *parentWorldMat_;
+    tempWorldTransform_.scale = ParentMatrix::GetParentScaleByMatrix(scaleMatrix);
 
     //計算終了
     isCalculatedThisFrame_ = true;

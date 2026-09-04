@@ -198,9 +198,11 @@ namespace Collision {
     {
         //中心点を考慮した座標を取得してくる
         EulerTransforms transform = aabb->CalculateWorldTransform();
-        AABB aabbWorld = aabb->GetAABB();
-        aabbWorld.min = aabbWorld.min+ transform.translate;
-        aabbWorld.max = aabbWorld.max+ transform.translate;
+    
+        Vector3 halfScale = transform.scale * 0.5f;
+        AABB aabbWorld;
+        aabbWorld.min = -halfScale + transform.translate;
+        aabbWorld.max = halfScale + transform.translate;
         return aabbWorld;
     }
 
@@ -211,7 +213,7 @@ namespace Collision {
 
         return Sphere{
           .center = transform.translate,
-          .radius = sphere->GetSphere().radius
+          .radius = transform.scale.x
         };
     }
 

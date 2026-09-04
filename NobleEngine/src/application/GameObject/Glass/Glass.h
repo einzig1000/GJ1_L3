@@ -14,6 +14,9 @@ public:
 public:
     Glass();
     ~Glass();
+    /// @brief 床との当たり判定を一旦y座標によって判定する
+    /// @return 床との当たり判定
+    bool GetIsHitFloor() { return isHitFloor_; };
     void Initialize();
     void Update(const int32_t cameraID);
     void Draw();
@@ -24,6 +27,8 @@ public:
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 private:
+    //床との当たり判定
+    bool isHitFloor_ = false;
 
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
