@@ -1,6 +1,8 @@
 #include "CollisionTestPhase.h"
 #include"GameObject/Glass/Glass.h"
 #include"GameObject/Table/Table.h"
+//人間モデル
+#include"GameObject/HumanModel/HumanModel.h"
 #include"../System/CollisionManager/CollisionManager.h"
 
 CollisionTestPhase::CollisionTestPhase()
@@ -56,14 +58,16 @@ void CollisionTestPhase::InitGameObj()
     //テーブルの作成
     table_ = std::make_unique<Table>();
     table_->Initialize();
-
+    //人間モデル
+      humanModel_ = std::make_unique<HumanModel>();
+      humanModel_->Initialize();
 }
 
 void CollisionTestPhase::UpdateGameObj(const int32_t cameraID)
 {
     glass_->Update(cameraID);
     table_->Update(cameraID);
-
+    humanModel_->Update(cameraID);
 
     //コライダー描画のための更新
     collisionManager_->DebugUpdate(cameraID);
@@ -73,8 +77,11 @@ void CollisionTestPhase::UpdateGameObj(const int32_t cameraID)
 
 void CollisionTestPhase::DrawGameObj()
 {
+
     //テーブルの描画
     table_->Draw();
+    //人間モデル
+    humanModel_->Draw();
     //グラスは半透明なので後に描画する
     glass_->Draw();
 
@@ -87,6 +94,7 @@ void CollisionTestPhase::DrawImGuiObj()
 {
     glass_->DrawImGui();
     table_->DrawImGui();
+    humanModel_->DrawImGui();
     collisionManager_->DebugImGui();
 }
 

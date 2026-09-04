@@ -122,6 +122,7 @@
     <ClCompile Include="src\engine\TimeManager\TimeManager.cpp" />
     <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp" />
     <ClCompile Include="src\application\GameObject\Table\Table.cpp" />
+    <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
@@ -389,6 +390,7 @@
     <ClInclude Include="src\engine\TimeManager\TimeManager.h" />
     <ClInclude Include="src\engine\TimeManager\TimeScaler\TimeScaler.h" />
     <ClInclude Include="src\application\GameObject\Table\Table.h" />
+    <ClInclude Include="src\application\GameObject\HumanModel\HumanModel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
