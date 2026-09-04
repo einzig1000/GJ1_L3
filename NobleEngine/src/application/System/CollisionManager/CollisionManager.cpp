@@ -213,6 +213,7 @@ namespace Collision {
 
         return Sphere{
           .center = transform.translate,
+          //Xスケールのみを半径とする
           .radius = transform.scale.x
         };
     }
@@ -427,7 +428,10 @@ void CollisionManager::CheckCollisionPair(Collider* a, Collider* b) {
     const Collider::ColliderType typeA = a->GetType();
     const Collider::ColliderType typeB = b->GetType();
 
-    if (typeA == Collider::kColliderType_Sphere && typeB == Collider::kColliderType_Sphere) {
+
+    if (typeA == Collider::kColliderType_XZ_Circle && typeB == Collider::kColliderType_XZ_Circle) {
+
+    } else if (typeA == Collider::kColliderType_Sphere && typeB == Collider::kColliderType_Sphere) {
         CheckCollisionSpherePair(a, b);
     } else if (typeA == Collider::kColliderType_Sphere && typeB == Collider::kColliderType_AABB) {
         CheckCollisionSphereAABBPair(a, b);
@@ -442,4 +446,11 @@ void CollisionManager::OnCollision(Collider* a, Collider* b)
 {
     a->OnCollision(b);
     b->OnCollision(a);
+}
+
+void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB)
+{
+
+
+
 }

@@ -24,6 +24,8 @@ public:
 		kColliderType_AABB,
 		//OBB対応は必要に迫られたらやる
 		kColliderType_OBB,
+		//XZ平面上の円
+		kColliderType_XZ_Circle,
 		kColliderType_Max
 	};
 
@@ -55,6 +57,7 @@ private:
 	// 描画オブジェクト
 	std::unique_ptr<RenderObject> colliderObj_;
 	Vector4 colliderColor_ = { 0.0f };
+
 	//=======================================
 #endif
 
@@ -78,11 +81,13 @@ public:
 	const EulerTransforms& CalculateWorldTransform();
 
 	/// @brief 球を設定する
-	/// @param sphere 
-	void SetSphere(const Sphere& sphere) {
-	
-		type_ = ColliderType::kColliderType_Sphere;
+	/// @param sphere 球
+	/// @param isCircleXZ 円にするかどうか
+	void SetSphere(const Sphere& sphere,bool isCircleXZ = true) {
+
+		type_ = isCircleXZ ? ColliderType::kColliderType_XZ_Circle : ColliderType::kColliderType_Sphere;
 		sphere_ = sphere;
+		
 		ResetColliderType(type_);
 	};
 
@@ -130,7 +135,6 @@ public:
 	CollisionInfo& GetCollisionInfo() {
 		return collisionInfo_;
 	}
-
 
 	//=======================================
 	//==========コライダーデバック表示==========

@@ -128,6 +128,7 @@ void Collider::Update(const int32_t cameraID)
     if (type_ == kColliderType_AABB) {
         halfExtent = (aabb_.max - aabb_.min);
     } else {
+        //表示とずれるかも
         float size = sphere_.radius*2.0f;
         halfExtent = Vector3(size, size, size);
     }
