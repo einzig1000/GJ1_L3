@@ -1,50 +1,36 @@
-#include "Glass.h"
+#include "Obstacle.h"
 #include"Utilities/Json/JsonManager.h"
+
 namespace
 {
     //グラス共通の変数
     float deadLine_ = 0.0f;
 }
 
-Glass::Glass()
+Obstacle::Obstacle()
 {
-    //カクテルをロードする
-    SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
-
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 
     transform_.translate.y = 1.28f;
 }
 
-Glass::~Glass()
+Obstacle::~Obstacle()
 {}
 
-void Glass::Initialize()
+void Obstacle::Initialize()
 {
     //床との当たり判定
     isHitFloor_ = false;
 
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
-    //シンプルモデルのシェーダー適用
     glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
     glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
     glassObj_->SetupFromShaders();
 
-    glassObj_->modelID_ = modelID_;
-
-    //一旦半透明にしておく
-    color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
-
-    comCollider_.CreateFromModelData(
-        modelID_,
-        worldMatrix_,
-        CollisionTag::GetTag("Glass"),
-        //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Target"));
-        CollisionTag::GetTag("Target"));
 }
 
-void Glass::Update(const int32_t cameraID)
+void Obstacle::Update(const int32_t cameraID)
 {
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
@@ -53,9 +39,6 @@ void Glass::Update(const int32_t cameraID)
     //物理を呼ぶぞ！
     if (!comCollider_.colliders.empty())
     {
-		//comCollider_.colliders.at(0)->SetVelocity(velocity_);
-		//velocity_ *= 0.92f;
-
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
         vel = phyB.velocity;
@@ -81,16 +64,16 @@ void Glass::Update(const int32_t cameraID)
     glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
 }
 
-void Glass::Draw()
+void Obstacle::Draw()
 {
     glassObj_->Draw();
 }
 
-void Glass::DrawImGui()
+void Obstacle::DrawImGui()
 {
     ImGui::Begin("GameObj");
 
-    if (ImGui::TreeNode("Glass"))
+    if (ImGui::TreeNode("Obstacle"))
     {
         static Vector3 vel;
         ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
@@ -116,7 +99,6 @@ void Glass::DrawImGui()
         ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
         ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
         ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-        ImGui::ColorEdit4("Color##", &color_.x);
 
         ImGui::TreePop();
     }
@@ -124,24 +106,57 @@ void Glass::DrawImGui()
     ImGui::End();
 }
 
-void Glass::SetGlassTypeAndLoadModels(const GlassType type)
+void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
 {
+	glassType_ = type;
 
-    std::string filePath;
-    std::string textureFilePath = "assets/engine/texture/white1x1.png";
+    std::string modelPath;
+    std::string texturePath;
 
     switch (type)
     {
-    case Glass::GLASS_COCKTAIL:
-        filePath = "assets/application/model/Cocktail/Cocktail.obj";
+    case GlassType::Bottle:
+        modelPath = "assets/application/Alcohol/Bottle/Bottle.obj";
+		texturePath = "assets/application/Alcohol/Bottle/Bottle.png";
         break;
+    case GlassType::Champagne:
+        modelPath = "assets/application/Alcohol/Champagne/Champagne.obj";
+		texturePath = "assets/application/Alcohol/Champagne/Champagne.png";
+        break;
+    case GlassType::Gin:
+		modelPath = "assets/application/Alcohol/Gin/Gin.obj";
+		texturePath = "assets/application/Alcohol/Gin/Gin.png";
+        break;
+    case GlassType::JapaneseSake:
+		modelPath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.obj";
+		texturePath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.png";
+        break;
+    case GlassType::Plumwine:
+		modelPath = "assets/application/Alcohol/Plumwine/Plumwine.obj";
+		texturePath = "assets/application/Alcohol/Plumwine/Plumwine.png";
+        break;
+    case GlassType::Whiskey:
+        modelPath = "assets/application/Alcohol/Whiskey/Whiskey.obj";
+        texturePath = "assets/application/Alcohol/Whiskey/Whiskey.png";
+        break;
+    case GlassType::GLASS_MAX:
     default:
-        //デフォルトはカクテル
-        filePath = "assets/application/model/Cocktail/Cocktail.obj";
+        modelPath = "assets/application/model/Cocktail/Cocktail.obj";
+        texturePath = "assets/engine/texture/white1x1.png";
+
         break;
     }
 
     //モデルとテクスチャIDをセットする
-    modelID_ = Game::Asset::Model::Load(filePath);
-    textureID_ = Game::Asset::Texture::Load(textureFilePath);
+    glassObj_->modelID_ = Game::Asset::Model::Load(modelPath);
+    textureID_ = Game::Asset::Texture::Load(texturePath);
+
+    comCollider_.CreateFromModelData(
+        glassObj_->modelID_,
+        worldMatrix_,
+        CollisionTag::GetTag("Target"),
+        //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Glass"));
+        CollisionTag::GetTag("Glass"));
+
+    comCollider_.colliders.at(0)->SetMass(10.0f);
 }
