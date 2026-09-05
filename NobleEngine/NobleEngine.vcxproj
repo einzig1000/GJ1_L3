@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application\GameObject\Effect\Particle\Particle.cpp" />
+    <ClCompile Include="src\application\GameManager\Particle\GlassParticle\GlassParticle.cpp" />
     <ClCompile Include="src\application\System\CompoundCollider\CompoundCollider.cpp" />
     <ClCompile Include="src\application\System\CollisionTag\CollisionTag.cpp" />
     <ClCompile Include="src\application\System\Collider\Collider.cpp" />
@@ -126,6 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
+    <ClInclude Include="src\application\GameManager\Particle\GlassParticle\GlassParticle.h" />
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
     <ClInclude Include="src\application\System\CollisionInfo.h" />
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />

@@ -1,3 +1,2 @@
 center_x,center_y,center_z,radius
-min_x,min_y,min_z,max_x,max_y,max_z
--0.13882,-0.263524,-0.13882,0.13882,0.045452,0.13882
+0,-0.09,0,0.25

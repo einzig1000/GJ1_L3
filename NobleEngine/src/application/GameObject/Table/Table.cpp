@@ -39,8 +39,20 @@ void Table::Initialize()
 
 void Table::Update(const int32_t cameraID)
 {
+
+	Vector3 vel = { 0.0f };
+	//物理を呼ぶぞ！
+	if (!comCollider_.colliders.empty()) {
+		auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
+		float mass = phyB.mass;
+		vel = phyB.velocity;
+	}
+
+
 	for (int i = 0; i < instanceCount_; i++)
 	{
+		//スケールタイム適用済みのデルタタイムを取得して座標を動かす
+		transforms_[i].translate += vel * Game::Time::GetScaledDeltaTimeMs()*0.001f;
 		worldMatrices_[i] = transforms_[i].GetWorldMatrix();
 	}
 
@@ -67,6 +79,29 @@ void Table::DrawImGui()
 	ImGui::Begin("GameObj");
 
 	if (ImGui::TreeNode("Table")) {
+
+		static Vector3 vel;
+		ImGui::SliderFloat3("velocity", &vel.x, 0.0f, 10.0f);
+		//物理ボディ
+		if (ImGui::TreeNode("PhysicsBody")) {
+			if (!comCollider_.colliders.empty()) {
+				auto& collider = comCollider_.colliders.at(0);
+				auto  phyB = collider->GetPhysicsBody();
+				float mass = phyB.mass;
+				/*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
+				ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+
+				collider->SetMass(phyB.mass);
+
+				if (ImGui::Button("Shot")) {
+					collider->SetVelocity(vel);
+				}
+
+				ImGui::TreePop();
+			}
+
+		}
+
 		for (int i = 0; i < instanceCount_; i++)
 		{
 			if (ImGui::TreeNode(("Instance " + std::to_string(i)).c_str()))

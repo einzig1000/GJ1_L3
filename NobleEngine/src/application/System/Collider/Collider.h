@@ -22,8 +22,11 @@ public:
 	enum ColliderType {
 		kColliderType_Sphere,
 		kColliderType_AABB,
+	
+		//XZ平面上の円
+		kColliderType_XZ_Circle,
 		//OBB対応は必要に迫られたらやる
-		kColliderType_OBB,
+		//kColliderType_OBB,
 		kColliderType_Max
 	};
 
@@ -36,8 +39,9 @@ private:
 	uint32_t collisionMask_ = 0xffffffff;		// 衝突マスク
 
 	ColliderType type_ = ColliderType::kColliderType_Sphere;
-	CollisionInfo collisionInfo_;
-	
+	//CollisionInfo collisionInfo_;
+	//速度と質量が入っている。
+	PhysicsBody physicsBody_;
 	Matrix4x4* parentWorldMat_ = nullptr;
 
 	EulerTransforms tempWorldTransform_ = {0.0f};
@@ -55,6 +59,7 @@ private:
 	// 描画オブジェクト
 	std::unique_ptr<RenderObject> colliderObj_;
 	Vector4 colliderColor_ = { 0.0f };
+
 	//=======================================
 #endif
 
@@ -78,11 +83,13 @@ public:
 	const EulerTransforms& CalculateWorldTransform();
 
 	/// @brief 球を設定する
-	/// @param sphere 
-	void SetSphere(const Sphere& sphere) {
-	
-		type_ = ColliderType::kColliderType_Sphere;
+	/// @param sphere 球
+	/// @param isCircleXZ 円にするかどうか
+	void SetSphere(const Sphere& sphere,bool isCircleXZ = true) {
+
+		type_ = isCircleXZ ? ColliderType::kColliderType_XZ_Circle : ColliderType::kColliderType_Sphere;
 		sphere_ = sphere;
+		
 		ResetColliderType(type_);
 	};
 
@@ -126,11 +133,16 @@ public:
 	void SetCollisionMask(uint32_t mask) { collisionMask_ = mask; }
 
 	void OnCollisionCollider();
-	void SetCollisionInfo(const CollisionInfo& info) { collisionInfo_ = info; };
-	CollisionInfo& GetCollisionInfo() {
-		return collisionInfo_;
-	}
+	//void SetCollisionInfo(const CollisionInfo& info) { collisionInfo_ = info; };
+	//CollisionInfo& GetCollisionInfo() {
+	//	return collisionInfo_;
+	//}
 
+	void SetMass(const float mass) { physicsBody_.mass = mass; };
+
+	void SetVelocity(const Vector3 velocity) { physicsBody_.velocity = velocity; }
+	
+	const PhysicsBody GetPhysicsBody() { return physicsBody_; }
 
 	//=======================================
 	//==========コライダーデバック表示==========
