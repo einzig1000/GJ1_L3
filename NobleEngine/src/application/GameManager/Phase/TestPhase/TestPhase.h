@@ -1,5 +1,6 @@
 #pragma once
 #include <GameManager/Phase/IPhase.h>
+#include <GameObject/Effect/Particle/Particle.h>
 
 // VS b0 : 192 byte
 struct WaterTransformCB
@@ -207,4 +208,8 @@ private:
 	VectorDynamics scale = VectorDynamics{ Vector3{ 1.0f, 1.0f, 1.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
 	float radius = -1.0f;
 	Vector2 hanasitatokinoruisekisokudo = Vector2{ 0.0f, 0.0f };
+
+
+
+	Particle particle_;
 };
