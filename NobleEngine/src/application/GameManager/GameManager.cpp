@@ -10,10 +10,9 @@
 
 #include <Utilities/Json/JsonManager.h>
 
-
 GameManager::GameManager() 
 {
-	currentPhase_ = CreatePhase(Phase::Phase_Test);
+	currentPhase_ = CreatePhase(Phase::Phase_CollisionTest);
 	currentPhase_->SetContext(&phaseContext_);
 	currentPhase_->Initialize();
 
@@ -23,7 +22,6 @@ GameManager::GameManager()
 GameManager::~GameManager()
 {
 }
-
 
 void GameManager::Update()
 {

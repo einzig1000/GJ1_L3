@@ -34,7 +34,12 @@ void Table::Initialize()
 	textureIndices_.resize(instanceCount_, textureID_);
 
 	//インスタンス1なので0とし行列のコンテナは考えない
-	comCollider_.CreateFromModelData(modelID_, worldMatrices_[0], CollisionTag::GetTag("Table"), CollisionTag::GetTag("Glass"));
+	comCollider_.CreateFromModelData(
+		modelID_,
+		worldMatrices_[0],
+		CollisionTag::GetTag("Table"), 
+		CollisionTag::GetTag("Glass")
+	);
 }
 
 void Table::Update(const int32_t cameraID)
@@ -47,7 +52,6 @@ void Table::Update(const int32_t cameraID)
 		float mass = phyB.mass;
 		vel = phyB.velocity;
 	}
-
 
 	for (int i = 0; i < instanceCount_; i++)
 	{
