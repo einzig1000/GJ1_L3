@@ -12,6 +12,7 @@ GlassParticle::GlassParticle()
 	emitterSphere_.radius = 0.1f;
 	emitterSphere_.emit = 0;
 
+	emitterSphere_.reflectDirection = 1.8f;
 	particles_.resize(maxParticle_);
 	initializeComputes_.resize(maxParticle_);
 	emitComputes_.resize(maxParticle_);
