@@ -131,7 +131,7 @@ void Collider::Update(const int32_t cameraID)
         halfExtent = (aabb_.max - aabb_.min);
     } else {
         //表示とずれるかも
-        float size = sphere_.radius*2.0f;
+        float size = sphere_.radius;
         halfExtent = Vector3(size, size, size);
     }
     // コライダーの中心点オフセット

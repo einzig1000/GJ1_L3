@@ -208,13 +208,13 @@ namespace Collision {
        Vector3 sub2 = pb2.velocity - project2;
 
         //衝突後の速度を計算する
-       Vector3 m1v1 = pb1.velocity * pb1.mass;
-       Vector3 m2v2 = pb2.velocity * pb2.mass;
+       Vector3 m1v1 = project1 * pb1.mass;
+       Vector3 m2v2 = project2 * pb2.mass;
 
         float massSum = pb1.mass + pb2.mass;
 
-       Vector3 affter1 = m1v1 + m2v2 +  (pb2.velocity - pb1.velocity)* (coefficiendOfRestituion * pb2.mass);
-       Vector3 affter2 = m1v1 + m2v2 + (pb1.velocity - pb2.velocity) * (coefficiendOfRestituion * pb1.mass);
+       Vector3 affter1 = m1v1 + m2v2 +  (project2 - project1)* (coefficiendOfRestituion * pb2.mass);
+       Vector3 affter2 = m1v1 + m2v2 + (project1 - project2) * (coefficiendOfRestituion * pb1.mass);
         if (massSum > 0.0f) {
             affter1 /= massSum;
             affter2 /= massSum;
@@ -222,9 +222,7 @@ namespace Collision {
             Log("This is Zero mass!!");
         }
 
-
-
-        return std::make_pair(affter1*normal+sub1, affter2*normal + sub2);
+        return std::make_pair(affter1+sub1, affter2 + sub2);
     }
 
     AABB GetAABBWorldPos(Collider* aabb)
@@ -247,7 +245,7 @@ namespace Collision {
         return Sphere{
           .center = transform.translate,
           //Xスケールのみを半径とする
-          .radius = transform.scale.x
+          .radius = transform.scale.x*0.5f
         };
     }
 
@@ -260,7 +258,7 @@ namespace Collision {
             //XZ平面の円を取得する
           .center = {transform.translate.x,transform.translate.z},
           //Xスケールのみを半径とする
-          .radius = transform.scale.x
+          .radius = transform.scale.x * 0.5f
         };
     }
 
@@ -461,34 +459,48 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
     // 衝突判定
     if (IsCollision(worldCircleA, worldCircleB)) {
         
-        //XZ平面のお話 仮でZに0を入れておく
+        //XZ平面のお話
+        //worldCircle.center.y は Z座標が入っている点に注意
         //法線を求める
         Vector3 normal =
             Vector3 {
             worldCircleA.center.x,
-              worldCircleA.center.y,
-             0.0f
+             0.0f,
+            worldCircleA.center.y,
         } - Vector3{
             worldCircleB.center.x,
+            0.0f,
             worldCircleB.center.y,
-            0.0f
         };
 
-        normal.Normalize();
+        float len = normal.Length();
+        if (std::abs(len) < 0.00001f)
+        {
+            // 距離がゼロでないか確認して正規化
+            normal = Vector3{ 1.0f, 0.0f, 0.0f };
+        } else {
+            normal.Normalize();
+        }
 
-        //反発係数
-        auto [a, b] = Collision::ComputeCollisionVelocities(
-            colliderA->GetPhysicsBody(),
-            colliderB->GetPhysicsBody(),
-            1.0f,
-            normal
-        );
+        // 相対速度を計算（近づいている場合のみ反発処理を行う）
+        Vector3 relativeVelocity = colliderA->GetPhysicsBody().velocity - colliderB->GetPhysicsBody().velocity;
 
-        //Vector2のyをZとして扱うためa.yとしている。
-        Vector3 newA = { a.x,colliderA->GetPhysicsBody().velocity.y,a.y };
-        Vector3 newB = { b.x,colliderB->GetPhysicsBody().velocity.y,b.y };
-        colliderA->SetVelocity(newA);
-        colliderB->SetVelocity(newB);
+        if (relativeVelocity.Dot(normal) < 0.0f) {
+            //反発係数
+            auto [a, b] = Collision::ComputeCollisionVelocities(
+                colliderA->GetPhysicsBody(),
+                colliderB->GetPhysicsBody(),
+                1.0f,
+                normal
+            );
+
+            Vector3 newA = { a.x,colliderA->GetPhysicsBody().velocity.y,a.z };
+            Vector3 newB = { b.x,colliderB->GetPhysicsBody().velocity.y,b.z };
+            
+            colliderA->SetVelocity(newA);
+            colliderB->SetVelocity(newB);
+        
+        }
 
         OnCollision(colliderA, colliderB);
     }
