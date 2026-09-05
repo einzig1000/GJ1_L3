@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameObject\Effect\Particle\Particle.cpp" />
     <ClCompile Include="src\application\System\CompoundCollider\CompoundCollider.cpp" />
     <ClCompile Include="src\application\System\CollisionTag\CollisionTag.cpp" />
     <ClCompile Include="src\application\System\Collider\Collider.cpp" />
@@ -124,6 +125,7 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
     <ClInclude Include="src\application\System\CollisionInfo.h" />
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />

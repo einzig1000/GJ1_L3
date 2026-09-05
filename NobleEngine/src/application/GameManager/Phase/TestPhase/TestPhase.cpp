@@ -271,10 +271,12 @@ void TestPhase::Initialize()
 	nextPhase_ = Phase::Phase_None;
 
 	//Initialize_SimpleModels();
-	Initialize_Sprite();
+	//Initialize_Sprite();
 	//Initialize_Animation();
 	//Initialize_Water();
-	Initialize_Collider();
+	//Initialize_Collider();
+
+	particle_.Initialize();
 }
 
 void TestPhase::Update()
@@ -282,28 +284,32 @@ void TestPhase::Update()
 	Game::Camera::Update(c_main_);
 
 	//Update_SimpleModels();
-	Update_Sprite();
+	//Update_Sprite();
 	//Update_Animation();
 	//Update_Water();
-	Update_Collider();
+	//Update_Collider();
+
+	particle_.Update(c_main_);
 }
 
 void TestPhase::Draw()
 {
 	//Draw_SimpleModels();
-	Draw_Sprite();
+	//Draw_Sprite();
 	//Draw_Animation();
 	//Draw_Water();
-	Draw_Collider();
+	//Draw_Collider();
+
+	particle_.Draw();
 }
 
 void TestPhase::DrawImGui()
 {
 	//DrawImGui_SimpleModels();
-	DrawImGui_Sprite();
+	//DrawImGui_Sprite();
 	//DrawImGui_Animation();
 	//DrawImGui_Water();
-	DrawImGui_Collider();
+	//DrawImGui_Collider();
 
 	if (ImGui::Button("PlaySound"))
 	{
