@@ -171,7 +171,6 @@ namespace Collision {
 
     float Distance(const Circle& p1, const Circle& p2) {
         Vector2 distance = p1.center - p2.center;
-        distance.Length();
         return  distance.Length();
     }
 
@@ -349,10 +348,7 @@ namespace Collision {
     //        result.penetration = overlapZ;
     //        result.normal = (centerA.z < centerB.z) ? Vector3(0.0f, 0.0f, -1.0f) : Vector3(0.0f, 0.0f, 1.0f);
     //    }
-
     //    return result;
-
-
     //}
 
     void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info) {
