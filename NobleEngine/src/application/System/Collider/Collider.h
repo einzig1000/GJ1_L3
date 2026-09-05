@@ -22,7 +22,6 @@ public:
 	enum ColliderType {
 		kColliderType_Sphere,
 		kColliderType_AABB,
-	
 		//XZ平面上の円
 		kColliderType_XZ_Circle,
 		//OBB対応は必要に迫られたらやる

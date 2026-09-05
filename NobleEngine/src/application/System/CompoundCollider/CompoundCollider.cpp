@@ -10,10 +10,10 @@ namespace Collision {
         const uint32_t mask)
     {
         colliders.clear();
-        ModelData modelData = *Game::Asset::Model::GetData(modelID);
+        auto modelData = Game::Asset::Model::GetData(modelID);
 
-        size_t aabbCount = modelData.colliderShape.aabbs.size();
-        size_t sphereCount = modelData.colliderShape.spheres.size();
+        size_t aabbCount = modelData->colliderShape.aabbs.size();
+        size_t sphereCount = modelData->colliderShape.spheres.size();
         size_t maxCount = aabbCount + sphereCount;
 
         std::vector<std::unique_ptr<Collider>> newColliders;
@@ -28,16 +28,15 @@ namespace Collision {
         }
 
         for (int j = 0; j < aabbCount; ++j) {
-            newColliders[j]->SetAABB(modelData.colliderShape.aabbs[j]);
+            newColliders[j]->SetAABB(modelData->colliderShape.aabbs[j]);
         }
 
         // 2. Sphere のセット
         for (int j = 0; j < sphereCount; ++j) {
-            newColliders[aabbCount+j]->SetSphere(modelData.colliderShape.spheres[j]);
+            newColliders[aabbCount+j]->SetSphere(modelData->colliderShape.spheres[j]);
         }
 
         colliders = std::move(newColliders);
-
 
     }
 }

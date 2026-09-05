@@ -61,7 +61,6 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
-
     for (int i = 0; i < instanceCount_; i++)
     {
         if (transforms_[i].translate.y <= deadLine_) {
@@ -110,7 +109,7 @@ void Glass::DrawImGui()
           auto& collider = comCollider_.colliders.at(0);
           auto  phyB = collider->GetPhysicsBody();
           float mass = phyB.mass;
-  /*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
+
           ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
 
           collider->SetMass(phyB.mass);
