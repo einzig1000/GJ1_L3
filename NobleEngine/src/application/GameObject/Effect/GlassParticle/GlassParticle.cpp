@@ -1,4 +1,5 @@
 #include "GlassParticle.h"
+#include"../GameObject/Effect/Particle/Particle.h"
 
 GlassParticle::GlassParticle()
 {
@@ -12,6 +13,16 @@ GlassParticle::GlassParticle()
 	emitterSphere_.radius = 0.1f;
 	emitterSphere_.emit = 0;
 
+	emitterSphere_.speedRange = 5.0f;
+	emitterSphere_.reflectDirection = {0.0f,0.0f,0.0f};
+	
+	hitPosition_.tableCenter = {0.0f,1.0f,0.0f};//テーブルセンター
+	hitPosition_.tableRadius = 10.0f;//テーブル半径
+	hitPosition_.tableThickness = 0.0625f;//テーブルの高さ
+	hitPosition_.floorHeight = 0.0f;//床の高さ
+	hitPosition_.pieceRadius = 0.02f;//破片の半径
+	hitPosition_.coefficiendOfRestituion = 0.8f;//反発係数
+	hitPosition_.pieceMass = 0.05f;//破片の質量 
 	particles_.resize(maxParticle_);
 	initializeComputes_.resize(maxParticle_);
 	emitComputes_.resize(maxParticle_);
@@ -42,14 +53,14 @@ GlassParticle::GlassParticle()
 		initializeComputes_[i]->Dispatch();
 
 		emitComputes_[i] = std::make_unique<ComputeObject>();
-		emitComputes_[i]->psoConfig_.cs = "assets/shaders/Particle/EmitParticle.CS.hlsl";
+		emitComputes_[i]->psoConfig_.cs = "assets/shaders/Particle/EmitGlassParticle.CS.hlsl";
 		emitComputes_[i]->SetupFromShaders();
 		emitComputes_[i]->RegisterOutput(particleSRVIDs_[i]);
 		emitComputes_[i]->RegisterOutput(freeListIndexSRVIDs_[i]);
 		emitComputes_[i]->RegisterOutput(freeListSRVIDs_[i]);
 
 		updateComputes_[i] = std::make_unique<ComputeObject>();
-		updateComputes_[i]->psoConfig_.cs = "assets/shaders/Particle/UpdateParticle.CS.hlsl";
+		updateComputes_[i]->psoConfig_.cs = "assets/shaders/Particle/UpdateGlassParticle.CS.hlsl";
 		updateComputes_[i]->SetupFromShaders();
 		updateComputes_[i]->RegisterOutput(particleSRVIDs_[i]);
 		updateComputes_[i]->RegisterOutput(freeListIndexSRVIDs_[i]);
@@ -64,6 +75,8 @@ GlassParticle::~GlassParticle()
 void GlassParticle::Initialize()
 {
 }
+
+
 
 void GlassParticle::Update(int32_t cameraID)
 {
@@ -84,7 +97,7 @@ void GlassParticle::Update(int32_t cameraID)
 		emitComputes_[i]->SetUAVData(1, Game::Resource::GetUAV(freeListIndexSRVIDs_[i]));
 		emitComputes_[i]->SetUAVData(2, Game::Resource::GetUAV(freeListSRVIDs_[i]));
 		emitComputes_[i]->SetCBufferData(0, &emitterSphere_);
-		
+
 		//if (i != 0) {
 		//
 		//} else {
@@ -99,6 +112,9 @@ void GlassParticle::Update(int32_t cameraID)
 		updateComputes_[i]->SetUAVData(1, Game::Resource::GetUAV(freeListIndexSRVIDs_[i]));
 		updateComputes_[i]->SetUAVData(2, Game::Resource::GetUAV(freeListSRVIDs_[i]));
 		updateComputes_[i]->SetCBufferData(0, &deltaTime);
+		//ヒット座標をセットする
+		updateComputes_[i]->SetCBufferData(1, &hitPosition_);
+
 	}
 
 	Matrix4x4x2 perView;
@@ -125,6 +141,61 @@ void GlassParticle::Draw()
 void GlassParticle::SetEmitterPos(Vector3 pos)
 {
 	emitterSphere_.translate = pos;
+}
+
+void GlassParticle::DebugImGui()
+{
+	ImGui::Begin("System");
+
+	if (ImGui::TreeNode("GlassParticle")) {
+		// 位置座標 (3Dベクター)
+		ImGui::DragFloat3("Translate", &emitterSphere_.translate.x, 0.01f);
+
+		// スカラーパラメータ
+		ImGui::SliderFloat("Radius", &emitterSphere_.radius, 0.0f, 5.0f);
+
+		int count = emitterSphere_.count;
+		ImGui::SliderInt("Count", &count, 1, 100);
+		emitterSphere_.count = count;
+
+		ImGui::SliderFloat("Frequency", &emitterSphere_.frequency, 0.0f, 5.0f);
+
+		ImGui::Separator(); // パラメータの区切り線
+
+		// 物理・移動力
+		ImGui::SliderFloat("Speed Range", &emitterSphere_.speedRange, 0.0f, 10.0f);
+		ImGui::SliderFloat3("reflectDirection", &emitterSphere_.reflectDirection.x, -10.0f, 10.0f);
+
+		ImGui::Separator();
+
+		// 1回発生させるトリガーボタンの例
+		if (ImGui::Button("Emit Force")) {
+			emitterSphere_.emit = 1;
+		}
+		
+		if (ImGui::TreeNode("Hit Position")) {
+			// テーブルの中心座標 (3Dベクター)
+			ImGui::DragFloat3("Table Center", &hitPosition_.tableCenter.x, 0.01f);
+
+			// テーブル・床の形状パラメータ
+			ImGui::SliderFloat("Table Radius", &hitPosition_.tableRadius, 0.0f, 10.0f);
+			ImGui::SliderFloat("Table Thickness", &hitPosition_.tableThickness,0.0f, 10.0f);
+			ImGui::SliderFloat("Floor Height", &hitPosition_.floorHeight, -5.0f, 10.0f);
+
+			// 破片・物理パラメータ
+			ImGui::SliderFloat("Piece Radius", &hitPosition_.pieceRadius, 0.001f, 1.0f);
+			ImGui::SliderFloat("Piece Mass", &hitPosition_.pieceMass, 0.0f, 20.0f);
+
+			ImGui::SliderFloat("coefficiendOfRestituion", &hitPosition_.coefficiendOfRestituion, 0.0f, 20.0f);
+
+
+			ImGui::TreePop();
+		}
+		ImGui::TreePop();
+
+	}
+
+	ImGui::End();
 }
 
 void GlassParticle::Load(const std::string directoryName,const int max)

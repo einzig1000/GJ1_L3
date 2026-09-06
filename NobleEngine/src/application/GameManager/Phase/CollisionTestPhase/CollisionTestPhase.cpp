@@ -75,8 +75,6 @@ void CollisionTestPhase::UpdateGameObj(const int32_t cameraID)
 
     //コライダー描画のための更新
     collisionManager_->DebugUpdate(cameraID);
-
-
 }
 
 void CollisionTestPhase::DrawGameObj()
@@ -100,6 +98,7 @@ void CollisionTestPhase::DrawImGuiObj()
     table_->DrawImGui();
     humanModel_->DrawImGui();
     collisionManager_->DebugImGui();
+    glassParticle_->DebugImGui();
 }
 
 void CollisionTestPhase::CheckColliders()
