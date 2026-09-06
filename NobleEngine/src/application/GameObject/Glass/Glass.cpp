@@ -90,20 +90,19 @@ void Glass::Update(const int32_t cameraID)
     //物理を呼ぶぞ！
     if (!comCollider_.colliders.empty())
     {
-		//comCollider_.colliders.at(0)->SetVelocity(velocity_);
-		//velocity_ *= 0.92f;
+        //comCollider_.colliders.at(0)->SetVelocity(velocity_);
+        //velocity_ *= 0.92f;
 
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
         vel = phyB.velocity;
     }
 
-        if (transform_.translate.y <= deadLine_) {
-            //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
-            isHitFloor_ = true;
-   
-        }
-
+    if (transform_.translate.y <= deadLine_)
+    {
+        // 床に衝突、つまり壊れる。
+        isHitFloor_ = true;
+    }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
