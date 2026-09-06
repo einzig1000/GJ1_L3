@@ -61,8 +61,16 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
-
-    if (transform_.translate.y <= deadLine_)
+    for (int i = 0; i < instanceCount_; i++)
+    {
+        if (transforms_[i].translate.y <= deadLine_) {
+            //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
+            isHitFloor_ = true;
+            break;
+        }
+    }
+    
+    for (int i = 0; i < instanceCount_; i++)
     {
         //床に衝突、つまり壊れる。
         isHitFloor_ = true;
@@ -95,13 +103,15 @@ void Glass::DrawImGui()
         static Vector3 vel;
         ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
         //物理ボディ
-        if (!comCollider_.colliders.empty())
-        {
-            auto& collider = comCollider_.colliders.at(0);
-            auto  phyB = collider->GetPhysicsBody();
-            float mass = phyB.mass;
-            /*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
-            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+        if (ImGui::TreeNode("PhysicsBody")) {
+          if (!comCollider_.colliders.empty()) {
+          auto& collider = comCollider_.colliders.at(0);
+          auto  phyB = collider->GetPhysicsBody();
+          float mass = phyB.mass;
+
+          ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+
+          collider->SetMass(phyB.mass);
 
             collider->SetMass(phyB.mass);
 

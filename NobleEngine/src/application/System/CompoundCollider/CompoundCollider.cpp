@@ -38,6 +38,5 @@ namespace Collision {
 
         colliders = std::move(newColliders);
 
-
     }
 }

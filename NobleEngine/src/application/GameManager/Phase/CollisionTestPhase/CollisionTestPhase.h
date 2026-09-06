@@ -7,6 +7,7 @@ class Glass;
 class Table;
 class CollisionManager;
 class HumanModel;
+class GlassParticle;
 
 class CollisionTestPhase :
 	public IPhase
@@ -34,12 +35,13 @@ private:
 
 #pragma region
 	//ゲームオブジェクト
-	std::unique_ptr<Glass>glass_ = nullptr;
-	std::unique_ptr<Table>table_ = nullptr;
+    std::unique_ptr<Glass>glass_ = nullptr;
+    std::unique_ptr<Table>table_ = nullptr;
 	//モデル
 	std::unique_ptr<HumanModel>humanModel_ = nullptr;
 #pragma endregion
-
+	//パーティクル
+	std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
 #pragma region
 	//コリジョン管理
 	std::unique_ptr<CollisionManager>collisionManager_ = nullptr;
