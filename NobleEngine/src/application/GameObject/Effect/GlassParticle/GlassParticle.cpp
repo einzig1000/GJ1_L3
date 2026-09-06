@@ -81,16 +81,16 @@ void GlassParticle::Initialize()
 void GlassParticle::Update(int32_t cameraID)
 {
 
-	float deltaTime = Game::Time::GetScaledDeltaTimeMs()*0.001f;
-	emitterSphere_.frequencyTime += deltaTime;
-	if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
-	{
-		emitterSphere_.frequencyTime -= emitterSphere_.frequency;
-		emitterSphere_.emit = 1;
-	} else
-	{
-		emitterSphere_.emit = 0;
-	}
+	const float deltaTime = Game::Time::GetScaledDeltaTimeMs()*0.001f;
+	//emitterSphere_.frequencyTime += deltaTime;
+	//if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
+	//{
+	//	emitterSphere_.frequencyTime -= emitterSphere_.frequency;
+	//	emitterSphere_.emit = 1;
+	//} else
+	//{
+	//	emitterSphere_.emit = 0;
+	//}
 
 	for (int i = 0; i < maxParticle_; ++i) {
 		emitComputes_[i]->SetUAVData(0, Game::Resource::GetUAV(particleSRVIDs_[i]));
@@ -98,15 +98,8 @@ void GlassParticle::Update(int32_t cameraID)
 		emitComputes_[i]->SetUAVData(2, Game::Resource::GetUAV(freeListSRVIDs_[i]));
 		emitComputes_[i]->SetCBufferData(0, &emitterSphere_);
 
-		//if (i != 0) {
-		//
-		//} else {
-		//	emitComputes_[i]->SetCBufferData(0, &emitterSphere_);
-		//}
-
 		Vector3 rand = { Game::Math::Rand::RandFloat(-1.0f, 1.0f, 1), Game::Math::Rand::RandFloat(-1.0f, 1.0f, 1), Game::Math::Rand::RandFloat(-1.0f, 1.0f, 1) };
 		emitComputes_[i]->SetCBufferData(1, &rand);
-	
 
 		updateComputes_[i]->SetUAVData(0, Game::Resource::GetUAV(particleSRVIDs_[i]));
 		updateComputes_[i]->SetUAVData(1, Game::Resource::GetUAV(freeListIndexSRVIDs_[i]));
@@ -196,6 +189,12 @@ void GlassParticle::DebugImGui()
 	}
 
 	ImGui::End();
+}
+
+void GlassParticle::SetTableCenterAndRadius(const Vector3& center, const float radius)
+{
+	hitPosition_.tableCenter = center;
+	hitPosition_.pieceRadius = radius;
 }
 
 void GlassParticle::Load(const std::string directoryName,const int max)

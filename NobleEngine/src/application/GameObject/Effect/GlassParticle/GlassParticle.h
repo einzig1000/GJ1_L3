@@ -42,6 +42,11 @@ public:
 	void Draw();
 	void SetEmitterPos(Vector3 pos);
 	void DebugImGui();
+	void Emit();
+	/// @brief 外部からテーブルの大きさと半径を得る
+	/// @param center 
+	/// @param radius 
+	void SetTableCenterAndRadius(const Vector3& center, const float radius);
 public:
 
 	//EmitterSphereForGlass　

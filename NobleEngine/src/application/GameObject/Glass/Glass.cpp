@@ -42,6 +42,10 @@ void Glass::Initialize()
         CollisionTag::GetTag("Glass"),
         //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Target"));
         CollisionTag::GetTag("Target"));
+
+    //グラスパーティクル
+    glassParticle_ = std::make_unique<GlassParticle>();
+
 }
 
 void Glass::Update(const int32_t cameraID)
@@ -61,12 +65,13 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
-        if (transform_.translate.y <= deadLine_) {
-            //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
-            isHitFloor_ = true;
-   
-        }
+    if (transform_.translate.y <= deadLine_) {
+        //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
+        isHitFloor_ = true;
 
+      
+
+    }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
