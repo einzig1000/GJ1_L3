@@ -260,7 +260,7 @@ void SikouteiDevelopPhase::Update()
             velocity_ = Vector2(0.0f, 0.0f);
         }
     }
-    if (Game::IO::Mouse::IsJustReleased(0))
+    if (!Game::IO::Key::IsHeld(VK_LSHIFT) && Game::IO::Mouse::IsJustReleased(0))
     {
         glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
