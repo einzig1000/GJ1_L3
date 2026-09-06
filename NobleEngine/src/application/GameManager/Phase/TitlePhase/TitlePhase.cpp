@@ -10,12 +10,19 @@ TitlePhase::TitlePhase() {
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 15.0f, -60.0f), 0.0f, EaseType::IN_BACK, c_main_);
 	Game::Camera::Setter::SetRotate(Vector3(std::numbers::pi_v<float>,0.0f, 0.0f), 0.0f, EaseType::IN_BACK, c_main_);
 
-
 	// モデル
-	ID_ = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
+	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
+	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		iceModel_[i].ID = Game::Asset::Model::Load("assets/application/model/Title_Ice/Title_Ice1.obj");
+		iceModel_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Ice/Title_Ice.png");
+	}
 
 	// テクスチャ
-	t_uvChecker_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
+	barModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
+	glassModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Water/Water.png");
+
+	
 }
 
 TitlePhase::~TitlePhase() {}
@@ -37,32 +44,44 @@ void TitlePhase::Draw() { Draw_LightModels(); }
 
 void TitlePhase::DrawImGui() {}
 
+void TitlePhase::Initialize_Models(Model& model){
+	model.Models_ = std::make_unique<RenderObject>();
+
+	model.Models_->psoConfig_.vs = "assets/shaders/LightModel/LightModel.VS.hlsl";
+	model.Models_->psoConfig_.ps = "assets/shaders/LightModel/LightModel.PS.hlsl";
+
+	model.Models_->SetupFromShaders();
+
+	model.Models_->modelID_ = model.ID;
+
+	model.Models_->instanceNum_ = model.instanceCount_;
+	model.WorldMatrixHeapSlot_ = Game::Resource::CreateDynamic();
+
+	model.ColorHeapSlot_ = Game::Resource::CreateDynamic();
+
+	model.TextureIndexHeapSlot_ = Game::Resource::CreateDynamic();
+
+	model.transforms_.resize(model.instanceCount_, EulerTransforms());
+
+	model.worldMatrices_.resize(model.instanceCount_, Matrix4x4());
+
+	model.colors_.resize(model.instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
+	model.textureIndices_.resize(model.instanceCount_, model.textureID_);
+}
+
 void TitlePhase::Initialize_LightModels() {
-	simpleModels_ = std::make_unique<RenderObject>();
 
-	simpleModels_->psoConfig_.vs = "assets/shaders/LightModel/LightModel.VS.hlsl";
+	Initialize_Models(barModel_);
+	Initialize_Models(glassModel_);
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		Initialize_Models(iceModel_[i]);
+	}
 
-	simpleModels_->psoConfig_.ps = "assets/shaders/LightModel/LightModel.PS.hlsl";
-
-	simpleModels_->SetupFromShaders();
-
-	simpleModels_->modelID_ = ID_;
-
-	simpleModels_->instanceNum_ = instanceCount_;
-
-	worldMatrixHeapSlot_ = Game::Resource::CreateDynamic();
-
-	colorHeapSlot_ = Game::Resource::CreateDynamic();
-
-	textureIndexHeapSlot_ = Game::Resource::CreateDynamic();
-
-	transforms_.resize(instanceCount_, EulerTransforms());
-
-	worldMatrices_.resize(instanceCount_, Matrix4x4());
-
-	colors_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-
-	textureIndices_.resize(instanceCount_, t_uvChecker_);
+	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
+	for (int i = 0; i < kMaxIceCount_; ++i) {
+		iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 2.5f+0.4f*i, -60.0f));
+	}
 
 	// ========================================
 	// Light Buffer
@@ -111,37 +130,51 @@ void TitlePhase::Initialize_LightModels() {
 }
 
 void TitlePhase::Update_LightModels() {
-	for (int32_t i = 0; i < instanceCount_; ++i) {
-		worldMatrices_[i] = transforms_[i].GetWorldMatrix();
+	Update_Model(barModel_);
+	Update_Model(glassModel_);
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		Update_Model(iceModel_[i]);
+	}
+}
+
+void TitlePhase::Update_Model(Model& model) {
+	for (int32_t i = 0; i < model.instanceCount_; ++i) {
+		model.worldMatrices_[i] = model.transforms_[i].GetWorldMatrix();
 	}
 
-	Game::Resource::UpdateData(worldMatrixHeapSlot_, worldMatrices_);
+	Game::Resource::UpdateData(model.WorldMatrixHeapSlot_, model.worldMatrices_);
 
-	Game::Resource::UpdateData(colorHeapSlot_, colors_);
+	Game::Resource::UpdateData(model.ColorHeapSlot_, model.colors_);
 
-	Game::Resource::UpdateData(textureIndexHeapSlot_, textureIndices_);
+	Game::Resource::UpdateData(model.TextureIndexHeapSlot_, model.textureIndices_);
 
 	Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
 
-	int32_t vsHeapSlot = Game::Resource::GetSRV(worldMatrixHeapSlot_);
+	int32_t vsHeapSlot = Game::Resource::GetSRV(model.WorldMatrixHeapSlot_);
 
 	Vector2uint psHeapSlot{
-	    Game::Resource::GetSRV(colorHeapSlot_),
+	    Game::Resource::GetSRV(model.ColorHeapSlot_),
 
-	    Game::Resource::GetSRV(textureIndexHeapSlot_)};
+	    Game::Resource::GetSRV(model.TextureIndexHeapSlot_)};
 
 	// VS b0
-	simpleModels_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
+	model.Models_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
 
 	// VS b1
-	simpleModels_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
+	model.Models_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
 
 	// PS b0
-	simpleModels_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
+	model.Models_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
 
 	// PS b1
 	// LightBuffer全体を送る
-	simpleModels_->SetCBufferData(1, ShaderType::PixelShader, &lightBuffer_);
+	model.Models_->SetCBufferData(1, ShaderType::PixelShader, &lightBuffer_);
 }
 
-void TitlePhase::Draw_LightModels() { simpleModels_->Draw(); }
+void TitlePhase::Draw_LightModels() {
+	barModel_.Models_->Draw();
+	glassModel_.Models_->Draw();
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		iceModel_[i].Models_->Draw();
+	}
+}

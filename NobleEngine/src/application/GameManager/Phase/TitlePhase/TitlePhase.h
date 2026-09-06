@@ -18,9 +18,7 @@ public:
 private:
 	static constexpr int32_t kMaxLightCount_ = 20;
 
-	void Initialize_LightModels();
-	void Update_LightModels();
-	void Draw_LightModels();
+
 
 	// ========================================
 	// Light
@@ -87,41 +85,52 @@ private:
 		float padding1;
 	};
 
-	std::unique_ptr<RenderObject> simpleModels_;
+	struct Model{
+		std::unique_ptr<RenderObject> Models_;
+		int32_t ID;
+		// インスタンス数
+		int32_t instanceCount_ = 1;
+		// ディスクリプタヒープスロット
+		int32_t WorldMatrixHeapSlot_ = -1;
+
+		// カラーヒープスロット
+		int32_t ColorHeapSlot_ = -1;
+
+		// テクスチャインデックスヒープスロット
+		int32_t TextureIndexHeapSlot_ = -1;
+
+		// インスタンスごとのトランスフォーム
+		std::vector<EulerTransforms> transforms_;
+
+		// インスタンスごとのワールド行列
+		std::vector<Matrix4x4> worldMatrices_;
+
+		// インスタンスごとのカラー
+		std::vector<Vector4> colors_;
+
+		// インスタンスごとのテクスチャインデックス
+		std::vector<int32_t> textureIndices_;
+
+		// テクスチャID
+		int32_t textureID_ = -1;
+	};
+
+	static const int32_t kMaxIceCount_ = 11;
+
+	Model barModel_;
+	Model glassModel_;
+	Model iceModel_[kMaxIceCount_];
+	
 
 	// カメラID
 	int32_t c_main_ = -1;
 
-	// モデルID
-	int32_t ID_ = -1;
-
-	// インスタンス数
-	int32_t instanceCount_ = 1;
-
-	// ディスクリプタヒープスロット
-	int32_t worldMatrixHeapSlot_ = -1;
-
-	// カラーヒープスロット
-	int32_t colorHeapSlot_ = -1;
-
-	// テクスチャインデックスヒープスロット
-	int32_t textureIndexHeapSlot_ = -1;
-
-	// インスタンスごとのトランスフォーム
-	std::vector<EulerTransforms> transforms_;
-
-	// インスタンスごとのワールド行列
-	std::vector<Matrix4x4> worldMatrices_;
-
-	// インスタンスごとのカラー
-	std::vector<Vector4> colors_;
-
-	// インスタンスごとのテクスチャインデックス
-	std::vector<int32_t> textureIndices_;
-
-	// テクスチャID
-	int32_t t_uvChecker_ = -1;
-
 	// ライト用定数バッファ
 	LightBuffer lightBuffer_{};
+
+	void Initialize_Models(Model& model);
+	void Update_Model(Model& model);
+	void Initialize_LightModels();
+	void Update_LightModels();
+	void Draw_LightModels();
 };
