@@ -83,9 +83,9 @@ void Particle::Update(int32_t cameraID)
 	updateCompute_->SetUAVData(2, Game::Resource::GetUAV(freeListSRVID_));
 	updateCompute_->SetCBufferData(0, &deltaTime);
 
-	TransformationMatrix perView;
-	perView.WVP = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-	perView.World = Game::Camera::Getter::GetBillboardMatrix(cameraID);
+	Matrix4x4x2 perView;
+	perView.m1 = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
+	perView.m2 = Game::Camera::Getter::GetBillboardMatrix(cameraID);
 	render_->SetSBufferData(0, ShaderType::VertexShader, Game::Resource::GetSRV(particleSRVID_));
 	render_->SetCBufferData(0, ShaderType::VertexShader, &perView);
 }

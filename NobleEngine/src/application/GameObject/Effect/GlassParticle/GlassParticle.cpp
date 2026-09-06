@@ -19,7 +19,7 @@ GlassParticle::GlassParticle()
 
 	for (int i = 0; i < maxParticle_; ++i) {
 
-		particleSRVIDs_.push_back(Game::Resource::CreateCompute(sizeof(Particle), 1024));
+		particleSRVIDs_.push_back(Game::Resource::CreateCompute(sizeof(ParticleData), 1024));
 		freeListIndexSRVIDs_.push_back(Game::Resource::CreateCompute(sizeof(uint32_t), 1024));
 		freeListSRVIDs_.push_back(Game::Resource::CreateCompute(sizeof(uint32_t), 1024));
 
