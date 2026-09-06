@@ -4,6 +4,7 @@
 //人間モデル
 #include"GameObject/HumanModel/HumanModel.h"
 #include"../System/CollisionManager/CollisionManager.h"
+#include"GameObject/Effect/GlassParticle/GlassParticle.h"
 
 CollisionTestPhase::CollisionTestPhase()
 {
@@ -23,16 +24,20 @@ void CollisionTestPhase::Initialize()
     //コリジョン管理
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->Load();
+    
+    // GlassParticle
+    glassParticle_ = std::make_unique<GlassParticle>();
+    glassParticle_->Initialize();
 
     InitGameObj();
-
+    glassParticle_->SetEmitterPos({ 0.0f,0.0f,0.0f });
 }
 
 void CollisionTestPhase::Update()
 {
     Game::Camera::Update(c_main_);
-
     UpdateGameObj(c_main_);
+    glassParticle_->Update(c_main_);
 
     CheckColliders();
 }
@@ -40,14 +45,13 @@ void CollisionTestPhase::Update()
 void CollisionTestPhase::Draw()
 {
     DrawGameObj();
+
+    glassParticle_->Draw();
 }
 
 void CollisionTestPhase::DrawImGui()
 {
     DrawImGuiObj();
-
-
-
 }
 
 void CollisionTestPhase::InitGameObj()
@@ -59,8 +63,8 @@ void CollisionTestPhase::InitGameObj()
     table_ = std::make_unique<Table>();
     table_->Initialize();
     //人間モデル
-      humanModel_ = std::make_unique<HumanModel>();
-      humanModel_->Initialize();
+    humanModel_ = std::make_unique<HumanModel>();
+    humanModel_->Initialize();
 }
 
 void CollisionTestPhase::UpdateGameObj(const int32_t cameraID)
@@ -71,8 +75,6 @@ void CollisionTestPhase::UpdateGameObj(const int32_t cameraID)
 
     //コライダー描画のための更新
     collisionManager_->DebugUpdate(cameraID);
-
-
 }
 
 void CollisionTestPhase::DrawGameObj()
@@ -96,6 +98,7 @@ void CollisionTestPhase::DrawImGuiObj()
     table_->DrawImGui();
     humanModel_->DrawImGui();
     collisionManager_->DebugImGui();
+    glassParticle_->DebugImGui();
 }
 
 void CollisionTestPhase::CheckColliders()
@@ -105,7 +108,7 @@ void CollisionTestPhase::CheckColliders()
 
     //コライダーを追加する
     for (auto& collider : glass_->GetColliders()) {
-     collisionManager_->AddCollider(collider.get());
+        collisionManager_->AddCollider(collider.get());
     }
     for (auto& collider : table_->GetColliders()) {
         collisionManager_->AddCollider(collider.get());
@@ -115,7 +118,7 @@ void CollisionTestPhase::CheckColliders()
         collisionManager_->AddCollider(collider.get());
     }
 
-   
+
     //コライダーをチェックする
     collisionManager_->CheckAllCollisions();
 }

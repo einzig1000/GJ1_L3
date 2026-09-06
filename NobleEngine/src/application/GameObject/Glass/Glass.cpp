@@ -61,12 +61,12 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
+        if (transform_.translate.y <= deadLine_) {
+            //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
+            isHitFloor_ = true;
+   
+        }
 
-    if (transform_.translate.y <= deadLine_)
-    {
-        //床に衝突、つまり壊れる。
-        isHitFloor_ = true;
-    }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
@@ -95,28 +95,33 @@ void Glass::DrawImGui()
         static Vector3 vel;
         ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
         //物理ボディ
-        if (!comCollider_.colliders.empty())
-        {
-            auto& collider = comCollider_.colliders.at(0);
-            auto  phyB = collider->GetPhysicsBody();
-            float mass = phyB.mass;
-            /*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
-            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+        if (ImGui::TreeNode("PhysicsBody")) {
+            if (!comCollider_.colliders.empty()) {
+                auto& collider = comCollider_.colliders.at(0);
+                auto  phyB = collider->GetPhysicsBody();
+                float mass = phyB.mass;
 
-            collider->SetMass(phyB.mass);
+                ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
 
-            if (ImGui::Button("Shot"))
-            {
-                collider->SetVelocity(vel);
+                collider->SetMass(phyB.mass);
+
+                collider->SetMass(phyB.mass);
+
+                if (ImGui::Button("Shot"))
+                {
+                    collider->SetVelocity(vel);
+                }
             }
+
+            ImGui::Checkbox("isHitFloor", &isHitFloor_);
+
+            ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
+            ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
+            ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
+            ImGui::ColorEdit4("Color##", &color_.x);
+
+            ImGui::TreePop();
         }
-
-        ImGui::Checkbox("isHitFloor", &isHitFloor_);
-
-        ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
-        ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
-        ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-        ImGui::ColorEdit4("Color##", &color_.x);
 
         ImGui::TreePop();
     }

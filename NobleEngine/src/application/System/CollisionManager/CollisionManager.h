@@ -58,7 +58,6 @@ public:
         colliders_.emplace_back(collider);
     }
 
-
     /// @brief コライダーをクリアする
     void ClearColliders() { colliders_.clear(); }
     /// @brief 衝突判定と応答

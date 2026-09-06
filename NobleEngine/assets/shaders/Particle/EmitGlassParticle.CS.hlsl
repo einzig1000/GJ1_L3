@@ -1,14 +1,20 @@
 #include "RandomHeader.hlsli"
+
 static const uint kMaxParticles = 1024;
 
-struct EmitterSphere
+//グラス用構造体
+struct EmitterSphereForGlass
 {
     float3 translate; // 座標
     float radius; // 射出半径
+    
     uint count; // 射出数
     float frequency; // 射出頻度
     float frequencyTime; // 射出頻度タイマ
     uint emit; // 射出するかどうか
+   
+    float speedRange;//速度範囲
+    float3 reflectDirection;//反射方向
 };
 
 struct Particle
@@ -21,8 +27,7 @@ struct Particle
     float4 color;
 };
 
-
-ConstantBuffer<EmitterSphere> gEmitter : register(b0);
+ConstantBuffer<EmitterSphereForGlass> gEmitter : register(b0);
 ConstantBuffer<Seed> gSeed : register(b1);
 RWStructuredBuffer<Particle> gParticles : register(u0);
 RWStructuredBuffer<int32_t> gFreeListIndex : register(u1);
@@ -31,7 +36,7 @@ RWStructuredBuffer<uint32_t> gFreeList : register(u2);
 // 今回スレッド数は1。複数のEmitterを扱い、同時に処理したいような場合は適宜スレッド数を増やすと良い
 [numthreads(1, 1, 1)]
 void main(uint3 DTid : SV_DispatchThreadID)
-{    
+{
     if (gEmitter.emit != 0) // 射出許可が出たので射出
     {
         RandomGenerator generator;
@@ -47,13 +52,20 @@ void main(uint3 DTid : SV_DispatchThreadID)
             {
                 uint32_t particleIndex = gFreeList[freeListIndex];
                 // カウント分Particleを射出する
-                gParticles[particleIndex].scale = generator.Generate3d();
-                //gParticles[particleIndex].translate = generator.Generate3d();
+                //スケールは固定値
+                gParticles[particleIndex].scale = (1.0f,1.0f,1.0f);
+        
                 gParticles[particleIndex].translate = gEmitter.translate + (generator.Generate3d() * 2.0f - 1.0f) * gEmitter.radius;
                 float3 randomDirection = generator.Generate3d();
-                randomDirection = randomDirection * 2.0f - 1.0f;
+                randomDirection = randomDirection * gEmitter.speedRange - (gEmitter.speedRange*0.5);
+                
                 gParticles[particleIndex].velocity = randomDirection * 0.01f;
-                gParticles[particleIndex].color.rgb = generator.Generate3d();
+                
+                //ベクトルを足す
+                //gParticles[particleIndex].velocity += gEmitter.reflectDirection;
+
+                
+                gParticles[particleIndex].color.rgb = (1.0f,1.0f,1.0f);
                 gParticles[particleIndex].color.a = 1.0f;
                 gParticles[particleIndex].lifeTime = 1.0f;
                 gParticles[particleIndex].currentTime = 0.0f;

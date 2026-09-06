@@ -22,7 +22,6 @@ public:
 	void Initialize();
 	void Update(int32_t cameraID);
 	void Draw(int32_t renderTextureID);
-
 	void SetEmitterSpherePos(Vector3 pos);
 
 private:

@@ -12,7 +12,6 @@
 
 
 
-
 GameManager::GameManager() 
 {
 	currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);
@@ -25,7 +24,6 @@ GameManager::GameManager()
 GameManager::~GameManager()
 {
 }
-
 
 void GameManager::Update()
 {

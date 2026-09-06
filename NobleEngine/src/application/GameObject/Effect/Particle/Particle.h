@@ -11,6 +11,12 @@ struct ParticleData
 	Vector4 color;
 };
 
+struct Matrix4x4x2
+{
+	Matrix4x4 m1;
+	Matrix4x4 m2;
+};
+
 class Particle
 {
 public:
