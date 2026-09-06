@@ -504,6 +504,7 @@ namespace Game
 			/// <param name="target">目標座標</param>
 			/// <param name="duration">変更にかけるフレーム数(0で即時変更)</param>
 			/// <param name="easeType">変更補完イージングタイプ</param>
+			/// </param name="cameraID">カメラID</param>
 			void SetCenter(Vector3 target, float durationSec, EaseType easetype, int32_t cameraID);
 
 			/// <summary>
@@ -512,7 +513,17 @@ namespace Game
 			/// <param name="target">目標回転量</param>
 			/// <param name="duration">変更にかけるフレーム数(0で即時変更)</param>
 			/// <param name="easeType">変更補完イージングタイプ</param>
-			void SetRotate(Vector3 target, float durationSec, EaseType easetype, int32_t cameraID);
+			/// </param name="cameraID">カメラID</param>
+			void SetPhiTarget(float target, float durationSec, EaseType easetype, int32_t cameraID);
+
+			/// <summary>
+			///	カメラの回転量変更
+			/// </summary>
+			/// <param name="target">目標回転量</param>
+			/// <param name="duration">変更にかけるフレーム数(0で即時変更)</param>
+			/// <param name="easeType">変更補完イージングタイプ</param>
+			/// </param name="cameraID">カメラID</param>
+			void SetThetaTarget(float target, float durationSec, EaseType easetype, int32_t cameraID);
 
 			/// <summary>
 			///  カメラの回転中心からの距離(ズーム量)変更
@@ -520,6 +531,7 @@ namespace Game
 			/// <param name="target">目標ズーム量</param>
 			/// <param name="duration">変更にかけるフレーム数(0で即時変更)</param>
 			/// <param name="easeType">変更補完イージングタイプ</param>
+			/// </param name="cameraID">カメラID</param>
 			void SetDistance(float target, float durationSec, EaseType easetype, int32_t cameraID);
 
 			/// <summary>
@@ -543,12 +555,14 @@ namespace Game
 			/// <summary>
 			/// カメラコントロールの有効無効設定
 			/// </summary>
+			/// </param name="cameraID">カメラID</param>
 			void SetEnableControl(bool enable, int32_t cameraID);
 
 			/// <summary>
 			/// カメラモード(オービット or FPS)切り替え
 			/// </summary>
 			/// <param name="mode">カメラモード</param>
+			/// </param name="cameraID">カメラID</param>
 			void SetCameraMode(CameraMode_ORBIT_FPS mode, int32_t cameraID);
 		}
 

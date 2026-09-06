@@ -38,7 +38,7 @@ namespace
         Vector2 dir = smallCenter - bigCenter;
         if (dir.LengthSq() < 0.0001f)
         {
-            return 0.0f; // 中心同士が重なっていて方向が定義できない特殊ケース
+            return 0.0f;
         }
 
         float angleRad = std::atan2(dir.y, dir.x);
@@ -47,14 +47,41 @@ namespace
         return angleDeg; // 0〜360
     }
 
-    // その角度が指定範囲に入っているか
+    // angleDegがfromDegからtoDegの範囲に入っているか
     bool IsInAngleRange(float angleDeg, float fromDeg, float toDeg)
     {
-        if (fromDeg <= toDeg)
+        auto Normalize = [](float a)
+            {
+                a = fmod(a, 360.0f);
+                if (a < 0.0f) a += 360.0f;
+                return a;
+            };
+
+        float a = Normalize(angleDeg);
+        float f = Normalize(fromDeg);
+        float t = Normalize(toDeg);
+
+        if (f <= t)
         {
-            return angleDeg >= fromDeg && angleDeg < toDeg;
+            // 通常の範囲（例：30°～120°）
+            return a >= f && a < t;
         }
-        return angleDeg >= fromDeg || angleDeg < toDeg;
+        else
+        {
+            // 360°を跨ぐ範囲（例：350°～20°）
+            return a >= f || a < t;
+        }
+    }
+
+
+    Vector3 GetPositionOnCircle(const Vector3& center, float radius, float angleDeg)
+    {
+        float angleRad = angleDeg * (std::numbers::pi_v<float> / 180.0f);
+        return Vector3(
+            center.x + radius * std::cos(angleRad),
+            center.y,
+            center.z + radius * std::sin(angleRad)
+        );
     }
 }
 
@@ -78,6 +105,24 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
         obstacles_[i] = std::make_unique<TableObject>();
         obstacles_[i]->Initialize();
     }
+
+	markerAngles_.resize(6);
+	for (int32_t i = 0; i < 6; i++)
+	{
+		markers_[i] = std::make_unique<RenderObject>();
+        markers_[i]->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
+        markers_[i]->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+        markers_[i]->SetupFromShaders();
+		markers_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
+	}
+	for (int32_t i = 0; i < 3; i++)
+	{
+		human_[i] = std::make_unique<RenderObject>();
+		human_[i]->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
+		human_[i]->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+		human_[i]->SetupFromShaders();
+		human_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
+	}
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -86,14 +131,8 @@ SikouteiDevelopPhase::~SikouteiDevelopPhase()
 void SikouteiDevelopPhase::Initialize()
 {
 	// オブジェクト初期化
-    glass_->Initialize();
-    glass_->SetTranslate(Vector3{ 0.0f,1.28f,1.7f });
-    //glass_->SetGlassTypeAndLoadModels(GlassType::Glass);
     table_->Initialize();
-	for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
-	{
-		obstacles_[i]->Initialize();
-	}
+    glass_->Initialize();
 
 	LoadObstacleData(0);
 }
@@ -105,6 +144,32 @@ void SikouteiDevelopPhase::Update()
     if (Game::IO::Key::IsJustPressed('R'))
     {
         Initialize();
+    }
+
+    Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
+    Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
+    if (IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glass_->GetRadius()))
+    {
+        float angle = GetContactAngleDeg(tablePos2D, glassPos2D);
+        for (int i = 0; i < 3; i++)
+        {
+            if (IsInAngleRange(angle, markerAngles_[i * 2], markerAngles_[i * 2 + 1]))
+            {
+                currentGlassUserIndex_ = i;
+                Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(humanRotate[i]), 1.0f, EaseType::OUT_BACK, c_main_);
+                break;
+            }
+        }
+
+        Vector3 glassPos = GetPositionOnCircle(
+            table_->GetTranslate(),
+            table_->GetRadius() * 0.5f,
+            humanRotate[currentGlassUserIndex_]
+        );
+        glassPos.y = 1.28f;
+
+        glass_->SetTranslate(glassPos);
+        glass_->SetVelocity(Vector3{});
     }
 
     if (deleteIndex >= 0)
@@ -124,9 +189,39 @@ void SikouteiDevelopPhase::Update()
     //コライダー描画のための更新
     if (isDebugDraw_) collisionManager_->DebugUpdate(c_main_);
 
+    CheckColliders();
 
 
-    // テスト
+
+
+
+    // マーカーと人
+	const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
+    const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
+	for (int32_t i = 0; i < 3; i++)
+	{
+        Matrix4x4 world = humanTransforms_[i].GetWorldMatrix();
+		Matrix4x4 wvp = world * viewPro;
+        Vector4 color = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+        human_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+        human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
+        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
+        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
+	}
+	for (int32_t i = 0; i < 6; i++)
+	{
+        Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
+		Matrix4x4 wvp = world * viewPro;
+		Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+        markers_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+        markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
+        markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
+        markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
+	}
+
+    // ショットテスト
     if (Game::IO::Mouse::IsJustPressed(0))
     {
         dragStartPos_ = Game::IO::Mouse::Get2DPosition();
@@ -169,23 +264,19 @@ void SikouteiDevelopPhase::Update()
     {
         glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
-
-	Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
-    if (IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glass_->(), glass_->GetRadius()))
-    {
-        float angle = GetContactAngleDeg(big.center, small.center);
-        if (IsInAngleRange(angle, 30.0f, 60.0f))
-        {
-            // 30°〜60°のセグメントにヒット
-        }
-    }
-
-
-    CheckColliders();
 }
 
 void SikouteiDevelopPhase::Draw()
 {
+    for (int32_t i = 0; i < 6; i++)
+    {
+		markers_[i]->Draw();
+    }
+	for (int32_t i = 0; i < 3; i++)
+	{
+		human_[i]->Draw();
+	}
+
     //テーブルの描画
     table_->Draw();
 	// 障害物の描画
@@ -203,116 +294,154 @@ void SikouteiDevelopPhase::Draw()
 void SikouteiDevelopPhase::DrawImGui()
 {
     glass_->DrawImGui();
-	//for (auto& obstacle : obstacles_)
-	//{
-	//	obstacle->DrawImGui();
-	//}
     obstacles_[0]->DrawImGui();
     //table_->DrawImGui();
     //collisionManager_->DebugImGui();
 
 
-    ImGui::Begin("StageEditor");
+    ImGui::Begin("Editor");
 
-    ImGui::Checkbox("DebugDraw", &isDebugDraw_);
-
-    // editStage選択
-	static int currentStage_ = 0;
-    ImGui::Text("CurrentStage");
-    if (ImGui::Button("-", ImVec2(20, 20)))
+    if (ImGui::TreeNode("StageEditor"))
     {
-        currentStage_--;
-    }
-    ImGui::SameLine();
-    ImGui::DragInt("##CurrentStage", &currentStage_, 1, 0, 100);
-    ImGui::SameLine();
-    if (ImGui::Button("+", ImVec2(20, 20)))
-    {
-		currentStage_++;
-    }
-    currentStage_ = std::clamp(currentStage_, 0, 100);
+        ImGui::Checkbox("DebugDraw", &isDebugDraw_);
 
-	// Save & Load
-    if (ImGui::Button("Load", ImVec2(50, 20)))
-    {
-        LoadObstacleData(currentStage_);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Save", ImVec2(50, 20)))
-    {
-        SaveObstacleData(currentStage_);
-    }
-
-    if (ImGui::TreeNode("Add Obstacle"))
-    {
-        static GlassType glassType;
-
-        auto names = magic_enum::enum_names<GlassType>();
-        auto values = magic_enum::enum_values<GlassType>();
-
-        size_t current = magic_enum::enum_index(glassType).value();
-
-        if (ImGui::BeginCombo("GlassType", names[current].data()))
+        // editStage選択
+        static int currentStage_ = 0;
+        ImGui::Text("CurrentStage");
+        if (ImGui::Button("-", ImVec2(20, 20)))
         {
-            for (std::size_t i = 0; i < names.size(); i++)
+            currentStage_--;
+        }
+        ImGui::SameLine();
+        ImGui::DragInt("##CurrentStage", &currentStage_, 1, 0, 100);
+        ImGui::SameLine();
+        if (ImGui::Button("+", ImVec2(20, 20)))
+        {
+            currentStage_++;
+        }
+        currentStage_ = std::clamp(currentStage_, 0, 100);
+
+        // Save & Load
+        if (ImGui::Button("Load", ImVec2(50, 20)))
+        {
+            LoadObstacleData(currentStage_);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Save", ImVec2(50, 20)))
+        {
+            SaveObstacleData(currentStage_);
+        }
+
+        if (ImGui::TreeNode("Add Obstacle"))
+        {
+            static GlassType glassType;
+
+            auto names = magic_enum::enum_names<GlassType>();
+            auto values = magic_enum::enum_values<GlassType>();
+
+            size_t current = magic_enum::enum_index(glassType).value();
+
+            if (ImGui::BeginCombo("GlassType", names[current].data()))
             {
-                bool selected = (current == static_cast<int>(i));
-                if (ImGui::Selectable(names[i].data(), selected))
+                for (std::size_t i = 0; i < names.size(); i++)
                 {
-                    current = static_cast<int>(i);
-                    glassType = values[i];
+                    bool selected = (current == static_cast<int>(i));
+                    if (ImGui::Selectable(names[i].data(), selected))
+                    {
+                        current = static_cast<int>(i);
+                        glassType = values[i];
+                    }
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
                 }
-                if (selected)
+                ImGui::EndCombo();
+            }
+
+            static Vector2 position;
+            ImGui::DragFloat2("Position", &position.x, 0.01f, -1.5f, 1.5f);
+
+            if (ImGui::Button("Add"))
+            {
+                obstacles_[obstacleCount]->Initialize();
+                obstacles_[obstacleCount]->SetGlassTypeAndLoadModels(glassType);
+                Vector3 pos = { position.x, 1.28f, position.y };
+                obstacles_[obstacleCount]->SetTranslate(pos);
+                obstacleCount++;
+            }
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("List"))
+        {
+            for (size_t i = 0; i < obstacleCount; ++i)
+            {
+                ImGui::PushID(static_cast<int32_t>(i));
+                if (ImGui::TreeNode("Obstacle", "Obstacle %d", static_cast<int32_t>(i)))
                 {
-                    ImGui::SetItemDefaultFocus();
+                    Vector3 pos = obstacles_[i]->GetTranslate();
+                    Vector2 pos2D = { pos.x, pos.z };
+                    if (ImGui::DragFloat2("Position", &pos2D.x, 0.01f, -1.5f, 1.5f))
+                    {
+                        obstacles_[i]->SetTranslate({ pos2D.x, pos.y, pos2D.y });
+                    }
+
+                    if (ImGui::Button("Delete"))
+                    {
+                        deleteIndex = static_cast<int32_t>(i);
+                    }
+
+                    ImGui::TreePop();
+                }
+                ImGui::PopID();
+            }
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Human"))
+        {
+			bool edit = false;
+			if (ImGui::DragFloat3("HumanRotate", humanRotate, 1.0f, -360.0f, 720.0f)) edit = true;
+			if (ImGui::DragFloat("HumanScale", &humansize_, 1.0f, 0.0f, 120.0f)) edit = true;
+
+            if (edit)
+            {
+                Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotate[0]);
+                glassPos.y = 1.28f;
+                glass_->SetTranslate(glassPos);
+
+                for (int32_t i = 0; i < 3; i++)
+                {
+                    humanTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotate[i]);
+                    humanTransforms_[i].translate.y = 1.28f;
+                    humanTransforms_[i].scale = Vector3{ 0.5f,0.5f,0.5f };
+                }
+
+                for (int32_t i = 0; i < 6; i++)
+                {
+                    float hugou = i % 2 == 0 ? -1.0f : 1.0f;
+                    float angle = humanRotate[(i / 2)] + (hugou * humansize_ * 0.5f);
+                    markerAngles_[i] = angle;
+                }
+                for (int32_t i = 0; i < 6; i++)
+                {
+                    markerTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, markerAngles_[i]);
+                    markerTransforms_[i].translate.y = 1.28f;
+                    markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
                 }
             }
-            ImGui::EndCombo();
+
+            ImGui::TreePop();
         }
-
-        static Vector2 position;
-        ImGui::DragFloat2("Position", &position.x, 0.01f, -1.5f, 1.5f);
-
-        if (ImGui::Button("Add"))
-        {
-            obstacles_[obstacleCount]->Initialize();
-            obstacles_[obstacleCount]->SetGlassTypeAndLoadModels(glassType);
-            Vector3 pos = { position.x, 1.28f, position.y };
-            obstacles_[obstacleCount]->SetTranslate(pos);
-            obstacleCount++;
-        }
-
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("List"))
-    {
-        for (size_t i = 0; i < obstacleCount; ++i)
-        {
-            ImGui::PushID(static_cast<int32_t>(i));
-            if (ImGui::TreeNode("Obstacle", "Obstacle %d", static_cast<int32_t>(i)))
-            {
-                Vector3 pos = obstacles_[i]->GetTranslate();
-                Vector2 pos2D = { pos.x, pos.z };
-                if (ImGui::DragFloat2("Position", &pos2D.x, 0.01f, -1.5f, 1.5f))
-                {
-                    obstacles_[i]->SetTranslate({ pos2D.x, pos.y, pos2D.y });
-                }
-
-                if (ImGui::Button("Delete"))
-                {
-                    deleteIndex = static_cast<int32_t>(i);
-                }
-
-                ImGui::TreePop();
-            }
-            ImGui::PopID();
-        }
-
-
-        ImGui::TreePop();
-    }
-
+    Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
+    Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
+    float angle = GetContactAngleDeg(tablePos2D, glassPos2D);
+	ImGui::Text("angle: %.2f", angle);
     ImGui::End();
 }
 
@@ -347,14 +476,14 @@ void SikouteiDevelopPhase::CheckColliders()
 bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 {
     std::string path = "assets/application/json/StageData/Obstacles.json";
-    std::string countKey = "/Stage" + std::to_string(stage) + "/Count";
-	bool success = JsonManager::Load(path, countKey, obstacleCount);
+    std::string key = "/Stage" + std::to_string(stage) + "/Count";
+	bool success = JsonManager::Load(path, key, obstacleCount);
 	if (!success) return false;
     for (int32_t i = 0; i < obstacleCount; i++)
     {
         obstacles_[i]->Initialize();
 
-        std::string key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
+        key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
 		std::string typeStr;
         JsonManager::Load(path, key, typeStr);
 		obstacles_[i]->SetGlassTypeAndLoadModels(magic_enum::enum_cast<GlassType>(typeStr).value());
@@ -365,22 +494,62 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 		obstacles_[i]->SetTranslate(translate);
     }
 
+    key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
+    Vector3 humanRotateDeg;
+    JsonManager::Load(path, key, humanRotateDeg);
+	humanRotate[0] = humanRotateDeg.x;
+	humanRotate[1] = humanRotateDeg.y;
+	humanRotate[2] = humanRotateDeg.z;
+    key = "/Stage" + std::to_string(stage) + "/Human/Scale";
+    JsonManager::Load(path, key, humansize_);
+
+    Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotate[0]);
+    glassPos.y = 1.28f;
+    glass_->SetTranslate(glassPos);
+
+    for (int32_t i = 0; i < 3; i++)
+    {
+        humanTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotate[i]);
+        humanTransforms_[i].translate.y = 1.28f;
+        humanTransforms_[i].scale = Vector3{ 0.5f,0.5f,0.5f };
+    }
+
+    for (int32_t i = 0; i < 6; i++)
+    {
+        float hugou = i % 2 == 0 ? -1.0f : 1.0f;
+        float angle = humanRotate[(i / 2)] + (hugou * humansize_ * 0.5f);
+        markerAngles_[i] = angle;
+    }
+    for (int32_t i = 0; i < 6; i++)
+    {
+        markerTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, markerAngles_[i]);
+        markerTransforms_[i].translate.y = 1.28f;
+        markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
+    }
+
+
 	return true;
 }
 
 void SikouteiDevelopPhase::SaveObstacleData(int32_t stage)
 {
     std::string path = "assets/application/json/StageData/Obstacles.json";
-    std::string countKey = "/Stage" + std::to_string(stage) + "/Count";
-	JsonManager::AddParam(path, countKey, obstacleCount);
+    std::string key = "/Stage" + std::to_string(stage) + "/Count";
+	JsonManager::AddParam(path, key, obstacleCount);
 	for (int32_t i = 0; i < obstacleCount; i++)
 	{
-		std::string key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
+		key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
 		JsonManager::AddParam(path, key, magic_enum::enum_name(obstacles_[i]->GetGlassType()));
 
 		key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/translate";
 		JsonManager::AddParam(path, key, obstacles_[i]->GetTranslate());
 	}
+
+	key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
+	Vector3 humanRotateDeg = { humanRotate[0], humanRotate[1], humanRotate[2] };
+    JsonManager::AddParam(path, key, humanRotateDeg);
+    key = "/Stage" + std::to_string(stage) + "/Human/Scale";
+    JsonManager::AddParam(path, key, humansize_);
 
 	JsonManager::Save(path);
 }

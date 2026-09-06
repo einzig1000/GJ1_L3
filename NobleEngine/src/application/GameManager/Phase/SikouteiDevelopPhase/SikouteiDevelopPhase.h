@@ -41,5 +41,21 @@ private:
 
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);
+
+
+
+
+
+	int32_t currentGlassUserIndex_ = 0;
+
+	std::unique_ptr<RenderObject> human_[3];
+	EulerTransforms humanTransforms_[3];
+	float humanRotate[3] = { 90.0f, 210.0f, 330.0f, };
+
+	std::unique_ptr<RenderObject> markers_[6];
+	EulerTransforms markerTransforms_[6];
+	std::vector<float> markerAngles_;
+	float humansize_ = 30.0f;
 };
+
 

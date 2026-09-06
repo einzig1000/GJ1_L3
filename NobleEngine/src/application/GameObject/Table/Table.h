@@ -14,8 +14,9 @@ public:
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 
-    float GetRadius() { return transforms_[0].scale.x * 1.7f; };
+    float GetRadius() { return transforms_[0].scale.x * 2.8f; };
     Vector3 GetTranslate() { return transforms_[0].translate; };
+    EulerTransforms GetEulerTransforms() { return transforms_[0]; };
 
 private:
     //グラス
@@ -40,5 +41,7 @@ private:
     std::vector<int32_t> textureIndices_;
 
     Collision::CompoundCollider comCollider_;
+
+
 };
 

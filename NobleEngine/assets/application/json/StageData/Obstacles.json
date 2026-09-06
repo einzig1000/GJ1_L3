@@ -1,6 +1,14 @@
 {
   "Stage0": {
     "Count": 3,
+    "Human": {
+      "RotateDeg": {
+        "x": 90.0,
+        "y": 210.0,
+        "z": 330.0
+      },
+      "Scale": 60.0
+    },
     "Obstacle0": {
       "translate": {
         "x": -0.7200000286102295,
@@ -28,6 +36,14 @@
   },
   "Stage1": {
     "Count": 1,
+    "Human": {
+      "RotateDeg": {
+        "x": 90.0,
+        "y": 210.0,
+        "z": 330.0
+      },
+      "Scale": 60.0
+    },
     "Obstacle0": {
       "translate": {
         "x": 1.0700000524520874,

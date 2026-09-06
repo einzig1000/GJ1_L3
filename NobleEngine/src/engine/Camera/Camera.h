@@ -21,7 +21,8 @@ public:
 
     // 動かす先の設定
     void SetCenterTarget(Vector3 target, float durationSec, EaseType easetype);
-    void SetRotateTarget(Vector3 target, float durationSec, EaseType easetype);
+    void SetPhiTarget(float target, float durationSec, EaseType easetype);
+    void SetThetaTarget(float target, float durationSec, EaseType easetype);
     void SetDistanceTarget(float target, float durationSec, EaseType easetype);
 	void SetScreenSizeTarget(Vector2 target, float durationSec, EaseType easetype);
 	void SetFovTarget(float target, float durationSec, EaseType easetype);
@@ -83,9 +84,11 @@ private:
     /// カメラ回転
     void MovingCenter(float dt);
 	EasingSet<Vector3> centerEasing_;
-    /// 回転中心
-    void MovingRotate(float dt);
-	EasingSet<Vector3> rotateEasing_;
+    /// 回転
+    void MovingPhi(float dt);
+	EasingSet<float> phiEasing_;
+    void MovingTheta(float dt);
+	EasingSet<float> thetaEasing_;
     /// カメラ距離
     void MovingDistance(float dt);
 	EasingSet<float> distanceEasing_;
