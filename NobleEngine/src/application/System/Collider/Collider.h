@@ -28,9 +28,11 @@ public:
 		//kColliderType_OBB,
 		kColliderType_Max
 	};
-
+	// 引数 Collider*、戻り値 void の関数型を定義
+	using CollisionCallback = std::function<void(Collider*)>;
 private:
-
+	//コールバック
+	CollisionCallback customCallback_ = nullptr;
 	Sphere sphere_ = { .center = {0.0f},.radius = {1.0f} };
 	AABB aabb_;
 
@@ -68,13 +70,22 @@ public:
 	Collider();
 
 	~Collider();
-
+	// 外部からコールバックを設定する関数
+	void SetOnCollisionCallback(CollisionCallback callback) {
+		customCallback_ = callback;
+	}
 	void InitCalcuatedTisFrameFlag();
 	/// @brief 衝突時コールバック関数
 	virtual void OnCollision(Collider* collider) {
 		(void)collider;
-		//コライダーを赤くする
-		OnCollisionCollider();
+
+		if (customCallback_) {
+			customCallback_(collider);
+		} else {
+			// デフォルト処理
+			(void)collider;
+		}
+		OnCollisionCollider(); 
 	};
 
 	/// @brief ワールドトランスフォームを取得する関数の作成
@@ -101,7 +112,7 @@ public:
 	void SetWorldMatrixAddress(Matrix4x4& worldMat) {
 		assert(&worldMat);
 		parentWorldMat_ = &worldMat;
-	};
+	}; 
 
 	const AABB& GetAABB() const { return aabb_; }
 	/// @brief AABBをセットする
@@ -138,10 +149,13 @@ public:
 	//}
 
 	void SetMass(const float mass) { physicsBody_.mass = mass; };
-
+	/// @brief 反発係数をセットする
+	/// @param e 1 = 完全弾性衝突　e = 0　非弾性衝突
+	void SetCoefficiendOfRestituion(const float e) { physicsBody_.coefficiendOfRestituion = e; };
 	void SetVelocity(const Vector3 velocity) { physicsBody_.velocity = velocity; }
-	
 	const PhysicsBody GetPhysicsBody() { return physicsBody_; }
+
+	void SetPenetrationVector(const Vector3& penetration) { physicsBody_.penetration = penetration; };
 
 	//=======================================
 	//==========コライダーデバック表示==========

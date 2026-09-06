@@ -82,11 +82,13 @@ void Obstacle::DrawImGui()
         {
             auto& collider = comCollider_.colliders.at(0);
             auto  phyB = collider->GetPhysicsBody();
-            float mass = phyB.mass;
-            /*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
+
             ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+            ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1000.0f);
 
             collider->SetMass(phyB.mass);
+            collider->SetCoefficiendOfRestituion(phyB.coefficiendOfRestituion);
+
 
             if (ImGui::Button("Shot"))
             {
@@ -154,9 +156,11 @@ void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
         worldMatrix_,
-        CollisionTag::GetTag("Target"),
+        CollisionTag::GetTag("Obstacles"),
         //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Glass"));
         CollisionTag::GetTag("Glass"));
 
     comCollider_.colliders.at(0)->SetMass(10.0f);
+    //非弾性衝突　としてみると
+    comCollider_.colliders.at(0)->SetCoefficiendOfRestituion(0.0f);
 }

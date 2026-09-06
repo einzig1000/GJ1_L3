@@ -14,6 +14,9 @@ Glass::Glass()
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 
     transform_.translate.y = 1.28f;
+
+
+
 }
 
 Glass::~Glass()
@@ -40,11 +43,44 @@ void Glass::Initialize()
         modelID_,
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
-        //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Target"));
-        CollisionTag::GetTag("Target"));
 
-    //グラスパーティクル
+        CollisionTag::GetTag("Target")|
+        CollisionTag::GetTag("Obstacles")
+    );
+
+  
+      //グラスパーティクル
     glassParticle_ = std::make_unique<GlassParticle>();
+  
+    if (!comCollider_.colliders.empty()) {
+
+        // 自分のコライダーを変数に保持
+        auto& myCollider = comCollider_.colliders.at(0);
+
+        myCollider->SetOnCollisionCallback([this](Collider* collider) {
+            
+            bool isCollisionResponse = false;
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Target")) {
+               //ターゲットだったら
+                isCollisionResponse = true;
+            }
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles")) {
+                //障害物だったら 押し戻す
+                isCollisionResponse = true;
+              
+            }
+
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table")) {
+                //テーブルだったら
+            }
+            
+            if (isCollisionResponse) {
+                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration*Game::Time::GetScaledDeltaTimeMs()*0.001f;
+            }
+
+
+        });
+    }
 
 }
 
@@ -57,8 +93,8 @@ void Glass::Update(const int32_t cameraID)
     //物理を呼ぶぞ！
     if (!comCollider_.colliders.empty())
     {
-		//comCollider_.colliders.at(0)->SetVelocity(velocity_);
-		//velocity_ *= 0.92f;
+        //comCollider_.colliders.at(0)->SetVelocity(velocity_);
+        //velocity_ *= 0.92f;
 
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
@@ -68,9 +104,6 @@ void Glass::Update(const int32_t cameraID)
     if (transform_.translate.y <= deadLine_) {
         //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
         isHitFloor_ = true;
-
-      
-
     }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす

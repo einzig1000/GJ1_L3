@@ -38,5 +38,6 @@ private:
 	bool DisebugDraw_ = false;
 
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);
+	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);
 };
 

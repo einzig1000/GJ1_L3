@@ -45,18 +45,9 @@ void Table::Initialize()
 void Table::Update(const int32_t cameraID)
 {
 
-	Vector3 vel = { 0.0f };
 	//物理を呼ぶぞ！
-	if (!comCollider_.colliders.empty()) {
-		auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
-		float mass = phyB.mass;
-		vel = phyB.velocity;
-	}
-
 	for (int i = 0; i < instanceCount_; i++)
 	{
-		//スケールタイム適用済みのデルタタイムを取得して座標を動かす
-		transforms_[i].translate += vel * Game::Time::GetScaledDeltaTimeMs()*0.001f;
 		worldMatrices_[i] = transforms_[i].GetWorldMatrix();
 	}
 
