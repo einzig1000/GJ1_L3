@@ -13,6 +13,9 @@ TitlePhase::TitlePhase() {
 	// モデル
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
+	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");	
+	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
+
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].ID = Game::Asset::Model::Load("assets/application/model/Title_Ice/Title_Ice1.obj");
 		iceModel_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Ice/Title_Ice.png");
@@ -21,8 +24,8 @@ TitlePhase::TitlePhase() {
 	// テクスチャ
 	barModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
 	glassModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Water/Water.png");
-
-	
+	CocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
+	ginModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Gin/Gin.png");
 }
 
 TitlePhase::~TitlePhase() {}
@@ -74,11 +77,15 @@ void TitlePhase::Initialize_LightModels() {
 
 	Initialize_Models(barModel_);
 	Initialize_Models(glassModel_);
+	Initialize_Models(CocktailModel_);
+	Initialize_Models(ginModel_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Initialize_Models(iceModel_[i]);
 	}
 
 	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
+	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
+	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -45.0f));
 	for (int i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 2.5f+0.4f*i, -60.0f));
 	}
@@ -129,9 +136,14 @@ void TitlePhase::Initialize_LightModels() {
 	directionalLight.cosFalloffStart = 0.9f;
 }
 
+void TitlePhase::Update_Animation() {
+}
+
 void TitlePhase::Update_LightModels() {
 	Update_Model(barModel_);
 	Update_Model(glassModel_);
+	Update_Model(CocktailModel_);
+	Update_Model(ginModel_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Update_Model(iceModel_[i]);
 	}
@@ -174,6 +186,8 @@ void TitlePhase::Update_Model(Model& model) {
 void TitlePhase::Draw_LightModels() {
 	barModel_.Models_->Draw();
 	glassModel_.Models_->Draw();
+	CocktailModel_.Models_->Draw();
+	ginModel_.Models_->Draw();
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].Models_->Draw();
 	}

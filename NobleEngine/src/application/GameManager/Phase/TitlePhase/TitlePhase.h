@@ -120,7 +120,8 @@ private:
 	Model barModel_;
 	Model glassModel_;
 	Model iceModel_[kMaxIceCount_];
-	
+	Model CocktailModel_;
+	Model ginModel_;
 
 	// カメラID
 	int32_t c_main_ = -1;
@@ -130,6 +131,7 @@ private:
 
 	void Initialize_Models(Model& model);
 	void Update_Model(Model& model);
+	void Update_Animation();
 	void Initialize_LightModels();
 	void Update_LightModels();
 	void Draw_LightModels();
