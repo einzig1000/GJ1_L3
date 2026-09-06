@@ -57,19 +57,53 @@ void SikouteiDevelopPhase::Update()
     //コライダー描画のための更新
     if (DisebugDraw_) collisionManager_->DebugUpdate(c_main_);
 
-	if (Game::IO::Mouse::IsJustPressed(0)) velocity_ = Vector2(0.0f, 0.0f);
+
+
+    // テスト
+    if (Game::IO::Mouse::IsJustPressed(0))
+    {
+        dragStartPos_ = Game::IO::Mouse::Get2DPosition();
+        velocity_ = Vector2(0.0f, 0.0f);
+    }
     if (Game::IO::Mouse::IsHeld(0))
     {
-		Vector2 mouseDelta = Game::IO::Mouse::Get2DPositionDelta();
-		velocity_ += mouseDelta * 0.1f;
-		Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
+        Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
+        float dragLength = dragVector.Length();
 
+        constexpr float kPowerScale = 0.05f; // 感度。要調整
+        constexpr float kMaxSpeed = 20.0f;   // 上限。要調整
+
+        if (dragLength > 1.0f)
+        {
+            float angle = std::atan2(-dragVector.x, -dragVector.y);
+
+            Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
+            cameraDir.y = 0.0f;
+            cameraDir.Normalize();
+
+            float cosA = std::cos(angle);
+            float sinA = std::sin(angle);
+
+            Vector3 shotDir = Vector3(
+                cameraDir.x * cosA - cameraDir.z * sinA,
+                0.0f,
+                cameraDir.x * sinA + cameraDir.z * cosA
+            );
+
+            float power = std::clamp(dragLength * kPowerScale, 0.0f, kMaxSpeed);
+            velocity_ = Vector2(shotDir.x, shotDir.z) * power;
+        }
+        else
+        {
+            velocity_ = Vector2(0.0f, 0.0f);
+        }
     }
     if (Game::IO::Mouse::IsJustReleased(0))
     {
-		Vector3 vel3 = Vector3(velocity_.x, 0.0f, -velocity_.y);
-		glass_->SetVelocity(vel3);
+        glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
+
+
 
     CheckColliders();
 }
@@ -105,11 +139,32 @@ void SikouteiDevelopPhase::DrawImGui()
 
     ImGui::Checkbox("DebugDraw", &DisebugDraw_);
 
+    // editStage選択
 	static int currentStage_ = 0;
-	if (ImGui::DragInt("CurrentStage", &currentStage_, 1, 0, 100))
-	{
-		LoadObstacleData(currentStage_);
-	}
+    ImGui::Text("CurrentStage");
+    if (ImGui::Button("-", ImVec2(20, 20)))
+    {
+        currentStage_--;
+    }
+    ImGui::SameLine();
+    ImGui::DragInt("##CurrentStage", &currentStage_, 1, 0, 100);
+    ImGui::SameLine();
+    if (ImGui::Button("+", ImVec2(20, 20)))
+    {
+		currentStage_++;
+    }
+    currentStage_ = std::clamp(currentStage_, 0, 100);
+
+	// Save & Load
+    if (ImGui::Button("Load", ImVec2(50, 20)))
+    {
+        LoadObstacleData(currentStage_);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Save", ImVec2(50, 20)))
+    {
+        SaveObstacleData(currentStage_);
+    }
 
     if (ImGui::TreeNode("Add Obstacle"))
     {
@@ -179,12 +234,6 @@ void SikouteiDevelopPhase::DrawImGui()
 
 
         ImGui::TreePop();
-    }
-
-
-    if (ImGui::Button("Save"))
-    {
-        SaveObstacleData(currentStage_);
     }
 
     ImGui::End();
