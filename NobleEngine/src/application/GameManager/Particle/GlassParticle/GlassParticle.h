@@ -23,13 +23,16 @@ public:
 
 	struct HitPosition
 	{
-		Vector2 tableCenter;//テーブルセンター
+		Vector3 tableCenter;//テーブルセンター
 		float tableRadius;//テーブル半径
-		float tableHeight;//テーブルの高さ
+
+		float tableThickness; //テーブルの厚み
 		float floorHeight;//床の高さ
 		float pieceRadius;//破片の半径
-		float upwardForce;//上方向の力
-		float padding;
+		float coefficiendOfRestituion; //反発係数
+
+		float pieceMass;//破片の質量 
+		Vector3 padding;
 	};
 
 	GlassParticle();

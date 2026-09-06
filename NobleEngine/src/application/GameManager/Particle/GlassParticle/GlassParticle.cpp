@@ -12,16 +12,16 @@ GlassParticle::GlassParticle()
 	emitterSphere_.radius = 0.1f;
 	emitterSphere_.emit = 0;
 
-	emitterSphere_.speedRange = 2.0f;
+	emitterSphere_.speedRange = 5.0f;
 	emitterSphere_.reflectDirection = {0.0f,0.0f,0.0f};
 	
-	hitPosition_.tableCenter = {0.0f,0.0f};//テーブルセンター
+	hitPosition_.tableCenter = {0.0f,1.0f,0.0f};//テーブルセンター
 	hitPosition_.tableRadius = 10.0f;//テーブル半径
-	hitPosition_.tableHeight = 1.0f;//テーブルの高さ
+	hitPosition_.tableThickness = 0.0625f;//テーブルの高さ
 	hitPosition_.floorHeight = 0.0f;//床の高さ
 	hitPosition_.pieceRadius = 0.02f;//破片の半径
-	hitPosition_.upwardForce = 1.0f;//上方向の力
-
+	hitPosition_.coefficiendOfRestituion = 0.8f;//反発係数
+	hitPosition_.pieceMass = 0.05f;//破片の質量 
 	particles_.resize(maxParticle_);
 	initializeComputes_.resize(maxParticle_);
 	emitComputes_.resize(maxParticle_);
@@ -96,7 +96,7 @@ void GlassParticle::Update(int32_t cameraID)
 		emitComputes_[i]->SetUAVData(1, Game::Resource::GetUAV(freeListIndexSRVIDs_[i]));
 		emitComputes_[i]->SetUAVData(2, Game::Resource::GetUAV(freeListSRVIDs_[i]));
 		emitComputes_[i]->SetCBufferData(0, &emitterSphere_);
-		
+
 		//if (i != 0) {
 		//
 		//} else {
@@ -112,7 +112,7 @@ void GlassParticle::Update(int32_t cameraID)
 		updateComputes_[i]->SetUAVData(2, Game::Resource::GetUAV(freeListSRVIDs_[i]));
 		updateComputes_[i]->SetCBufferData(0, &deltaTime);
 		//ヒット座標をセットする
-		emitComputes_[i]->SetCBufferData(1, &hitPosition_);
+		updateComputes_[i]->SetCBufferData(1, &hitPosition_);
 
 	}
 
@@ -173,17 +173,20 @@ void GlassParticle::DebugImGui()
 		}
 		
 		if (ImGui::TreeNode("Hit Position")) {
-			// テーブルの中心座標 (2Dベクター)
-			ImGui::DragFloat2("Table Center", &hitPosition_.tableCenter.x, 0.01f);
+			// テーブルの中心座標 (3Dベクター)
+			ImGui::DragFloat3("Table Center", &hitPosition_.tableCenter.x, 0.01f);
 
 			// テーブル・床の形状パラメータ
 			ImGui::SliderFloat("Table Radius", &hitPosition_.tableRadius, 0.0f, 10.0f);
-			ImGui::SliderFloat("Table Height", &hitPosition_.tableHeight, -5.0f, 10.0f);
+			ImGui::SliderFloat("Table Thickness", &hitPosition_.tableThickness,0.0f, 10.0f);
 			ImGui::SliderFloat("Floor Height", &hitPosition_.floorHeight, -5.0f, 10.0f);
 
 			// 破片・物理パラメータ
 			ImGui::SliderFloat("Piece Radius", &hitPosition_.pieceRadius, 0.001f, 1.0f);
-			ImGui::SliderFloat("Upward Force", &hitPosition_.upwardForce, 0.0f, 20.0f);
+			ImGui::SliderFloat("Piece Mass", &hitPosition_.pieceMass, 0.0f, 20.0f);
+
+			ImGui::SliderFloat("coefficiendOfRestituion", &hitPosition_.coefficiendOfRestituion, 0.0f, 20.0f);
+
 
 			ImGui::TreePop();
 		}

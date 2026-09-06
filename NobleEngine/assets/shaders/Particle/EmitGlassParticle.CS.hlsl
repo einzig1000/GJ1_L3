@@ -17,15 +17,6 @@ struct EmitterSphereForGlass
     float3 reflectDirection;//反射方向
 };
 
-//struct ParticleGlassData
-//{
-//    float3 translate;
-//    float3 scale;
-//    float lifeTime;
-//    float3 velocity;
-//    float currentTime;
-//    float4 color;
-//};
 struct Particle
 {
     float3 translate;
@@ -71,9 +62,8 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 gParticles[particleIndex].velocity = randomDirection * 0.01f;
                 
                 //ベクトルを足す
-                gParticles[particleIndex].velocity += gEmitter.reflectDirection;
+                //gParticles[particleIndex].velocity += gEmitter.reflectDirection;
 
-                
                 
                 gParticles[particleIndex].color.rgb = (1.0f,1.0f,1.0f);
                 gParticles[particleIndex].color.a = 1.0f;
