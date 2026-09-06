@@ -15,8 +15,6 @@ Glass::Glass()
 
     transform_.translate.y = 1.28f;
 
-
-
 }
 
 Glass::~Glass()
@@ -48,9 +46,6 @@ void Glass::Initialize()
         CollisionTag::GetTag("Obstacles")
     );
 
-  
-      //グラスパーティクル
-    glassParticle_ = std::make_unique<GlassParticle>();
   
     if (!comCollider_.colliders.empty()) {
 

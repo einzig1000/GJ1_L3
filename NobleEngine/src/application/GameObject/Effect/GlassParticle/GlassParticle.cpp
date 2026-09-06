@@ -16,13 +16,14 @@ GlassParticle::GlassParticle()
 	emitterSphere_.speedRange = 5.0f;
 	emitterSphere_.reflectDirection = {0.0f,0.0f,0.0f};
 	
-	hitPosition_.tableCenter = {0.0f,1.0f,0.0f};//テーブルセンター
+	hitPosition_.tableCenter = {0.0f,1.2f,0.0f};//テーブルセンター
 	hitPosition_.tableRadius = 10.0f;//テーブル半径
 	hitPosition_.tableThickness = 0.0625f;//テーブルの高さ
 	hitPosition_.floorHeight = 0.0f;//床の高さ
 	hitPosition_.pieceRadius = 0.02f;//破片の半径
-	hitPosition_.coefficiendOfRestituion = 0.8f;//反発係数
-	hitPosition_.pieceMass = 0.05f;//破片の質量 
+	hitPosition_.coefficiendOfRestituion = 0.3f;//反発係数
+	hitPosition_.pieceMass = 1.0f;//破片の質量 
+
 	particles_.resize(maxParticle_);
 	initializeComputes_.resize(maxParticle_);
 	emitComputes_.resize(maxParticle_);
@@ -74,6 +75,11 @@ GlassParticle::~GlassParticle()
 
 void GlassParticle::Initialize()
 {
+
+	emitterSphere_.emit = 0;
+	emitterSphere_.reflectDirection = { 0.0f,0.0f,0.0f };
+	hitPosition_.tableCenter = { 0.0f,1.2f,0.0f };//テーブルセンター
+	hitPosition_.tableRadius = 10.0f;//テーブル半径
 }
 
 
@@ -82,15 +88,15 @@ void GlassParticle::Update(int32_t cameraID)
 {
 
 	const float deltaTime = Game::Time::GetScaledDeltaTimeMs()*0.001f;
-	//emitterSphere_.frequencyTime += deltaTime;
-	//if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
-	//{
-	//	emitterSphere_.frequencyTime -= emitterSphere_.frequency;
-	//	emitterSphere_.emit = 1;
-	//} else
-	//{
-	//	emitterSphere_.emit = 0;
-	//}
+	emitterSphere_.frequencyTime += deltaTime;
+	if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
+	{
+		emitterSphere_.frequencyTime -= emitterSphere_.frequency;
+		emitterSphere_.emit = 1;
+	} else
+	{
+		emitterSphere_.emit = 0;
+	}
 
 	for (int i = 0; i < maxParticle_; ++i) {
 		emitComputes_[i]->SetUAVData(0, Game::Resource::GetUAV(particleSRVIDs_[i]));
@@ -189,6 +195,13 @@ void GlassParticle::DebugImGui()
 	}
 
 	ImGui::End();
+}
+
+void GlassParticle::Emit()
+{
+	if (emitterSphere_.emit == 0) {
+		emitterSphere_.emit = 1;
+	}
 }
 
 void GlassParticle::SetTableCenterAndRadius(const Vector3& center, const float radius)
