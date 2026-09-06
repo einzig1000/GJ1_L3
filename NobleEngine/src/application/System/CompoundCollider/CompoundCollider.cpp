@@ -26,14 +26,13 @@ namespace Collision {
             collider->SetCollisionMask(mask);
             newColliders.push_back(std::move(collider));
         }
-
-        for (int j = 0; j < aabbCount; ++j) {
-            newColliders[j]->SetAABB(modelData->colliderShape.aabbs[j]);
-        }
-
         // 2. Sphere のセット
         for (int j = 0; j < sphereCount; ++j) {
-            newColliders[aabbCount+j]->SetSphere(modelData->colliderShape.spheres[j]);
+            newColliders[j]->SetSphere(modelData->colliderShape.spheres[j]);
+        }
+
+        for (int j = 0; j < aabbCount; ++j) {
+            newColliders[sphereCount+j]->SetAABB(modelData->colliderShape.aabbs[j]);
         }
 
         colliders = std::move(newColliders);
