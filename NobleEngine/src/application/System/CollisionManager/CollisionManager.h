@@ -29,6 +29,13 @@ namespace Collision {
     /// @param v1 ベクトル1
     /// @param v2 ベクトル2
     /// @return 正射影ベクトル
+   
+    /// @brief CircleとAABB
+    /// @param circle 円
+    /// @param aabb　AABB
+    /// @return 当たり判定
+    bool IsCollision(const Circle& circle, const AABB& aabb);
+    
     Vector3 Project(const Vector3& v1, const Vector3& v2);
 
     /// @brief 物体同士の衝突後の速度を求める
@@ -82,6 +89,11 @@ private:
     /// @param colliderA コライダーA
     /// @param colliderB コライダーB
     void CheckCollisionCirclePair(Collider* colliderA, Collider* colliderB);
+    /// @brief XZサークルとAABBの衝突判定
+    /// @param colliderA コライダーA
+    /// @param colliderB コライダーB
+    void CheckCollisionCircleAABBPair(Collider* colliderA, Collider* colliderB);
+
     /// @brief コライダー2つの衝突判定と応答
     /// @param colliderA コライダーA
     /// @param colliderB コライダーB
