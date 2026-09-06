@@ -48,6 +48,10 @@ void Glass::Initialize()
         CollisionTag::GetTag("Obstacles")
     );
 
+  
+      //グラスパーティクル
+    glassParticle_ = std::make_unique<GlassParticle>();
+  
     if (!comCollider_.colliders.empty()) {
 
         // 自分のコライダーを変数に保持
@@ -97,9 +101,8 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
-    if (transform_.translate.y <= deadLine_)
-    {
-        // 床に衝突、つまり壊れる。
+    if (transform_.translate.y <= deadLine_) {
+        //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
         isHitFloor_ = true;
     }
 
