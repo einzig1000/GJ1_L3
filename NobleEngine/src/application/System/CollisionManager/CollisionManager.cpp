@@ -198,7 +198,6 @@ namespace Collision {
         const Vector3& normal
     )
     {
-
         //衝突面法線方向等　速度を分解する　
         //これが資料で言うC
         Vector3 project1 = Project(pb1.velocity, normal);
@@ -215,12 +214,9 @@ namespace Collision {
 
         Vector3 affter1 = m1v1 + m2v2 + (project2 - project1) * (coefficiendOfRestituion * pb2.mass);
         Vector3 affter2 = m1v1 + m2v2 + (project1 - project2) * (coefficiendOfRestituion * pb1.mass);
-        if (massSum > 0.0f) {
-            affter1 /= massSum;
-            affter2 /= massSum;
-        } else {
-            Log("This is Zero mass!!");
-        }
+
+        affter1 /= massSum;
+        affter2 /= massSum;
 
         return std::make_pair(affter1 + sub1, affter2 + sub2);
     }
@@ -477,22 +473,13 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
             normal.Normalize();
         }
 
-        // 2. めり込み補正（位置の押し出し）
-        float penetration = worldCircleA.radius + worldCircleB.radius - dist;
-        float massA = colliderA->GetPhysicsBody().mass;
-        float massB = colliderB->GetPhysicsBody().mass;
-        float totalMass = massA + massB;
-
+       Vector2 center = Game::Math::Ease::Easing(worldCircleA.center, worldCircleB.center,EaseType::LINEAR,0.5f);
         Vector3 newA = { 0.0f };
         Vector3 newB = { 0.0f };
-
-        bool isExistMass = totalMass > 0.0f;
-
-        if (isExistMass) {
-            // 質量の比率に応じて押し出し量を分配（質量1000の障害物はほぼ動かない）
-            newA = normal * (penetration * (massB / totalMass));
-            newB = -normal * (penetration * (massA / totalMass));
-        }
+       Vector2 directionA =  worldCircleA.center - center;
+       Vector2 directionB =  worldCircleB.center - center;
+        newA = { directionA.x,0.0f,directionA.y};
+        newB = { directionB.x,0.0f,directionB.y };
 
         // 3. 相対速度に応じた反発計算
         Vector3 relativeVelocity = colliderA->GetPhysicsBody().velocity - colliderB->GetPhysicsBody().velocity;
@@ -512,11 +499,12 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
             newB += { b.x, colliderB->GetPhysicsBody().velocity.y, b.z };
         }
 
-        if (isApproach || isExistMass) {
-            colliderA->SetVelocity(newA);
-            colliderB->SetVelocity(newB);
-        }
+        //if (isApproach || isExistMass) {
+      
+        //}
 
+        colliderA->SetVelocity(newA);
+        colliderB->SetVelocity(newB);
 
         OnCollision(colliderA, colliderB);
     }
