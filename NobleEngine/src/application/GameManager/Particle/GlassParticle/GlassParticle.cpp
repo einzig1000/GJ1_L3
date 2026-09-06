@@ -1,4 +1,5 @@
 #include "GlassParticle.h"
+#include"../GameObject/Effect/Particle/Particle.h"
 
 GlassParticle::GlassParticle()
 {

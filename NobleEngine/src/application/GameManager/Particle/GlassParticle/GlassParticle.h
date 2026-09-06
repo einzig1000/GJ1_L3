@@ -1,6 +1,5 @@
 #pragma once
 #include<Game.h>
-#include"../GameObject/Effect/Particle/Particle.h"
 
 class GlassParticle
 {
