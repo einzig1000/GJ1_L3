@@ -45,8 +45,7 @@ void Glass::Initialize()
         CollisionTag::GetTag("Glass"),
 
         CollisionTag::GetTag("Target")|
-        CollisionTag::GetTag("Obstacles")|
-        CollisionTag::GetTag("Table")
+        CollisionTag::GetTag("Obstacles")
     );
 
     if (!comCollider_.colliders.empty()) {
