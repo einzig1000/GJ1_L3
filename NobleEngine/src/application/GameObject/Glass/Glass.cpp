@@ -1,5 +1,6 @@
 #include "Glass.h"
 #include"Utilities/Json/JsonManager.h"
+#include"GameObject/Effect/GlassParticle/GlassParticle.h"
 namespace
 {
     //グラス共通の変数
@@ -77,6 +78,11 @@ void Glass::Initialize()
         });
     }
 
+
+    // GlassParticle
+    glassParticle_ = std::make_unique<GlassParticle>();
+    glassParticle_->Initialize();
+    glassParticle_->SetEmitterPos({ 0.0f,0.0f,0.0f });
 }
 
 void Glass::Update(const int32_t cameraID)
@@ -96,11 +102,6 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
-    if (transform_.translate.y <= deadLine_) {
-        //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
-        isHitFloor_ = true;
-    }
-
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
@@ -112,11 +113,36 @@ void Glass::Update(const int32_t cameraID)
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
     glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
+
+
+    if (transform_.translate.y <= deadLine_) {
+        //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
+        isHitFloor_ = true;
+    }
+
+    if (isHitFloor_) {
+        if (!isBroken_) {
+            isBroken_ = true;
+            glassParticle_->Emit();
+            glassParticle_->SetEmitterPos(transform_.translate);
+        }
+
+        if (isBroken_) {
+            glassParticle_->Update(cameraID);
+        }
+    }
+
+   
 }
 
 void Glass::Draw()
 {
-    glassObj_->Draw();
+
+    if (isBroken_) {
+        glassParticle_->Draw();
+    } else {
+        glassObj_->Draw();
+    }
 }
 
 void Glass::DrawImGui()
@@ -160,6 +186,8 @@ void Glass::DrawImGui()
     }
 
     ImGui::End();
+
+    glassParticle_->DebugImGui();
 }
 
 void Glass::SetGlassTypeAndLoadModels(const GlassType type)

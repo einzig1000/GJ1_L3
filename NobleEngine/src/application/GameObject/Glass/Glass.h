@@ -4,6 +4,7 @@
 #include<vector>
 #include"../../System/CompoundCollider/CompoundCollider.h"
 class Collider;
+class GlassParticle;
 
 class Glass
 {
@@ -57,6 +58,7 @@ private:
 	Vector3 velocity_;
 
     Collision::CompoundCollider comCollider_;
-
+    //パーティクル
+    std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
 };
 
