@@ -194,7 +194,6 @@ namespace Collision {
     std::pair<Vector3, Vector3> ComputeCollisionVelocities(
         const PhysicsBody& pb1,
         const PhysicsBody& pb2,
-        float coefficiendOfRestituion,
         const Vector3& normal
     )
     {
@@ -211,15 +210,12 @@ namespace Collision {
         Vector3 m2v2 = project2 * pb2.mass;
 
         float massSum = pb1.mass + pb2.mass;
-
-        Vector3 affter1 = m1v1 + m2v2 + (project2 - project1) * (coefficiendOfRestituion * pb2.mass);
-        Vector3 affter2 = m1v1 + m2v2 + (project1 - project2) * (coefficiendOfRestituion * pb1.mass);
-
+        Vector3 affter1 = m1v1 + m2v2 + (project2 - project1) * (1.0f * pb2.mass);
+        Vector3 affter2 = m1v1 + m2v2 + (project1 - project2) * (1.0f * pb1.mass);
         affter1 /= massSum;
         affter2 /= massSum;
-
         return std::make_pair(affter1 + sub1, affter2 + sub2);
-    }
+    };
 
     AABB GetAABBWorldPos(Collider* aabb)
     {
@@ -348,18 +344,18 @@ namespace Collision {
     //    return result;
     //}
 
-    void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info) {
+    //void ResolveCollision(Vector3& pos, Vector3& velocity, const CollisionInfo& info) {
 
-        if (!info.collided) return;
+    //    if (!info.collided) return;
 
-        pos += info.normal * info.penetration;
+    //    pos += info.normal * info.penetration;
 
-        float normalVelocity = velocity.Dot(info.normal);
+    //    float normalVelocity = velocity.Dot(info.normal);
 
-        if (normalVelocity < 0.0f) {
-            velocity -= info.normal * normalVelocity;
-        }
-    }
+    //    if (normalVelocity < 0.0f) {
+    //        velocity -= info.normal * normalVelocity;
+    //    }
+    //}
 }
 #endif //USE_IMGUI
 void CollisionManager::DebugImGui()
@@ -473,13 +469,13 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
             normal.Normalize();
         }
 
-       Vector2 center = Game::Math::Ease::Easing(worldCircleA.center, worldCircleB.center,EaseType::LINEAR,0.5f);
-        Vector3 newA = { 0.0f };
-        Vector3 newB = { 0.0f };
-       Vector2 directionA =  worldCircleA.center - center;
-       Vector2 directionB =  worldCircleB.center - center;
-        newA = { directionA.x,0.0f,directionA.y};
-        newB = { directionB.x,0.0f,directionB.y };
+        Vector2 center = Game::Math::Ease::Easing(worldCircleA.center, worldCircleB.center, EaseType::LINEAR, 0.5f);
+
+        Vector2 directionA = worldCircleA.center - center;
+        Vector2 directionB = worldCircleB.center - center;
+        //ここでのめり込み量を設定する。
+        colliderA->SetPenetrationVector({ directionA.x,0.0f,directionA.y });
+        colliderB->SetPenetrationVector({ directionB.x,0.0f,directionB.y });
 
         // 3. 相対速度に応じた反発計算
         Vector3 relativeVelocity = colliderA->GetPhysicsBody().velocity - colliderB->GetPhysicsBody().velocity;
@@ -491,20 +487,16 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
             auto [a, b] = Collision::ComputeCollisionVelocities(
                 colliderA->GetPhysicsBody(),
                 colliderB->GetPhysicsBody(),
-                1.0f,
                 normal
             );
 
-            newA += { a.x, colliderA->GetPhysicsBody().velocity.y, a.z };
-            newB += { b.x, colliderB->GetPhysicsBody().velocity.y, b.z };
+            Vector3 newA = { a.x, colliderA->GetPhysicsBody().velocity.y, a.z };
+            Vector3 newB = { b.x, colliderB->GetPhysicsBody().velocity.y, b.z };
+
+            //反発具合をここで設定して前の計算では一律e = 1とする
+            colliderA->SetVelocity(newA*colliderA->GetPhysicsBody().coefficiendOfRestituion);
+            colliderB->SetVelocity(newB*colliderB->GetPhysicsBody().coefficiendOfRestituion);
         }
-
-        //if (isApproach || isExistMass) {
-      
-        //}
-
-        colliderA->SetVelocity(newA);
-        colliderB->SetVelocity(newB);
 
         OnCollision(colliderA, colliderB);
     }
@@ -527,7 +519,6 @@ void CollisionManager::CheckCollisionSpherePair(Collider* colliderA, Collider* c
         auto [a, b] = Collision::ComputeCollisionVelocities(
             colliderA->GetPhysicsBody(),
             colliderB->GetPhysicsBody(),
-            1.0f,
             normal
         );
 

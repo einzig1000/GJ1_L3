@@ -14,6 +14,9 @@ Glass::Glass()
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 
     transform_.translate.y = 1.28f;
+
+
+
 }
 
 Glass::~Glass()
@@ -40,8 +43,42 @@ void Glass::Initialize()
         modelID_,
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
-        //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Target"));
-        CollisionTag::GetTag("Target"));
+
+        CollisionTag::GetTag("Target")|
+        CollisionTag::GetTag("Obstacles")|
+        CollisionTag::GetTag("Table")
+    );
+
+    if (!comCollider_.colliders.empty()) {
+
+        // 自分のコライダーを変数に保持
+        auto& myCollider = comCollider_.colliders.at(0);
+
+        myCollider->SetOnCollisionCallback([this](Collider* collider) {
+            
+            bool isCollisionResponse = false;
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Target")) {
+               //ターゲットだったら
+                isCollisionResponse = true;
+            }
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles")) {
+                //障害物だったら 押し戻す
+                isCollisionResponse = true;
+              
+            }
+
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table")) {
+                //テーブルだったら
+            }
+            
+            if (isCollisionResponse) {
+                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration*Game::Time::GetScaledDeltaTimeMs()*0.001f;
+            }
+
+
+        });
+    }
+
 }
 
 void Glass::Update(const int32_t cameraID)

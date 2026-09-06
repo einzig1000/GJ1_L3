@@ -93,10 +93,10 @@ void SikouteiDevelopPhase::Draw()
 void SikouteiDevelopPhase::DrawImGui()
 {
     glass_->DrawImGui();
-	//for (auto& obstacle : obstacles_)
-	//{
-	//	obstacle->DrawImGui();
-	//}
+	for (auto& obstacle : obstacles_)
+	{
+		obstacle->DrawImGui();
+	}
     //table_->DrawImGui();
     //collisionManager_->DebugImGui();
 
