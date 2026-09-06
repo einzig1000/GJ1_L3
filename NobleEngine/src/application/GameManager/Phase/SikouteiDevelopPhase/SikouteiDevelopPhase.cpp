@@ -155,17 +155,16 @@ void SikouteiDevelopPhase::Update()
         {
             if (IsInAngleRange(angle, markerAngles_[i * 2], markerAngles_[i * 2 + 1]))
             {
+                cameraTheta = humanRotate[i];
+                //if (currentGlassUserIndex_ > i) cameraTheta += (humanRotate[i] - humanRotate[i + 1]);
+                //else if (currentGlassUserIndex_ < i) cameraTheta += (humanRotate[i] - humanRotate[i - 1]);
                 currentGlassUserIndex_ = i;
-                Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(humanRotate[i]), 1.0f, EaseType::OUT_BACK, c_main_);
+                Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraTheta), 1.0f, EaseType::OUT_BACK, c_main_);
                 break;
             }
         }
 
-        Vector3 glassPos = GetPositionOnCircle(
-            table_->GetTranslate(),
-            table_->GetRadius() * 0.5f,
-            humanRotate[currentGlassUserIndex_]
-        );
+        Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotate[currentGlassUserIndex_]);
         glassPos.y = 1.28f;
 
         glass_->SetTranslate(glassPos);
@@ -527,6 +526,8 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
         markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
     }
 
+    cameraTheta = humanRotate[0];
+    Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraTheta), 0.2f, EaseType::OUT_BACK, c_main_);
 
 	return true;
 }

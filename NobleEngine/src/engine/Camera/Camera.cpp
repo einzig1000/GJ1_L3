@@ -20,29 +20,10 @@ Camera::Camera()
 
 	screenSize_ = Vector2{ float(WindowManager::winWidth_) , float(WindowManager::winHeight_) };
 
-	sphericalEye_.radius = 20.0f;
+	sphericalEye_.radius = 10.0f;
 	sphericalEye_.theta = std::numbers::pi_v<float> / 2.0f;
-	sphericalEye_.phi = 0;
+	sphericalEye_.phi = 1.0f;
 
-	//backToFrontMatrix_.m[0][0] = -1.00000000f;
-	//backToFrontMatrix_.m[0][1] = 0.00000000f;
-	//backToFrontMatrix_.m[0][2] = 8.74227766e-08f;
-	//backToFrontMatrix_.m[0][3] = 0.00000000f;
-
-	//backToFrontMatrix_.m[1][0] = 0.00000000f;
-	//backToFrontMatrix_.m[1][1] = 1.00000000f;
-	//backToFrontMatrix_.m[1][2] = 0.00000000f;
-	//backToFrontMatrix_.m[1][3] = 0.00000000f;
-
-	//backToFrontMatrix_.m[2][0] = -8.74227766e-08f;
-	//backToFrontMatrix_.m[2][1] = 0.00000000f;
-	//backToFrontMatrix_.m[2][2] = -1.00000000f;
-	//backToFrontMatrix_.m[2][3] = 0.00000000f;
-
-	//backToFrontMatrix_.m[2][0] = 0.00000000f;
-	//backToFrontMatrix_.m[2][1] = 0.00000000f;
-	//backToFrontMatrix_.m[2][2] = 0.00000000f;
-	//backToFrontMatrix_.m[2][3] = 0.00000000f;
 	backToFrontMatrix_ = Matrix4x4::MakeRotateYMatrix(std::numbers::pi_v<float>);
 
 	Resize();

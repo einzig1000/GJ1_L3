@@ -44,9 +44,8 @@ private:
 
 
 
-
-
 	int32_t currentGlassUserIndex_ = 0;
+	float cameraTheta = 0.0f;
 
 	std::unique_ptr<RenderObject> human_[3];
 	EulerTransforms humanTransforms_[3];
