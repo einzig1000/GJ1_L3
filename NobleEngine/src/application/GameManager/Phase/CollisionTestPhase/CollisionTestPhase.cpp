@@ -4,8 +4,7 @@
 //人間モデル
 #include"GameObject/HumanModel/HumanModel.h"
 #include"../System/CollisionManager/CollisionManager.h"
-#include"../../Particle/GlassParticle/GlassParticle.h"
-
+#include"GameObject/Effect/GlassParticle/GlassParticle.h"
 
 CollisionTestPhase::CollisionTestPhase()
 {

@@ -1,6 +1,7 @@
 #include "Glass.h"
 #include"Utilities/Json/JsonManager.h"
-namespace {
+namespace
+{
     //グラス共通の変数
     float deadLine_ = 0.0f;
 }
@@ -11,11 +12,12 @@ Glass::Glass()
     SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
 
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
+
+    transform_.translate.y = 1.28f;
 }
 
 Glass::~Glass()
-{
-}
+{}
 
 void Glass::Initialize()
 {
@@ -25,28 +27,21 @@ void Glass::Initialize()
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
     //シンプルモデルのシェーダー適用
-    glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
-    glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
+    glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
+    glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
     glassObj_->SetupFromShaders();
 
     glassObj_->modelID_ = modelID_;
-    glassObj_->instanceNum_ = instanceCount_;
 
-    worldMatrixHeapSlot_ = Game::Resource::CreateDynamic();
-    colorHeapSlot_ = Game::Resource::CreateDynamic();
-    textureIndexHeapSlot_ = Game::Resource::CreateDynamic();
-
-    transforms_.resize(instanceCount_, EulerTransforms());
-    worldMatrices_.resize(instanceCount_, Matrix4x4());
     //一旦半透明にしておく
-    colors_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 0.5f));
-    textureIndices_.resize(instanceCount_, textureID_);
+    color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
 
     comCollider_.CreateFromModelData(
         modelID_,
-        worldMatrices_[0],
+        worldMatrix_,
         CollisionTag::GetTag("Glass"),
-        CollisionTag::GetTag("Table") | CollisionTag::GetTag("Target"));
+        //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Target"));
+        CollisionTag::GetTag("Target"));
 }
 
 void Glass::Update(const int32_t cameraID)
@@ -54,41 +49,36 @@ void Glass::Update(const int32_t cameraID)
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
     Vector3 vel = { 0.0f };
+
     //物理を呼ぶぞ！
-    if (!comCollider_.colliders.empty()) {
+    if (!comCollider_.colliders.empty())
+    {
+		//comCollider_.colliders.at(0)->SetVelocity(velocity_);
+		//velocity_ *= 0.92f;
+
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
         vel = phyB.velocity;
     }
 
-    for (int i = 0; i < instanceCount_; i++)
-    {
-        if (transforms_[i].translate.y <= deadLine_) {
+        if (transform_.translate.y <= deadLine_) {
             //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
             isHitFloor_ = true;
-            break;
+   
         }
-    }
-    
-    for (int i = 0; i < instanceCount_; i++)
-    {
 
-        //スケールタイム適用済みのデルタタイムを取得して座標を動かす
-        transforms_[i].translate += vel *Game::Time::GetScaledDeltaTimeMs()*0.001f;
-        worldMatrices_[i] = transforms_[i].GetWorldMatrix();
-    }
 
-    Game::Resource::UpdateData(worldMatrixHeapSlot_, worldMatrices_);
-    Game::Resource::UpdateData(colorHeapSlot_, colors_);
-    Game::Resource::UpdateData(textureIndexHeapSlot_, textureIndices_);
+    //スケールタイム適用済みのデルタタイムを取得して座標を動かす
+    transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
+    worldMatrix_ = transform_.GetWorldMatrix();
     Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-    int32_t vsHeapSlot = Game::Resource::GetSRV(worldMatrixHeapSlot_);
-    Vector2uint psHeapSlot{ Game::Resource::GetSRV(colorHeapSlot_), Game::Resource::GetSRV(textureIndexHeapSlot_) };
+    Matrix4x4 wvp = worldMatrix_ * viewProjection;
 
-    glassObj_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
-    glassObj_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
-    glassObj_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
+    glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+    glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
+    glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
+    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
 }
 
 void Glass::Draw()
@@ -100,51 +90,46 @@ void Glass::DrawImGui()
 {
     ImGui::Begin("GameObj");
 
-    if (ImGui::TreeNode("Glass")) {
+    if (ImGui::TreeNode("Glass"))
+    {
         static Vector3 vel;
-        ImGui::SliderFloat3("velocity", &vel.x,0.0f,10.0f);
+        ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
         //物理ボディ
         if (ImGui::TreeNode("PhysicsBody")) {
-          if (!comCollider_.colliders.empty()) {
-          auto& collider = comCollider_.colliders.at(0);
-          auto  phyB = collider->GetPhysicsBody();
-          float mass = phyB.mass;
+            if (!comCollider_.colliders.empty()) {
+                auto& collider = comCollider_.colliders.at(0);
+                auto  phyB = collider->GetPhysicsBody();
+                float mass = phyB.mass;
 
-          ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+                ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
 
-          collider->SetMass(phyB.mass);
+                collider->SetMass(phyB.mass);
 
-          if (ImGui::Button("Shot")) {
-             collider->SetVelocity(vel);
-          }
+                collider->SetMass(phyB.mass);
 
-          ImGui::TreePop();
+                if (ImGui::Button("Shot"))
+                {
+                    collider->SetVelocity(vel);
+                }
             }
-      
-        }
-      
-        ImGui::Checkbox("isHitFloor", &isHitFloor_);
 
-        for (int i = 0; i < instanceCount_; i++)
-        {
-            if (ImGui::TreeNode(("Instance " + std::to_string(i)).c_str()))
-            {
-                ImGui::DragFloat3(("Scale##" + std::to_string(i)).c_str(), &transforms_[i].scale.x, 0.01f);
-                ImGui::DragFloat3(("Rotate##" + std::to_string(i)).c_str(), &transforms_[i].rotate.x, 0.01f);
-                ImGui::DragFloat3(("Translate##" + std::to_string(i)).c_str(), &transforms_[i].translate.x, 0.01f);
-                ImGui::ColorEdit4(("Color##" + std::to_string(i)).c_str(), &colors_[i].x);
-                ImGui::TreePop();
-            }
+            ImGui::Checkbox("isHitFloor", &isHitFloor_);
+
+            ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
+            ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
+            ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
+            ImGui::ColorEdit4("Color##", &color_.x);
+
+            ImGui::TreePop();
         }
+
         ImGui::TreePop();
-
     }
-
 
     ImGui::End();
 }
 
-void Glass::SetGlassTypeAndLoadModels(const GLASS_TYPE type)
+void Glass::SetGlassTypeAndLoadModels(const GlassType type)
 {
 
     std::string filePath;

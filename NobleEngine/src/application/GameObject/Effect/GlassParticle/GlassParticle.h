@@ -1,5 +1,6 @@
 #pragma once
 #include<Game.h>
+#include"../Particle/Particle.h"
 
 class GlassParticle
 {

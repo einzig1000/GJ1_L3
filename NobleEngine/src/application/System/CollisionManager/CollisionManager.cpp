@@ -59,7 +59,7 @@ namespace Collision {
         if (ImGui::TreeNode(label)) {
 
             //MeshType
-            const char* type[] = { "Sphere", "AABB","Circle"};
+            const char* type[] = { "Sphere", "AABB","Circle" };
             int type_current = collider.GetType();
             ImGui::Text(type[type_current]);
 
@@ -183,7 +183,7 @@ namespace Collision {
 
         return false;
     }
-  
+
     Vector3 Project(const Vector3& v1, const Vector3& v2)
     {
         Vector3 v2n = v2;
@@ -191,29 +191,30 @@ namespace Collision {
         float d = v2n.Dot(v1);
         return v2n * d;
     }
-       std::pair<Vector3, Vector3> ComputeCollisionVelocities(
+    std::pair<Vector3, Vector3> ComputeCollisionVelocities(
         const PhysicsBody& pb1,
         const PhysicsBody& pb2,
         float coefficiendOfRestituion,
         const Vector3& normal
     )
     {
+
         //衝突面法線方向等　速度を分解する　
         //これが資料で言うC
         Vector3 project1 = Project(pb1.velocity, normal);
         Vector3 project2 = Project(pb2.velocity, normal);
         //これが資料で言うB　
-       Vector3 sub1 = pb1.velocity - project1;
-       Vector3 sub2 = pb2.velocity - project2;
+        Vector3 sub1 = pb1.velocity - project1;
+        Vector3 sub2 = pb2.velocity - project2;
 
         //衝突後の速度を計算する
-       Vector3 m1v1 = project1 * pb1.mass;
-       Vector3 m2v2 = project2 * pb2.mass;
+        Vector3 m1v1 = project1 * pb1.mass;
+        Vector3 m2v2 = project2 * pb2.mass;
 
         float massSum = pb1.mass + pb2.mass;
 
-       Vector3 affter1 = m1v1 + m2v2 +  (project2 - project1)* (coefficiendOfRestituion * pb2.mass);
-       Vector3 affter2 = m1v1 + m2v2 + (project1 - project2) * (coefficiendOfRestituion * pb1.mass);
+        Vector3 affter1 = m1v1 + m2v2 + (project2 - project1) * (coefficiendOfRestituion * pb2.mass);
+        Vector3 affter2 = m1v1 + m2v2 + (project1 - project2) * (coefficiendOfRestituion * pb1.mass);
         if (massSum > 0.0f) {
             affter1 /= massSum;
             affter2 /= massSum;
@@ -221,7 +222,7 @@ namespace Collision {
             Log("This is Zero mass!!");
         }
 
-        return std::make_pair(affter1+sub1, affter2 + sub2);
+        return std::make_pair(affter1 + sub1, affter2 + sub2);
     }
 
     AABB GetAABBWorldPos(Collider* aabb)
@@ -244,7 +245,7 @@ namespace Collision {
         return Sphere{
           .center = transform.translate,
           //Xスケールのみを半径とする
-          .radius = transform.scale.x*0.5f
+          .radius = transform.scale.x * 0.5f
         };
     }
 
@@ -454,12 +455,11 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
 
     // 衝突判定
     if (IsCollision(worldCircleA, worldCircleB)) {
-        
-        //XZ平面のお話
+
+        //XZ平面のお話 法線を求める
         //worldCircle.center.y は Z座標が入っている点に注意
-        //法線を求める
         Vector3 normal =
-            Vector3 {
+            Vector3{
             worldCircleA.center.x,
              0.0f,
             worldCircleA.center.y,
@@ -469,19 +469,37 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
             worldCircleB.center.y,
         };
 
-        float len = normal.Length();
-        if (std::abs(len) < 0.00001f)
+        float dist = normal.Length();
+        if (std::abs(dist) < 0.00001f)
         {
-            // 距離がゼロでないか確認して正規化
             normal = Vector3{ 1.0f, 0.0f, 0.0f };
         } else {
             normal.Normalize();
         }
 
-        // 相対速度を計算（近づいている場合のみ反発処理を行う）
+        // 2. めり込み補正（位置の押し出し）
+        float penetration = worldCircleA.radius + worldCircleB.radius - dist;
+        float massA = colliderA->GetPhysicsBody().mass;
+        float massB = colliderB->GetPhysicsBody().mass;
+        float totalMass = massA + massB;
+
+        Vector3 newA = { 0.0f };
+        Vector3 newB = { 0.0f };
+
+        bool isExistMass = totalMass > 0.0f;
+
+        if (isExistMass) {
+            // 質量の比率に応じて押し出し量を分配（質量1000の障害物はほぼ動かない）
+            newA = normal * (penetration * (massB / totalMass));
+            newB = -normal * (penetration * (massA / totalMass));
+        }
+
+        // 3. 相対速度に応じた反発計算
         Vector3 relativeVelocity = colliderA->GetPhysicsBody().velocity - colliderB->GetPhysicsBody().velocity;
 
-        if (relativeVelocity.Dot(normal) < 0.0f) {
+        bool isApproach = relativeVelocity.Dot(normal) < 0.0f;
+
+        if (isApproach) {
             //反発係数
             auto [a, b] = Collision::ComputeCollisionVelocities(
                 colliderA->GetPhysicsBody(),
@@ -490,13 +508,15 @@ void CollisionManager::CheckCollisionCirclePair(Collider* colliderA, Collider* c
                 normal
             );
 
-            Vector3 newA = { a.x,colliderA->GetPhysicsBody().velocity.y,a.z };
-            Vector3 newB = { b.x,colliderB->GetPhysicsBody().velocity.y,b.z };
-            
+            newA += { a.x, colliderA->GetPhysicsBody().velocity.y, a.z };
+            newB += { b.x, colliderB->GetPhysicsBody().velocity.y, b.z };
+        }
+
+        if (isApproach || isExistMass) {
             colliderA->SetVelocity(newA);
             colliderB->SetVelocity(newB);
-        
         }
+
 
         OnCollision(colliderA, colliderB);
     }
@@ -511,8 +531,8 @@ void CollisionManager::CheckCollisionSpherePair(Collider* colliderA, Collider* c
 
     // 衝突判定
     if (IsCollision(worldSphere1, worldSphere2)) {
-        
-        Vector3 normal  = worldSphere1.center-worldSphere2.center;
+
+        Vector3 normal = worldSphere1.center - worldSphere2.center;
         normal.Normalize();
 
         //反発係数
@@ -521,8 +541,8 @@ void CollisionManager::CheckCollisionSpherePair(Collider* colliderA, Collider* c
             colliderB->GetPhysicsBody(),
             1.0f,
             normal
-            );
-        
+        );
+
         colliderA->SetVelocity(a);
         colliderB->SetVelocity(b);
 
