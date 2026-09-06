@@ -10,7 +10,7 @@ namespace Collision {
         const uint32_t mask)
     {
         colliders.clear();
-        auto modelData = Game::Asset::Model::GetData(modelID);
+        const ModelData* modelData = Game::Asset::Model::GetData(modelID);
 
         size_t aabbCount = modelData->colliderShape.aabbs.size();
         size_t sphereCount = modelData->colliderShape.spheres.size();

@@ -1,7 +1,5 @@
 #include "Application.h"
 #include <GameManager/GameManager.h>
-#include <ResourceLoader/Data/DataManager.h>
-#include <Editor/editor.h>
 
 Application& Application::Instance()
 {
