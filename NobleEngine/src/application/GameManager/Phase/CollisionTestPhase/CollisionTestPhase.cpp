@@ -4,7 +4,7 @@
 //人間モデル
 #include"GameObject/HumanModel/HumanModel.h"
 #include"../System/CollisionManager/CollisionManager.h"
-#include"GameObject/Effect/GlassParticle/GlassParticle.h"
+
 
 CollisionTestPhase::CollisionTestPhase()
 {
@@ -25,19 +25,17 @@ void CollisionTestPhase::Initialize()
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->Load();
     
-    // GlassParticle
-    glassParticle_ = std::make_unique<GlassParticle>();
-    glassParticle_->Initialize();
+
 
     InitGameObj();
-    glassParticle_->SetEmitterPos({ 0.0f,0.0f,0.0f });
+
 }
 
 void CollisionTestPhase::Update()
 {
     Game::Camera::Update(c_main_);
     UpdateGameObj(c_main_);
-    glassParticle_->Update(c_main_);
+ 
 
     CheckColliders();
 }
@@ -46,7 +44,7 @@ void CollisionTestPhase::Draw()
 {
     DrawGameObj();
 
-    glassParticle_->Draw();
+
 }
 
 void CollisionTestPhase::DrawImGui()
@@ -98,7 +96,7 @@ void CollisionTestPhase::DrawImGuiObj()
     table_->DrawImGui();
     humanModel_->DrawImGui();
     collisionManager_->DebugImGui();
-    glassParticle_->DebugImGui();
+
 }
 
 void CollisionTestPhase::CheckColliders()

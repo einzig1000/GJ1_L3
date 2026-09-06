@@ -88,15 +88,15 @@ void GlassParticle::Update(int32_t cameraID)
 {
 
 	const float deltaTime = Game::Time::GetScaledDeltaTimeMs()*0.001f;
-	emitterSphere_.frequencyTime += deltaTime;
-	if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
-	{
-		emitterSphere_.frequencyTime -= emitterSphere_.frequency;
-		emitterSphere_.emit = 1;
-	} else
-	{
-		emitterSphere_.emit = 0;
-	}
+	//emitterSphere_.frequencyTime += deltaTime;
+	//if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
+	//{
+	//	emitterSphere_.frequencyTime -= emitterSphere_.frequency;
+	//	emitterSphere_.emit = 1;
+	//} else
+	//{
+	//	emitterSphere_.emit = 0;
+	//}
 
 	for (int i = 0; i < maxParticle_; ++i) {
 		emitComputes_[i]->SetUAVData(0, Game::Resource::GetUAV(particleSRVIDs_[i]));
@@ -125,6 +125,9 @@ void GlassParticle::Update(int32_t cameraID)
 		particles_[i]->SetSBufferData(0, ShaderType::VertexShader, Game::Resource::GetSRV(particleSRVIDs_[i]));
 		particles_[i]->SetCBufferData(0, ShaderType::VertexShader, &perView);
 	}
+
+	//毎フレームエミっとしない
+	emitterSphere_.emit = 0;
 
 }
 
