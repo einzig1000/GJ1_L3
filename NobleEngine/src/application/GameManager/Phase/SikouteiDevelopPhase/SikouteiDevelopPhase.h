@@ -1,9 +1,10 @@
 #pragma once
 #include <GameManager/Phase/IPhase.h>
+#include <definition/constexprs.h>
 #include <Game.h>
 
 class Glass;
-class Obstacle;
+class TableObject;
 class Table;
 class CollisionManager;
 
@@ -27,7 +28,8 @@ private:
 	//ゲームオブジェクト
 	int32_t deleteIndex = -1;
 	std::unique_ptr<Glass> glass_;
-	std::vector<std::unique_ptr<Obstacle>> obstacles_;
+	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
+	int32_t obstacleCount = 0;
 	std::unique_ptr<Table> table_;
 
 	bool LoadObstacleData(int32_t stage);
@@ -35,7 +37,7 @@ private:
 
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
-	bool DisebugDraw_ = false;
+	bool isDebugDraw_ = false;
 
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);

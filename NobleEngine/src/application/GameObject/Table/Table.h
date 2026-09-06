@@ -13,6 +13,10 @@ public:
     void DrawImGui();
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
+
+    float GetRadius() { return transforms_[0].scale.x * 1.7f; };
+    Vector3 GetTranslate() { return transforms_[0].translate; };
+
 private:
     //グラス
     std::unique_ptr<RenderObject> obj_ = nullptr;

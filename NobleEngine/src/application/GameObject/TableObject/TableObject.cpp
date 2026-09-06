@@ -1,4 +1,4 @@
-#include "Obstacle.h"
+#include "TableObject.h"
 #include"Utilities/Json/JsonManager.h"
 
 namespace
@@ -7,30 +7,29 @@ namespace
     float deadLine_ = 0.0f;
 }
 
-Obstacle::Obstacle()
+TableObject::TableObject()
 {
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
-
-    transform_.translate.y = 1.28f;
-}
-
-Obstacle::~Obstacle()
-{}
-
-void Obstacle::Initialize()
-{
-    //床との当たり判定
-    isHitFloor_ = false;
 
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
     glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
     glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
     glassObj_->SetupFromShaders();
-
 }
 
-void Obstacle::Update(const int32_t cameraID)
+TableObject::~TableObject()
+{}
+
+void TableObject::Initialize()
+{
+    //床との当たり判定
+    isHitFloor_ = false;
+
+    transform_.translate.y = 1.28f;
+}
+
+void TableObject::Update(const int32_t cameraID)
 {
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
@@ -64,16 +63,16 @@ void Obstacle::Update(const int32_t cameraID)
     glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
 }
 
-void Obstacle::Draw()
+void TableObject::Draw()
 {
     glassObj_->Draw();
 }
 
-void Obstacle::DrawImGui()
+void TableObject::DrawImGui()
 {
     ImGui::Begin("GameObj");
 
-    if (ImGui::TreeNode("Obstacle"))
+    if (ImGui::TreeNode("TableObject"))
     {
         static Vector3 vel;
         ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
@@ -108,43 +107,82 @@ void Obstacle::DrawImGui()
     ImGui::End();
 }
 
-void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
+void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
 {
 	glassType_ = type;
 
     std::string modelPath;
     std::string texturePath;
+	uint32_t myColliderTag = 0;
+	uint32_t targetColliderTag = 0;
+	float mass = 0.0f;
 
     switch (type)
     {
+    case GlassType::Glass:
+        modelPath = "assets/application/model/Cocktail/Cocktail.obj";
+        texturePath = "assets/engine/texture/white1x1.png";
+		myColliderTag = CollisionTag::GetTag("Glass");
+        targetColliderTag = (CollisionTag::GetTag("Target") | CollisionTag::GetTag("Obstacles"));
+		mass = 1.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
+        break;
     case GlassType::Bottle:
         modelPath = "assets/application/Alcohol/Bottle/Bottle.obj";
 		texturePath = "assets/application/Alcohol/Bottle/Bottle.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		mass = 10.0f;
         break;
     case GlassType::Champagne:
         modelPath = "assets/application/Alcohol/Champagne/Champagne.obj";
 		texturePath = "assets/application/Alcohol/Champagne/Champagne.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        mass = 10.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         break;
     case GlassType::Gin:
 		modelPath = "assets/application/Alcohol/Gin/Gin.obj";
 		texturePath = "assets/application/Alcohol/Gin/Gin.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        mass = 10.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         break;
     case GlassType::JapaneseSake:
 		modelPath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.obj";
 		texturePath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        mass = 10.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         break;
     case GlassType::Plumwine:
 		modelPath = "assets/application/Alcohol/Plumwine/Plumwine.obj";
 		texturePath = "assets/application/Alcohol/Plumwine/Plumwine.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        mass = 10.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         break;
     case GlassType::Whiskey:
         modelPath = "assets/application/Alcohol/Whiskey/Whiskey.obj";
         texturePath = "assets/application/Alcohol/Whiskey/Whiskey.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        mass = 10.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         break;
     case GlassType::GLASS_MAX:
     default:
         modelPath = "assets/application/model/Cocktail/Cocktail.obj";
         texturePath = "assets/engine/texture/white1x1.png";
+        myColliderTag = CollisionTag::GetTag("Obstacles");
+        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        mass = 10.0f;
+        color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
         break;
     }
@@ -156,11 +194,48 @@ void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
         worldMatrix_,
-        CollisionTag::GetTag("Obstacles"),
-        //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Glass"));
-        CollisionTag::GetTag("Glass"));
+		myColliderTag,
+		targetColliderTag);
 
-    comCollider_.colliders.at(0)->SetMass(10.0f);
+    if (type == GlassType::Glass)
+    {
+        if (!comCollider_.colliders.empty())
+        {
+            // 自分のコライダーを変数に保持
+            auto& myCollider = comCollider_.colliders.at(0);
+
+            myCollider->SetOnCollisionCallback([this](Collider* collider)
+                {
+
+                    bool isCollisionResponse = false;
+                    if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Target"))
+                    {
+                        //ターゲットだったら
+                        isCollisionResponse = true;
+                    }
+                    if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles"))
+                    {
+                        //障害物だったら 押し戻す
+                        isCollisionResponse = true;
+
+                    }
+
+                    if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table"))
+                    {
+                        //テーブルだったら
+                    }
+
+                    if (isCollisionResponse)
+                    {
+                        transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+                    }
+
+
+                });
+        }
+    }
+
+    comCollider_.colliders.at(0)->SetMass(mass);
     //非弾性衝突　としてみると
     comCollider_.colliders.at(0)->SetCoefficiendOfRestituion(0.0f);
 }

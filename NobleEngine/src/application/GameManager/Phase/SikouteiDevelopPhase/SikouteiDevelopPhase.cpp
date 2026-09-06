@@ -1,10 +1,64 @@
 #include "SikouteiDevelopPhase.h"
 #include <GameObject/Glass/Glass.h>
-#include <GameObject/Obstacle/Obstacle.h>
+#include <GameObject/TableObject/TableObject.h>
 #include <GameObject/Table/Table.h>
 #include <System/CollisionManager/CollisionManager.h>
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
+#include <numbers>
+
+namespace
+{
+    /// <summary>
+    /// 大きい円の内壁と小さい円が接触しているかを判定する
+    /// </summary>
+    /// <param name="bigCenter">でかい円の中心</param>
+    /// <param name="bigRadius">でかい円の半径</param>
+    /// <param name="smallCenter">小さい円の中心</param>
+    /// <param name="smallRadius">小さい円の半径</param>
+    /// <returns></returns>
+    bool IsTouchingInnerEdge(
+        const Vector2& bigCenter,
+        float bigRadius,
+        const Vector2& smallCenter,
+        float smallRadius)
+    {
+        float dist = (smallCenter - bigCenter).Length();
+        return (dist + smallRadius) >= bigRadius;
+    }
+    
+    /// <summary>
+	/// でかい円から見て小さい円がどの方向にあるかを返す
+    /// </summary>
+    /// <param name="bigCenter">でかい円の中心</param>
+    /// <param name="smallCenter">小さい円の中心</param>
+    /// <returns></returns>
+    float GetContactAngleDeg(const Vector2& bigCenter, const Vector2& smallCenter)
+    {
+        Vector2 dir = smallCenter - bigCenter;
+        if (dir.LengthSq() < 0.0001f)
+        {
+            return 0.0f; // 中心同士が重なっていて方向が定義できない特殊ケース
+        }
+
+        float angleRad = std::atan2(dir.y, dir.x);
+        float angleDeg = angleRad * (180.0f / std::numbers::pi_v<float>);
+        if (angleDeg < 0.0f) angleDeg += 360.0f;
+        return angleDeg; // 0〜360
+    }
+
+    // その角度が指定範囲に入っているか
+    bool IsInAngleRange(float angleDeg, float fromDeg, float toDeg)
+    {
+        if (fromDeg <= toDeg)
+        {
+            return angleDeg >= fromDeg && angleDeg < toDeg;
+        }
+        return angleDeg >= fromDeg || angleDeg < toDeg;
+    }
+}
+
+
 
 SikouteiDevelopPhase::SikouteiDevelopPhase()
 {
@@ -17,8 +71,13 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 
 
     // オブジェクト実体生成
-    glass_ = std::make_unique<Glass>();
     table_ = std::make_unique<Table>();
+    glass_ = std::make_unique<Glass>();
+    for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
+    {
+        obstacles_[i] = std::make_unique<TableObject>();
+        obstacles_[i]->Initialize();
+    }
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -28,11 +87,14 @@ void SikouteiDevelopPhase::Initialize()
 {
 	// オブジェクト初期化
     glass_->Initialize();
+    glass_->SetTranslate(Vector3{ 0.0f,1.28f,1.7f });
+    //glass_->SetGlassTypeAndLoadModels(GlassType::Glass);
     table_->Initialize();
-	for (auto& obstacle : obstacles_)
+	for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
 	{
-		obstacle->Initialize();
+		obstacles_[i]->Initialize();
 	}
+
 	LoadObstacleData(0);
 }
 
@@ -40,22 +102,27 @@ void SikouteiDevelopPhase::Update()
 {
     Game::Camera::Update(c_main_);
 
+    if (Game::IO::Key::IsJustPressed('R'))
+    {
+        Initialize();
+    }
+
     if (deleteIndex >= 0)
     {
-        obstacles_[deleteIndex] = std::move(obstacles_.back());
-        obstacles_.pop_back();
+        obstacles_[deleteIndex] = std::move(obstacles_[obstacleCount - 1]);
+        obstacleCount--;
 		deleteIndex = -1;
     }
 
     glass_->Update(c_main_);
     table_->Update(c_main_);
-	for (auto& obstacle : obstacles_)
+    for (int32_t i = 0; i < obstacleCount; i++)
 	{
-		obstacle->Update(c_main_);
+		obstacles_[i]->Update(c_main_);
 	}
 
     //コライダー描画のための更新
-    if (DisebugDraw_) collisionManager_->DebugUpdate(c_main_);
+    if (isDebugDraw_) collisionManager_->DebugUpdate(c_main_);
 
 
 
@@ -98,11 +165,20 @@ void SikouteiDevelopPhase::Update()
             velocity_ = Vector2(0.0f, 0.0f);
         }
     }
-    if (Game::IO::Mouse::IsJustReleased(0))
+    if (Game::IO::Key::IsHeld(VK_LSHIFT) && Game::IO::Mouse::IsJustReleased(0))
     {
         glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
 
+	Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
+    if (IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glass_->(), glass_->GetRadius()))
+    {
+        float angle = GetContactAngleDeg(big.center, small.center);
+        if (IsInAngleRange(angle, 30.0f, 60.0f))
+        {
+            // 30°〜60°のセグメントにヒット
+        }
+    }
 
 
     CheckColliders();
@@ -113,31 +189,32 @@ void SikouteiDevelopPhase::Draw()
     //テーブルの描画
     table_->Draw();
 	// 障害物の描画
-	for (auto& obstacle : obstacles_)
+    for (int32_t i = 0; i < obstacleCount; i++)
 	{
-		obstacle->Draw();
+		obstacles_[i]->Draw();
 	}
     //グラスは半透明なので後に描画する
     glass_->Draw();
 
     //コライダーデバック描画
-    if (DisebugDraw_) collisionManager_->DebugDraw();
+    if (isDebugDraw_) collisionManager_->DebugDraw();
 }
 
 void SikouteiDevelopPhase::DrawImGui()
 {
     glass_->DrawImGui();
-	for (auto& obstacle : obstacles_)
-	{
-		obstacle->DrawImGui();
-	}
+	//for (auto& obstacle : obstacles_)
+	//{
+	//	obstacle->DrawImGui();
+	//}
+    obstacles_[0]->DrawImGui();
     //table_->DrawImGui();
     //collisionManager_->DebugImGui();
 
 
     ImGui::Begin("StageEditor");
 
-    ImGui::Checkbox("DebugDraw", &DisebugDraw_);
+    ImGui::Checkbox("DebugDraw", &isDebugDraw_);
 
     // editStage選択
 	static int currentStage_ = 0;
@@ -173,7 +250,7 @@ void SikouteiDevelopPhase::DrawImGui()
         auto names = magic_enum::enum_names<GlassType>();
         auto values = magic_enum::enum_values<GlassType>();
 
-        int current = magic_enum::enum_index(glassType).value();
+        size_t current = magic_enum::enum_index(glassType).value();
 
         if (ImGui::BeginCombo("GlassType", names[current].data()))
         {
@@ -198,11 +275,11 @@ void SikouteiDevelopPhase::DrawImGui()
 
         if (ImGui::Button("Add"))
         {
-            obstacles_.push_back(std::make_unique<Obstacle>());
-            obstacles_.back()->Initialize();
-            obstacles_.back()->SetGlassTypeAndLoadModels(glassType);
+            obstacles_[obstacleCount]->Initialize();
+            obstacles_[obstacleCount]->SetGlassTypeAndLoadModels(glassType);
             Vector3 pos = { position.x, 1.28f, position.y };
-            obstacles_.back()->SetTranslate(pos);
+            obstacles_[obstacleCount]->SetTranslate(pos);
+            obstacleCount++;
         }
 
         ImGui::TreePop();
@@ -210,7 +287,7 @@ void SikouteiDevelopPhase::DrawImGui()
 
     if (ImGui::TreeNode("List"))
     {
-        for (size_t i = 0; i < obstacles_.size(); ++i)
+        for (size_t i = 0; i < obstacleCount; ++i)
         {
             ImGui::PushID(static_cast<int32_t>(i));
             if (ImGui::TreeNode("Obstacle", "Obstacle %d", static_cast<int32_t>(i)))
@@ -250,9 +327,9 @@ void SikouteiDevelopPhase::CheckColliders()
         collisionManager_->AddCollider(collider.get());
     }
 
-	for (auto& obstacle : obstacles_)
+	for (int32_t i = 0; i < obstacleCount; i++)
 	{
-		for (auto& collider : obstacle->GetColliders())
+		for (auto& collider : obstacles_[i]->GetColliders())
 		{
 			collisionManager_->AddCollider(collider.get());
 		}
@@ -269,16 +346,12 @@ void SikouteiDevelopPhase::CheckColliders()
 
 bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 {
-    int32_t count = 0;
     std::string path = "assets/application/json/StageData/Obstacles.json";
     std::string countKey = "/Stage" + std::to_string(stage) + "/Count";
-	bool success = JsonManager::Load(path, countKey, count);
+	bool success = JsonManager::Load(path, countKey, obstacleCount);
 	if (!success) return false;
-	obstacles_.clear();
-    obstacles_.resize(count);
-    for (int32_t i = 0; i < count; i++)
+    for (int32_t i = 0; i < obstacleCount; i++)
     {
-		obstacles_[i] = std::make_unique<Obstacle>();
         obstacles_[i]->Initialize();
 
         std::string key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
@@ -297,11 +370,10 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 
 void SikouteiDevelopPhase::SaveObstacleData(int32_t stage)
 {
-	int32_t count = static_cast<int32_t>(obstacles_.size());
     std::string path = "assets/application/json/StageData/Obstacles.json";
     std::string countKey = "/Stage" + std::to_string(stage) + "/Count";
-	JsonManager::AddParam(path, countKey, count);
-	for (int32_t i = 0; i < count; i++)
+	JsonManager::AddParam(path, countKey, obstacleCount);
+	for (int32_t i = 0; i < obstacleCount; i++)
 	{
 		std::string key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
 		JsonManager::AddParam(path, key, magic_enum::enum_name(obstacles_[i]->GetGlassType()));
