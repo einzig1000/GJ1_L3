@@ -392,9 +392,14 @@ namespace Game
 				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetCenterTarget(target, durationSec, easetype);
 			}
 
-			void SetRotate(Vector3 target, float durationSec, EaseType easetype, int32_t cameraID)
+			void SetPhiTarget(float target, float durationSec, EaseType easetype, int32_t cameraID)
 			{
-				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetRotateTarget(target, durationSec, easetype);
+				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetPhiTarget(target, durationSec, easetype);
+			}
+
+			void SetThetaTarget(float target, float durationSec, EaseType easetype, int32_t cameraID)
+			{
+				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetThetaTarget(target, durationSec, easetype);
 			}
 
 			void SetDistance(float target, float durationSec, EaseType easetype, int32_t cameraID)

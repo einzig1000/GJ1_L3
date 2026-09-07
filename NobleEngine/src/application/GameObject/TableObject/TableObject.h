@@ -5,13 +5,19 @@
 #include <System/CompoundCollider/CompoundCollider.h>
 
 class Collider;
+
+enum class GimmickType
+{
+	None,
+	Spring,
+};
 class GlassParticle;
 
-class Obstacle
+class TableObject
 {
 public:
-    Obstacle();
-    ~Obstacle();
+    TableObject();
+    ~TableObject();
     /// @brief 床との当たり判定を一旦y座標によって判定する
     /// @return 床との当たり判定
     bool GetIsHitFloor() { return isHitFloor_; };
@@ -26,12 +32,17 @@ public:
 
     void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
 	Vector3 GetTranslate() const { return transform_.translate; };
+    void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
+
+	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; };
 
 	void SetColor(const Vector4& color) { color_ = color; };
 
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
+
 private:
+    
     //床との当たり判定
     bool isHitFloor_ = false;
 

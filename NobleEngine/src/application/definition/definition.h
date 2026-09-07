@@ -23,6 +23,7 @@ enum class Phase
 
 enum class GlassType
 {
+    Glass,
     Bottle,
     Champagne,
     Gin,
