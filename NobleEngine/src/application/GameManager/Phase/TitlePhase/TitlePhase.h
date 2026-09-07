@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GameManager/Phase/IPhase.h>
+#include <chrono>
 #include <cstdint>
 
 class TitlePhase : public IPhase {
@@ -119,16 +120,35 @@ private:
 	// Ice Layout
 	// ========================================
 
-	// グラス上半分に敷く氷の基準位置
-	static constexpr float kIceCenterX_ = -60.0f;
-	static constexpr float kIceHeightY_ = 5.5f;
-	static constexpr float kIceCenterZ_ = -60.0f;
+	// 最初に氷を縦一列で置くグラス側の基準位置
+	static constexpr float kIceStartX_ = -60.0f;
+	static constexpr float kIceStartBottomY_ = 2.5f;
+	static constexpr float kIceStartZ_ = -60.0f;
+	static constexpr float kIceVerticalSpacing_ = 0.4f;
+
+	// 最後に氷を面状に並べるカクテル側の基準位置
+	static constexpr float kIceTargetCenterX_ = -60.0f;
+	static constexpr float kIceTargetHeightY_ = 7.5f;
+	static constexpr float kIceTargetCenterZ_ = -55.0f;
 
 	// 同じ列に並ぶ氷同士の横間隔
 	static constexpr float kIceHorizontalSpacing_ = 0.4f;
 
 	// 奥・中央・手前の列間隔
 	static constexpr float kIceDepthSpacing_ = 0.4f;
+
+	// グラスからカクテルへ移動する時間（秒）
+	static constexpr float kIceMoveDuration_ = 2.0f;
+
+	// 氷の移動中にグラスを持ち上げる最大量
+	static constexpr float kGlassLiftHeight_ = 1.0f;
+
+	Vector3 iceStartPositions_[kMaxIceCount_]{};
+	Vector3 iceTargetPositions_[kMaxIceCount_]{};
+
+	float iceAnimationElapsedTime_ = 0.0f;
+	bool isIceAnimationFinished_ = false;
+	std::chrono::steady_clock::time_point previousAnimationTime_{};
 
 	Model barModel_;
 	Model glassModel_;

@@ -50,6 +50,14 @@ cbuffer LightCB : register(b1)
 };
 
 
+// フォン反射で使用するカメラのワールド座標
+cbuffer CameraCB : register(b2)
+{
+    float3 gCameraPosition;
+    float gCameraPositionPadding;
+};
+
+
 struct PSInput
 {
     float4 position : SV_POSITION;
@@ -101,6 +109,66 @@ float CalculateHalfLambert(
         halfLambert;
 
     return halfLambert;
+}
+
+
+// ========================================
+// Phong Reflection
+// ========================================
+
+float CalculatePhongSpecular(
+    float3 normal,
+    float3 directionToLight,
+    float3 directionToView)
+{
+    float3 reflectionDirection =
+        reflect(
+            -directionToLight,
+            normal
+        );
+
+    float reflectionAmount =
+        saturate(
+            dot(
+                reflectionDirection,
+                directionToView
+            )
+        );
+
+    // 大きいほどハイライトが小さく鋭くなる
+    static const float specularPower = 32.0f;
+
+    // 鏡面反射の強さ
+    static const float specularStrength = 0.5f;
+
+    return
+        pow(
+            reflectionAmount,
+            specularPower
+        ) *
+        specularStrength;
+}
+
+
+float CalculatePhongLighting(
+    float3 normal,
+    float3 directionToLight,
+    float3 directionToView)
+{
+    float diffuse =
+        CalculateHalfLambert(
+            normal,
+            directionToLight
+        );
+
+    float specular =
+        CalculatePhongSpecular(
+            normal,
+            directionToLight,
+            directionToView
+        );
+
+    return diffuse + specular;
 }
 
 
@@ -172,7 +240,8 @@ float CalculateDistanceAttenuation(
 
 float3 CalculateDirectionalLight(
     Light light,
-    float3 normal)
+    float3 normal,
+    float3 directionToView)
 {
     // directionは光が進む方向なので反転
     float3 directionToLight =
@@ -180,16 +249,17 @@ float3 CalculateDirectionalLight(
             -light.direction
         );
 
-    float diffuse =
-        CalculateHalfLambert(
+    float phongLighting =
+        CalculatePhongLighting(
             normal,
-            directionToLight
+            directionToLight,
+            directionToView
         );
 
     return
         light.color.rgb *
         light.intensity *
-        diffuse;
+        phongLighting;
 }
 
 
@@ -200,7 +270,8 @@ float3 CalculateDirectionalLight(
 float3 CalculatePointLight(
     Light light,
     float3 worldPosition,
-    float3 normal)
+    float3 normal,
+    float3 directionToView)
 {
     float3 toLight =
         light.position -
@@ -222,10 +293,11 @@ float3 CalculatePointLight(
         toLight /
         lightDistance;
 
-    float diffuse =
-        CalculateHalfLambert(
+    float phongLighting =
+        CalculatePhongLighting(
             normal,
-            directionToLight
+            directionToLight,
+            directionToView
         );
 
     float attenuation =
@@ -239,7 +311,7 @@ float3 CalculatePointLight(
     return
         light.color.rgb *
         light.intensity *
-        diffuse *
+        phongLighting *
         attenuation;
 }
 
@@ -251,7 +323,8 @@ float3 CalculatePointLight(
 float3 CalculateSpotLight(
     Light light,
     float3 worldPosition,
-    float3 normal)
+    float3 normal,
+    float3 directionToView)
 {
     float3 toLight =
         light.position -
@@ -274,10 +347,11 @@ float3 CalculateSpotLight(
         toLight /
         lightDistance;
 
-    float diffuse =
-        CalculateHalfLambert(
+    float phongLighting =
+        CalculatePhongLighting(
             normal,
-            directionToLight
+            directionToLight,
+            directionToView
         );
 
     float distanceAttenuation =
@@ -334,7 +408,7 @@ float3 CalculateSpotLight(
     return
         light.color.rgb *
         light.intensity *
-        diffuse *
+        phongLighting *
         distanceAttenuation *
         angleAttenuation;
 }
@@ -347,7 +421,8 @@ float3 CalculateSpotLight(
 float3 CalculateAreaLight(
     Light light,
     float3 worldPosition,
-    float3 normal)
+    float3 normal,
+    float3 directionToView)
 {
     float3 toLight =
         light.position -
@@ -369,10 +444,11 @@ float3 CalculateAreaLight(
         toLight /
         lightDistance;
 
-    float diffuse =
-        CalculateHalfLambert(
+    float phongLighting =
+        CalculatePhongLighting(
             normal,
-            directionToLight
+            directionToLight,
+            directionToView
         );
 
     float attenuation =
@@ -394,7 +470,7 @@ float3 CalculateAreaLight(
 
     float softDiffuse =
         lerp(
-            diffuse,
+            phongLighting,
             1.0f,
             softness * 0.5f
         );
@@ -472,6 +548,13 @@ PSOutput main(PSInput input)
         );
 
 
+    float3 directionToView =
+        normalize(
+            gCameraPosition -
+            input.worldPosition
+        );
+
+
     float3 lighting =
         gAmbientColor;
 
@@ -500,7 +583,8 @@ PSOutput main(PSInput input)
             lighting +=
                 CalculateDirectionalLight(
                     light,
-                    normal
+                    normal,
+                    directionToView
                 );
         }
         else if (light.type ==
@@ -510,7 +594,8 @@ PSOutput main(PSInput input)
                 CalculatePointLight(
                     light,
                     input.worldPosition,
-                    normal
+                    normal,
+                    directionToView
                 );
         }
         else if (light.type ==
@@ -520,7 +605,8 @@ PSOutput main(PSInput input)
                 CalculateSpotLight(
                     light,
                     input.worldPosition,
-                    normal
+                    normal,
+                    directionToView
                 );
         }
         else if (light.type ==
@@ -530,7 +616,8 @@ PSOutput main(PSInput input)
                 CalculateAreaLight(
                     light,
                     input.worldPosition,
-                    normal
+                    normal,
+                    directionToView
                 );
         }
     }

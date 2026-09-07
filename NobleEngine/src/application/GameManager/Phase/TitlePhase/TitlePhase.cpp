@@ -2,12 +2,13 @@
 
 #include <Utilities/Json/JsonManager.h>
 #include <Utilities/functions.h>
+#include <cmath>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 TitlePhase::TitlePhase() {
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
-	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 15.0f, -60.0f), 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_BACK, c_main_);
 	Game::Camera::Setter::SetRotate(Vector3(std::numbers::pi_v<float>, 0.0f, 0.0f), 0.0f, EaseType::IN_BACK, c_main_);
 
 	// モデル
@@ -40,6 +41,7 @@ void TitlePhase::Initialize() {
 void TitlePhase::Update() {
 	Game::Camera::Update(c_main_);
 
+	Update_Animation();
 	Update_LightModels();
 }
 
@@ -138,45 +140,116 @@ void TitlePhase::Initialize_LightModels() {
 void TitlePhase::Initialize_IceTransforms() {
 	const Vector3 iceScale(0.2f, 0.2f, 0.2f);
 	const Vector3 iceRotate(0.0f, 0.0f, 0.0f);
+	const float counterClockwiseAngle = -std::numbers::pi_v<float> * 0.5f;
+	const float rotationCos = std::cos(counterClockwiseAngle);
+	const float rotationSin = std::sin(counterClockwiseAngle);
+
+	// カクテル中央を基準に、完成位置を反時計回りへ90度回転する
+	const auto rotateTargetPosition = [rotationCos, rotationSin](float x, float z) {
+		const float relativeX = x - kIceTargetCenterX_;
+		const float relativeZ = z - kIceTargetCenterZ_;
+
+		const float rotatedX = relativeX * rotationCos - relativeZ * rotationSin;
+		const float rotatedZ = relativeX * rotationSin + relativeZ * rotationCos;
+
+		return Vector3(kIceTargetCenterX_ + rotatedX, kIceTargetHeightY_, kIceTargetCenterZ_ + rotatedZ);
+	};
+
+	// 最初はグラスの中で下から上へ縦一列に並べる
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		iceStartPositions_[i] = Vector3(kIceStartX_, kIceStartBottomY_ + static_cast<float>(i) * kIceVerticalSpacing_, kIceStartZ_);
+
+		iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, iceStartPositions_[i]);
+	}
 
 	// 1～4番：奥側
-	// 4個の中心がグラス中央に合うよう、X方向へ均等配置する
+	// 4個の中心がカクテル中央に合うよう、X方向へ均等配置する
 	constexpr int32_t backStartIndex = 0;
 	constexpr int32_t backIceCount = 4;
-	const float backStartX = kIceCenterX_ - (static_cast<float>(backIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
-	const float backZ = kIceCenterZ_ + kIceDepthSpacing_;
+	const float backStartX = kIceTargetCenterX_ - (static_cast<float>(backIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
+	const float backZ = kIceTargetCenterZ_ - kIceDepthSpacing_;
 
 	for (int32_t i = 0; i < backIceCount; ++i) {
 		const float x = backStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
 
-		iceModel_[backStartIndex + i].transforms_[0] = EulerTransforms(iceScale, iceRotate, Vector3(x, kIceHeightY_, backZ));
+		iceTargetPositions_[backStartIndex + i] = rotateTargetPosition(x, backZ);
 	}
 
 	// 5～9番：真ん中
 	constexpr int32_t middleStartIndex = 4;
 	constexpr int32_t middleIceCount = 5;
-	const float middleStartX = kIceCenterX_ - (static_cast<float>(middleIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
+	const float middleStartX = kIceTargetCenterX_ - (static_cast<float>(middleIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
 
 	for (int32_t i = 0; i < middleIceCount; ++i) {
 		const float x = middleStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
 
-		iceModel_[middleStartIndex + i].transforms_[0] = EulerTransforms(iceScale, iceRotate, Vector3(x, kIceHeightY_, kIceCenterZ_));
+		iceTargetPositions_[middleStartIndex + i] = rotateTargetPosition(x, kIceTargetCenterZ_);
 	}
 
 	// 10～11番：手前側
 	constexpr int32_t frontStartIndex = 9;
 	constexpr int32_t frontIceCount = 2;
-	const float frontStartX = kIceCenterX_ - (static_cast<float>(frontIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
-	const float frontZ = kIceCenterZ_ - kIceDepthSpacing_;
+	const float frontStartX = kIceTargetCenterX_ - (static_cast<float>(frontIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
+	const float frontZ = kIceTargetCenterZ_ + kIceDepthSpacing_;
 
 	for (int32_t i = 0; i < frontIceCount; ++i) {
 		const float x = frontStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
 
-		iceModel_[frontStartIndex + i].transforms_[0] = EulerTransforms(iceScale, iceRotate, Vector3(x, kIceHeightY_, frontZ));
+		iceTargetPositions_[frontStartIndex + i] = rotateTargetPosition(x, frontZ);
 	}
+
+	iceAnimationElapsedTime_ = 0.0f;
+	isIceAnimationFinished_ = false;
+	previousAnimationTime_ = std::chrono::steady_clock::now();
 }
 
-void TitlePhase::Update_Animation() {}
+void TitlePhase::Update_Animation() {
+	if (isIceAnimationFinished_) {
+		return;
+	}
+
+	const std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
+
+	float deltaTime = std::chrono::duration<float>(currentTime - previousAnimationTime_).count();
+
+	previousAnimationTime_ = currentTime;
+
+	// デバッグ停止などで極端に大きな時間が入った場合の瞬間移動を防ぐ
+	if (deltaTime > 0.1f) {
+		deltaTime = 0.1f;
+	}
+
+	iceAnimationElapsedTime_ += deltaTime;
+
+	float t = iceAnimationElapsedTime_ / kIceMoveDuration_;
+	if (t >= 1.0f) {
+		t = 1.0f;
+		isIceAnimationFinished_ = true;
+	}
+
+	const Vector3 iceScale(0.2f, 0.2f, 0.2f);
+
+	// カクテルへ到着した時点で、氷本体も反時計回りへ90度になる
+	const float targetIceRotationY = -std::numbers::pi_v<float> * 0.5f;
+	const Vector3 iceRotate(0.0f, targetIceRotationY * t, 0.0f);
+
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		// 開始位置から、それぞれの完成位置へ線形補間する
+		const Vector3 position = iceStartPositions_[i] * (1.0f - t) + iceTargetPositions_[i] * t;
+
+		iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, position);
+	}
+
+	// 移動中だけグラスを少し持ち上げ、+Z側にあるカクテルへ傾ける。
+	// sin(pi * t)により、開始時と終了時は元の姿勢へ戻る。
+	const float glassMotionAmount = std::sin(std::numbers::pi_v<float> * t);
+
+	const Vector3 glassScale(10.0f, 10.0f, 10.0f);
+	const Vector3 glassRotate(std::numbers::pi_v<float> / 6.0f * glassMotionAmount, 0.0f, 0.0f);
+	const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_ * glassMotionAmount, -60.0f);
+
+	glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
+}
 
 void TitlePhase::Update_LightModels() {
 	Update_Model(barModel_);
