@@ -17,6 +17,8 @@ TitlePhase::TitlePhase() {
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
 	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
+	titleSelectModel_.ID = Game::Asset::Model::Load("assets/application/model/Title_Select/TitleSelect.obj");
+	titleSelectModel_.instanceCount_ = kTitleSelectCount_;
 
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		// iceModel_[0]にはTitle_Ice1.obj、
@@ -32,6 +34,7 @@ TitlePhase::TitlePhase() {
 	glassModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Water/Water.png");
 	CocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
 	ginModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Gin/Gin.png");
+	titleSelectModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
 }
 
 TitlePhase::~TitlePhase() {}
@@ -47,6 +50,7 @@ void TitlePhase::Update() {
 	Game::Camera::Update(c_main_);
 
 	Update_Animation();
+	Update_TitleSelect();
 	Update_LightModels();
 }
 
@@ -86,6 +90,7 @@ void TitlePhase::Initialize_LightModels() {
 	Initialize_Models(glassModel_);
 	Initialize_Models(CocktailModel_);
 	Initialize_Models(ginModel_);
+	Initialize_Models(titleSelectModel_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Initialize_Models(iceModel_[i]);
 	}
@@ -93,6 +98,12 @@ void TitlePhase::Initialize_LightModels() {
 	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
 	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -50.0f));
+
+	// Selectになるまでは描画しないが、2つの選択モデルを先に初期化しておく
+	titleSelectModel_.transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 10.0f, -60.0f));
+	titleSelectModel_.transforms_[1] =
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 10.0f, -50.0f));
 
 	Initialize_IceTransforms();
 
@@ -256,6 +267,7 @@ void TitlePhase::Initialize_IceTransforms() {
 	isGlassReturnFinished_ = false;
 	ginAnimationElapsedTime_ = 0.0f;
 	titlePhaseSelection_ = TitlePhaseSelection::Start;
+	selectedTitleIndex_ = 0;
 	previousAnimationTime_ = std::chrono::steady_clock::now();
 }
 
@@ -468,6 +480,30 @@ void TitlePhase::Update_LightModels() {
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Update_Model(iceModel_[i]);
 	}
+	Update_Model(titleSelectModel_);
+}
+
+void TitlePhase::Update_TitleSelect() {
+	if (titlePhaseSelection_ != TitlePhaseSelection::Select) {
+		return;
+	}
+
+	// Aキーまたは左矢印キーでZ=-55側を選択
+	if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
+		selectedTitleIndex_ = 0;
+	}
+
+	// Dキーまたは右矢印キーでZ=-40側を選択
+	if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
+		selectedTitleIndex_ = 1;
+	}
+
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		const float scale = i == selectedTitleIndex_ ? kTitleSelectSelectedScale_ : kTitleSelectNormalScale_;
+		const float z = i == 0 ? -60.0f : -50.0f;
+
+		titleSelectModel_.transforms_[i] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, z));
+	}
 }
 
 void TitlePhase::Update_Model(Model& model) {
@@ -511,5 +547,10 @@ void TitlePhase::Draw_LightModels() {
 	ginModel_.Models_->Draw();
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].Models_->Draw();
+	}
+
+	// 2つの選択モデルはSelect中だけ表示する
+	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
+		titleSelectModel_.Models_->Draw();
 	}
 }

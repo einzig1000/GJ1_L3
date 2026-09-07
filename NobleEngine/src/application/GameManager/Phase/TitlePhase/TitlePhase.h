@@ -121,6 +121,19 @@ private:
 	};
 
 	static const int32_t kMaxIceCount_ = 11;
+	static const int32_t kTitleSelectCount_ = 2;
+
+	// ========================================
+	// Title Select
+	// ========================================
+
+	// カクテルと同じ通常スケール
+	static constexpr float kTitleSelectNormalScale_ = 1.0f;
+
+	// 選択中の拡大スケール
+	static constexpr float kTitleSelectSelectedScale_ = 2.0f;
+
+	int32_t selectedTitleIndex_ = 0;
 
 	// ========================================
 	// Ice Layout
@@ -128,9 +141,9 @@ private:
 
 	// 最初に氷を縦一列で置くグラス側の基準位置
 	static constexpr float kIceStartX_ = -60.0f;
-	static constexpr float kIceStartBottomY_ = 2.5f;
+	static constexpr float kIceStartBottomY_ = 4.5f;
 	static constexpr float kIceStartZ_ = -60.0f;
-	static constexpr float kIceVerticalSpacing_ = 0.4f;
+	static constexpr float kIceVerticalSpacing_ = 0.2f;
 
 	// 最後に氷を面状に並べるカクテル側の基準位置
 	static constexpr float kIceTargetCenterX_ = -60.0f;
@@ -199,6 +212,7 @@ private:
 	Model iceModel_[kMaxIceCount_];
 	Model CocktailModel_;
 	Model ginModel_;
+	Model titleSelectModel_;
 
 	// カメラID
 	int32_t c_main_ = -1;
@@ -208,6 +222,7 @@ private:
 
 	void Initialize_Models(Model& model);
 	void Initialize_IceTransforms();
+	void Update_TitleSelect();
 	void Update_Model(Model& model);
 	void Update_Animation();
 	void Initialize_LightModels();
