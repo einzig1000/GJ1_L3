@@ -18,8 +18,6 @@ public:
 private:
 	static constexpr int32_t kMaxLightCount_ = 20;
 
-
-
 	// ========================================
 	// Light
 	// ========================================
@@ -85,7 +83,7 @@ private:
 		float padding1;
 	};
 
-	struct Model{
+	struct Model {
 		std::unique_ptr<RenderObject> Models_;
 		int32_t ID;
 		// インスタンス数
@@ -117,6 +115,21 @@ private:
 
 	static const int32_t kMaxIceCount_ = 11;
 
+	// ========================================
+	// Ice Layout
+	// ========================================
+
+	// グラス上半分に敷く氷の基準位置
+	static constexpr float kIceCenterX_ = -60.0f;
+	static constexpr float kIceHeightY_ = 5.5f;
+	static constexpr float kIceCenterZ_ = -60.0f;
+
+	// 同じ列に並ぶ氷同士の横間隔
+	static constexpr float kIceHorizontalSpacing_ = 0.4f;
+
+	// 奥・中央・手前の列間隔
+	static constexpr float kIceDepthSpacing_ = 0.4f;
+
 	Model barModel_;
 	Model glassModel_;
 	Model iceModel_[kMaxIceCount_];
@@ -130,6 +143,7 @@ private:
 	LightBuffer lightBuffer_{};
 
 	void Initialize_Models(Model& model);
+	void Initialize_IceTransforms();
 	void Update_Model(Model& model);
 	void Update_Animation();
 	void Initialize_LightModels();

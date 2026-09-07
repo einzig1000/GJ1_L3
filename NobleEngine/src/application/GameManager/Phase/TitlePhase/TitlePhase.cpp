@@ -8,12 +8,12 @@ TitlePhase::TitlePhase() {
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 15.0f, -60.0f), 0.0f, EaseType::IN_BACK, c_main_);
-	Game::Camera::Setter::SetRotate(Vector3(std::numbers::pi_v<float>,0.0f, 0.0f), 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetRotate(Vector3(std::numbers::pi_v<float>, 0.0f, 0.0f), 0.0f, EaseType::IN_BACK, c_main_);
 
 	// モデル
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
-	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");	
+	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
 
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
@@ -47,7 +47,7 @@ void TitlePhase::Draw() { Draw_LightModels(); }
 
 void TitlePhase::DrawImGui() {}
 
-void TitlePhase::Initialize_Models(Model& model){
+void TitlePhase::Initialize_Models(Model& model) {
 	model.Models_ = std::make_unique<RenderObject>();
 
 	model.Models_->psoConfig_.vs = "assets/shaders/LightModel/LightModel.VS.hlsl";
@@ -86,9 +86,8 @@ void TitlePhase::Initialize_LightModels() {
 	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
 	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -45.0f));
-	for (int i = 0; i < kMaxIceCount_; ++i) {
-		iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 2.5f+0.4f*i, -60.0f));
-	}
+
+	Initialize_IceTransforms();
 
 	// ========================================
 	// Light Buffer
@@ -136,8 +135,48 @@ void TitlePhase::Initialize_LightModels() {
 	directionalLight.cosFalloffStart = 0.9f;
 }
 
-void TitlePhase::Update_Animation() {
+void TitlePhase::Initialize_IceTransforms() {
+	const Vector3 iceScale(0.2f, 0.2f, 0.2f);
+	const Vector3 iceRotate(0.0f, 0.0f, 0.0f);
+
+	// 1～4番：奥側
+	// 4個の中心がグラス中央に合うよう、X方向へ均等配置する
+	constexpr int32_t backStartIndex = 0;
+	constexpr int32_t backIceCount = 4;
+	const float backStartX = kIceCenterX_ - (static_cast<float>(backIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
+	const float backZ = kIceCenterZ_ + kIceDepthSpacing_;
+
+	for (int32_t i = 0; i < backIceCount; ++i) {
+		const float x = backStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
+
+		iceModel_[backStartIndex + i].transforms_[0] = EulerTransforms(iceScale, iceRotate, Vector3(x, kIceHeightY_, backZ));
+	}
+
+	// 5～9番：真ん中
+	constexpr int32_t middleStartIndex = 4;
+	constexpr int32_t middleIceCount = 5;
+	const float middleStartX = kIceCenterX_ - (static_cast<float>(middleIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
+
+	for (int32_t i = 0; i < middleIceCount; ++i) {
+		const float x = middleStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
+
+		iceModel_[middleStartIndex + i].transforms_[0] = EulerTransforms(iceScale, iceRotate, Vector3(x, kIceHeightY_, kIceCenterZ_));
+	}
+
+	// 10～11番：手前側
+	constexpr int32_t frontStartIndex = 9;
+	constexpr int32_t frontIceCount = 2;
+	const float frontStartX = kIceCenterX_ - (static_cast<float>(frontIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
+	const float frontZ = kIceCenterZ_ - kIceDepthSpacing_;
+
+	for (int32_t i = 0; i < frontIceCount; ++i) {
+		const float x = frontStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
+
+		iceModel_[frontStartIndex + i].transforms_[0] = EulerTransforms(iceScale, iceRotate, Vector3(x, kIceHeightY_, frontZ));
+	}
 }
+
+void TitlePhase::Update_Animation() {}
 
 void TitlePhase::Update_LightModels() {
 	Update_Model(barModel_);
