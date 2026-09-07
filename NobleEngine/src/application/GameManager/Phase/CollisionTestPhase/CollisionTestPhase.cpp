@@ -4,7 +4,7 @@
 //人間モデル
 #include"GameObject/HumanModel/HumanModel.h"
 #include"../System/CollisionManager/CollisionManager.h"
-
+#include"GameObject/UI/Benefit/Benefit.h"
 
 CollisionTestPhase::CollisionTestPhase()
 {
@@ -24,9 +24,10 @@ void CollisionTestPhase::Initialize()
     //コリジョン管理
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->Load();
-    
 
 
+    benefit_ = std::make_unique<Benefit>();
+    benefit_->Initialize();
     InitGameObj();
 
 }
@@ -36,6 +37,7 @@ void CollisionTestPhase::Update()
     Game::Camera::Update(c_main_);
     UpdateGameObj(c_main_);
  
+    benefit_->Update(c_main_);
 
     CheckColliders();
 }
@@ -44,6 +46,7 @@ void CollisionTestPhase::Draw()
 {
     DrawGameObj();
 
+    benefit_->Draw();
 
 }
 
@@ -96,7 +99,7 @@ void CollisionTestPhase::DrawImGuiObj()
     table_->DrawImGui();
     humanModel_->DrawImGui();
     collisionManager_->DebugImGui();
-
+    benefit_->DrawImGui();
 }
 
 void CollisionTestPhase::CheckColliders()
