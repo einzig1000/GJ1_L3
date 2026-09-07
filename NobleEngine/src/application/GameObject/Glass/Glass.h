@@ -4,6 +4,8 @@
 #include<vector>
 #include"../../System/CompoundCollider/CompoundCollider.h"
 class Collider;
+class GlassParticle;
+
 class Glass
 {
 public:
@@ -18,6 +20,10 @@ public:
     /// @brief 床との当たり判定を一旦y座標によって判定する
     /// @return 床との当たり判定
     bool GetIsHitFloor() { return isHitFloor_; };
+    /// @brief 壊れたフラグの取得
+    /// @return 
+    bool GetIsBroken() { return isBroken_; }
+
     void Initialize();
     void Update(const int32_t cameraID);
     void Draw();
@@ -38,7 +44,8 @@ public:
 private:
     //床との当たり判定
     bool isHitFloor_ = false;
-
+    //壊れたフラグ
+    bool isBroken_ = false;
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
 
@@ -54,5 +61,7 @@ private:
 	Vector3 velocity_;
 
     Collision::CompoundCollider comCollider_;
+    //パーティクル
+    std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
 };
 

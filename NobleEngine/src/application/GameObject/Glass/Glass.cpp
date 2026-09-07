@@ -1,5 +1,6 @@
 #include "Glass.h"
 #include"Utilities/Json/JsonManager.h"
+#include"GameObject/Effect/GlassParticle/GlassParticle.h"
 namespace
 {
     //グラス共通の変数
@@ -14,8 +15,6 @@ Glass::Glass()
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 
     transform_.translate.y = 1.28f;
-
-
 
 }
 
@@ -44,9 +43,10 @@ void Glass::Initialize()
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
 
-        CollisionTag::GetTag("Target")|
+        CollisionTag::GetTag("Target") |
         CollisionTag::GetTag("Obstacles")
     );
+
 
     if (!comCollider_.colliders.empty()) {
 
@@ -54,30 +54,34 @@ void Glass::Initialize()
         auto& myCollider = comCollider_.colliders.at(0);
 
         myCollider->SetOnCollisionCallback([this](Collider* collider) {
-            
+
             bool isCollisionResponse = false;
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Target")) {
-               //ターゲットだったら
+                //ターゲットだったら
                 isCollisionResponse = true;
             }
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles")) {
                 //障害物だったら 押し戻す
                 isCollisionResponse = true;
-              
+
             }
 
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table")) {
                 //テーブルだったら
             }
-            
+
             if (isCollisionResponse) {
-                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration*Game::Time::GetScaledDeltaTimeMs()*0.001f;
+                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
             }
 
 
-        });
+            });
     }
 
+
+    // GlassParticle
+    glassParticle_ = std::make_unique<GlassParticle>();
+    glassParticle_->Initialize();
 }
 
 void Glass::Update(const int32_t cameraID)
@@ -97,12 +101,6 @@ void Glass::Update(const int32_t cameraID)
         vel = phyB.velocity;
     }
 
-    if (transform_.translate.y <= deadLine_)
-    {
-        // 床に衝突、つまり壊れる。
-        isHitFloor_ = true;
-    }
-
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
@@ -114,11 +112,35 @@ void Glass::Update(const int32_t cameraID)
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
     glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
+
+
+    if (transform_.translate.y <= deadLine_) {
+        //一旦インスタンス1つで実行　床に衝突、つまり壊れる。
+        isHitFloor_ = true;
+    }
+
+    if (isHitFloor_) {
+        if (!isBroken_) {
+            isBroken_ = true;
+            glassParticle_->Emit(transform_.translate);
+        }
+
+        if (isBroken_) {
+            glassParticle_->Update(cameraID);
+        }
+    }
+
+   
 }
 
 void Glass::Draw()
 {
-    glassObj_->Draw();
+
+    if (isBroken_) {
+        glassParticle_->Draw();
+    } else {
+        glassObj_->Draw();
+    }
 }
 
 void Glass::DrawImGui()
@@ -162,6 +184,8 @@ void Glass::DrawImGui()
     }
 
     ImGui::End();
+
+    //glassParticle_->DebugImGui();
 }
 
 void Glass::SetGlassTypeAndLoadModels(const GlassType type)

@@ -1,5 +1,6 @@
 #include "TableObject.h"
 #include"Utilities/Json/JsonManager.h"
+#include"GameObject/Effect/GlassParticle/GlassParticle.h"
 
 namespace
 {
@@ -16,6 +17,11 @@ TableObject::TableObject()
     glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
     glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
     glassObj_->SetupFromShaders();
+
+    // GlassParticle
+    glassParticle_ = std::make_unique<GlassParticle>();
+    glassParticle_->Initialize();
+
 }
 
 TableObject::~TableObject()
@@ -60,18 +66,23 @@ void TableObject::Update(const int32_t cameraID)
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
-    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
+    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_); 
+
+    glassParticle_->Update(cameraID);
+
 }
 
 void TableObject::Draw()
 {
     glassObj_->Draw();
+    glassParticle_->Draw();
 }
 
 void TableObject::DrawImGui()
 {
     ImGui::Begin("GameObj");
 
+    ImGui::PushID(static_cast<int>(glassType_));
     if (ImGui::TreeNode("TableObject"))
     {
         static Vector3 vel;
@@ -83,7 +94,7 @@ void TableObject::DrawImGui()
             auto  phyB = collider->GetPhysicsBody();
 
             ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-            ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1000.0f);
+            ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1.0f);
 
             collider->SetMass(phyB.mass);
             collider->SetCoefficiendOfRestituion(phyB.coefficiendOfRestituion);
@@ -104,7 +115,13 @@ void TableObject::DrawImGui()
         ImGui::TreePop();
     }
 
+    ImGui::PopID();
+
     ImGui::End();
+
+
+    //バーティクルデバック表示
+    glassParticle_->DebugImGui(static_cast<int32_t>(glassType_));
 }
 
 void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
@@ -117,6 +134,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
 	uint32_t targetColliderTag = 0;
 	float mass = 0.0f;
 
+    Vector4 particleColor = { 1.0f,1.0f,1.0f,1.0f };
     switch (type)
     {
     case GlassType::Glass:
@@ -134,6 +152,8 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
 		mass = 10.0f;
+        //緑色
+        particleColor = { 56.0f / 256.0f,100.0f / 256.0f,65.0f / 256.0f,1.0f };
         break;
     case GlassType::Champagne:
         modelPath = "assets/application/Alcohol/Champagne/Champagne.obj";
@@ -142,6 +162,8 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+        //大体同じだけれど緑色
+        particleColor = { 63.0f / 256.0f,100.0f / 256.0f,80.0f / 256.0f,1.0f };
         break;
     case GlassType::Gin:
 		modelPath = "assets/application/Alcohol/Gin/Gin.obj";
@@ -150,6 +172,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+        particleColor = { 1.0f,1.0f,1.0f,1.0f };
         break;
     case GlassType::JapaneseSake:
 		modelPath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.obj";
@@ -158,6 +181,8 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+        //グレー
+        particleColor = { 0.3125f,0.3125f,0.3125f,1.0f };
         break;
     case GlassType::Plumwine:
 		modelPath = "assets/application/Alcohol/Plumwine/Plumwine.obj";
@@ -166,6 +191,8 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+        //オレンジがかった黄色
+        particleColor = { 200.0f / 256.0f,180.0f / 256.0f,36.0f / 256.0f,1.0f };
         break;
     case GlassType::Whiskey:
         modelPath = "assets/application/Alcohol/Whiskey/Whiskey.obj";
@@ -174,6 +201,8 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+        //かなり黄色
+        particleColor = { 1.0f,160.0f / 256.0f,0.0f,1.0f };
         break;
     case GlassType::GLASS_MAX:
     default:
@@ -183,13 +212,14 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         targetColliderTag = (CollisionTag::GetTag("Glass"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
+        particleColor = { 1.0f,1.0f,1.0f,1.0f };
         break;
     }
 
     //モデルとテクスチャIDをセットする
     glassObj_->modelID_ = Game::Asset::Model::Load(modelPath);
     textureID_ = Game::Asset::Texture::Load(texturePath);
+    glassParticle_->SetEmitColor(particleColor);
 
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
@@ -238,4 +268,23 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
     comCollider_.colliders.at(0)->SetMass(mass);
     //非弾性衝突　としてみると
     comCollider_.colliders.at(0)->SetCoefficiendOfRestituion(0.0f);
+
+    //衝突時コールバックの設定。仮に0のインデックス
+    if (!comCollider_.colliders.empty()) {
+
+        // 自分のコライダーを変数に保持
+        auto& myCollider = comCollider_.colliders.at(0);
+
+        myCollider->SetOnCollisionCallback([this](Collider* collider) {
+
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Glass")) {
+                //障害物だったら 押し戻す
+                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+                //パーティクルを出現させる 反発方向にセットする
+                glassParticle_->Emit(transform_.translate, comCollider_.colliders.at(0)->GetPhysicsBody().velocity);
+            }
+
+
+            });
+    }
 }

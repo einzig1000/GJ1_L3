@@ -19,6 +19,8 @@ public:
 
 		float speedRange;//速度範囲
 		Vector3 reflectDirection;//反射方向
+
+		Vector4 color;//開始色
 	};
 
 	struct HitPosition
@@ -30,7 +32,6 @@ public:
 		float floorHeight;//床の高さ
 		float pieceRadius;//破片の半径
 		float coefficiendOfRestituion; //反発係数
-
 		float pieceMass;//破片の質量 
 		Vector3 padding;
 	};
@@ -40,8 +41,14 @@ public:
 	void Initialize();
 	void Update(int32_t cameraID);
 	void Draw();
-	void SetEmitterPos(Vector3 pos);
-	void DebugImGui();
+
+	void DebugImGui(int32_t id);
+	void SetEmitColor(const Vector4& color);
+	void Emit(const Vector3& pos,const Vector3& reflectDirection= {0.0f,0.0f,0.0f});
+	/// @brief 外部からテーブルの大きさと半径を得る
+	/// @param center 
+	/// @param radius 
+	void SetTableCenterAndRadius(const Vector3& center, const float radius);
 public:
 
 	//EmitterSphereForGlass　

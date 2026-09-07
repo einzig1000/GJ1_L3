@@ -15,6 +15,8 @@ struct EmitterSphereForGlass
    
     float speedRange;//速度範囲
     float3 reflectDirection;//反射方向
+    
+    float4 color;//色を追加
 };
 
 struct Particle
@@ -62,11 +64,10 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 gParticles[particleIndex].velocity = randomDirection * 0.01f;
                 
                 //ベクトルを足す
-                //gParticles[particleIndex].velocity += gEmitter.reflectDirection;
+                gParticles[particleIndex].velocity += gEmitter.reflectDirection * 0.1f;
 
                 
-                gParticles[particleIndex].color.rgb = (1.0f,1.0f,1.0f);
-                gParticles[particleIndex].color.a = 1.0f;
+                gParticles[particleIndex].color = gEmitter.color;
                 gParticles[particleIndex].lifeTime = 1.0f;
                 gParticles[particleIndex].currentTime = 0.0f;
             }
