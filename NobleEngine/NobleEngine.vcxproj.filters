@@ -16,7 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
-    <ClInclude Include="src\application\GameManager\Particle\GlassParticle\GlassParticle.h" />
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
     <ClInclude Include="src\application\System\CollisionInfo.h" />
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />
@@ -25,17 +24,12 @@
     <ClInclude Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.h" />
     <ClInclude Include="src\application\GameObject\Glass\Glass.h" />
     <ClInclude Include="src\application\GameManager\Phase\TestPhase\TestPhase.h" />
-    <ClInclude Include="src\application\ResourceLoader\Data\Item\Saver\ItemDataSaver.h" />
     <ClInclude Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.h" />
     <ClInclude Include="externals\stb\stb_truetype.h" />
     <ClInclude Include="src\engine\AssetManager\Font\FontManager.h" />
     <ClInclude Include="src\engine\DirectX\FrameProfiler\FrameProfiler.h" />
     <ClInclude Include="src\application\Facade\App.h" />
     <ClInclude Include="src\application\Application.h" />
-    <ClInclude Include="src\application\ResourceLoader\Data\Item\ItemDataManager.h" />
-    <ClInclude Include="src\application\ResourceLoader\Data\DataManager.h" />
-    <ClInclude Include="src\application\ResourceLoader\Data\Item\Loader\ItemDataLoader.h" />
-    <ClInclude Include="src\application\ResourceLoader\Data\Item\Bank\ItemDataBank.h" />
     <ClInclude Include="src\engine\ComputeSystem\ComputeSystem.h" />
     <ClInclude Include="src\engine\ComputeSystem\ComputeObject\ComputeObject.h" />
     <ClInclude Include="src\engine\AssetManager\Animation\AnimationComputer\AnimationComputer.h" />
@@ -215,7 +209,6 @@
     <ClInclude Include="src\engine\Editor\EngineEditor.h" />
     <ClInclude Include="src\engine\Editor\ModelPreview\ModelPreview.h" />
     <ClInclude Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.h" />
-    <ClInclude Include="src\application\ResourceLoader\ResourceID.h" />
     <ClInclude Include="src\engine\AssetManager\Audio\AudioPlayer\AudioPlayer.h" />
     <ClInclude Include="src\engine\AssetManager\Audio\AudioLoader\AudioLoader.h" />
     <ClInclude Include="src\engine\AssetManager\Audio\AudioBank\AudioBank.h" />
@@ -269,7 +262,6 @@
     <ClInclude Include="src\engine\Utilities\functions.h" />
     <ClInclude Include="src\engine\Utilities\Json\JsonManager.h" />
     <ClInclude Include="src\engine\Utilities\Logger\Logger.h" />
-    <ClInclude Include="src\engine\Utilities\PerlinNoise.h" />
     <ClInclude Include="src\engine\Utilities\Random\Random.h" />
     <ClInclude Include="src\engine\Window\WindowManager.h" />
     <ClInclude Include="src\application\Test\TestParticle\TestParticle.h" />
@@ -283,6 +275,7 @@
     <ClInclude Include="src\application\GameObject\Table\Table.h" />
     <ClInclude Include="src\application\GameObject\HumanModel\HumanModel.h" />
     <ClInclude Include="src\application\GameObject\Obstacle\Obstacle.h">
+    <ClInclude Include="src\application\GameObject\TableObject\TableObject.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h">
@@ -304,6 +297,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application\GameObject\Obstacle\Obstacle.cpp">
+    <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.cpp">

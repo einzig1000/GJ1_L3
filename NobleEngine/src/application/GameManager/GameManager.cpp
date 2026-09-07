@@ -14,7 +14,7 @@
 
 GameManager::GameManager() 
 {
-	currentPhase_ = CreatePhase(Phase::Phase_CollisionTest);
+	currentPhase_ = CreatePhase(Phase::Phase_Title);
 	currentPhase_->SetContext(&phaseContext_);
 	currentPhase_->Initialize();
 
