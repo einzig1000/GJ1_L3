@@ -331,6 +331,7 @@ void SikouteiDevelopPhase::DrawImGui()
             SaveObstacleData(currentStage_);
         }
 
+		// 障害物の追加
         if (ImGui::TreeNode("Add Obstacle"))
         {
             static GlassType glassType;
@@ -373,6 +374,7 @@ void SikouteiDevelopPhase::DrawImGui()
             ImGui::TreePop();
         }
 
+		// 障害物リスト
         if (ImGui::TreeNode("List"))
         {
             for (size_t i = 0; i < obstacleCount; ++i)
@@ -399,6 +401,7 @@ void SikouteiDevelopPhase::DrawImGui()
             ImGui::TreePop();
         }
 
+		// 人間の位置
         if (ImGui::TreeNode("Human"))
         {
 			bool edit = false;
@@ -434,13 +437,10 @@ void SikouteiDevelopPhase::DrawImGui()
 
             ImGui::TreePop();
         }
+
         ImGui::TreePop();
     }
 
-    Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
-    Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
-    float angle = GetContactAngleDeg(tablePos2D, glassPos2D);
-	ImGui::Text("angle: %.2f", angle);
     ImGui::End();
 }
 

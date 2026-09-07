@@ -6,6 +6,11 @@
 
 class Collider;
 
+enum class GimmickType
+{
+	None,
+	Spring,
+};
 
 class TableObject
 {
