@@ -9,7 +9,7 @@ TitlePhase::TitlePhase() {
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_BACK, c_main_);
-	Game::Camera::Setter::SetPhiTarget(std::numbers::pi_v<float>, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetThetaTarget(0.0f, 0.0f, EaseType::IN_BACK, c_main_);
 
 	// モデル
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
