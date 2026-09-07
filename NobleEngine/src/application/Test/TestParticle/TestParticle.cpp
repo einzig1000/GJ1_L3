@@ -380,7 +380,7 @@ void TestParticle::Update(int32_t cameraID)
 	updateCompute_->SetUAVData(1, Game::Resource::GetUAV(freeListIndexSRVID_));
 	updateCompute_->SetUAVData(2, Game::Resource::GetUAV(freeListSRVID_));
 	updateCompute_->SetCBufferData(0, &deltaTime);
-	
+	//ここは行列が2つが必要で仮にTransformationMatrixを作っているが、後で分ける
 	TransformationMatrix perView;
 	perView.WVP = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
 	perView.World = Game::Camera::Getter::GetBillboardMatrix(cameraID);

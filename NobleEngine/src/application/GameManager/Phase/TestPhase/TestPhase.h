@@ -1,5 +1,6 @@
 #pragma once
 #include <GameManager/Phase/IPhase.h>
+#include <GameObject/Effect/Particle/Particle.h>
 
 // VS b0 : 192 byte
 struct WaterTransformCB
@@ -84,6 +85,13 @@ static_assert(sizeof(WaterCameraCB) == 16);
 static_assert(sizeof(WaterColorCB) == 96);
 static_assert(sizeof(WaterLightingCB) == 64);
 
+struct CollisionResult
+{
+	Vector2 position;
+	Vector2 velocity;
+};
+
+
 class TestPhase :
 	public IPhase
 {
@@ -105,9 +113,15 @@ private:
 	int32_t m_plane_ = -1;
 	int32_t m_human_ = -1;
 	int32_t m_water_ = -1;
+	int32_t m_table_ = -1;
+	int32_t m_cocktail_ = -1;
+	std::vector<int32_t> m_alcohol_;
 	// テクスチャID
 	int32_t t_uvChecker_ = -1;
 	int32_t t_monsterBall_ = -1;
+	int32_t t_table_ = -1;
+	int32_t t_cocktail_ = -1;
+	std::vector<int32_t> t_alcohol_;
 	// アニメーションID
 	int32_t a_sneakWalk_ = -1;
 	// サウンドID
@@ -164,4 +178,38 @@ private:
 	WaterColorCB waterColorCB_;
 	WaterLightingCB waterLightingCB_;
 
+
+
+
+	struct Object
+	{
+		VectorDynamics translate = VectorDynamics{ Vector3{ 0.0f, 1.280f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
+		VectorDynamics rotate = VectorDynamics{ Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
+		VectorDynamics scale = VectorDynamics{ Vector3{ 1.0f, 1.0f, 1.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
+
+		// 円
+		float radius = -1.0f;
+		// 四角形
+		Vector2 size = Vector2{ 0.0f, 0.0f };
+
+		std::unique_ptr<RenderObject> renderObject;
+	};
+
+
+	void Initialize_Collider();
+	void Update_Collider();
+	void Draw_Collider();
+	void DrawImGui_Collider();
+	std::vector<Object> colliderObjects_;
+	std::unique_ptr<RenderObject> table_;
+	std::unique_ptr<RenderObject> cocktail_;
+	VectorDynamics translate = VectorDynamics{ Vector3{ 1.6f, 1.280f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
+	VectorDynamics rotate = VectorDynamics{ Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
+	VectorDynamics scale = VectorDynamics{ Vector3{ 1.0f, 1.0f, 1.0f }, Vector3{ 0.0f, 0.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 0.0f } };
+	float radius = -1.0f;
+	Vector2 hanasitatokinoruisekisokudo = Vector2{ 0.0f, 0.0f };
+
+
+
+	Particle particle_;
 };
