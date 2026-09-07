@@ -212,7 +212,7 @@ private:
 	Model iceModel_[kMaxIceCount_];
 	Model CocktailModel_;
 	Model ginModel_;
-	Model titleSelectModel_;
+	Model titleSelectModels_[kTitleSelectCount_];
 
 	// カメラID
 	int32_t c_main_ = -1;

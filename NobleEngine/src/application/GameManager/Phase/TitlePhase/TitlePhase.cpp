@@ -17,8 +17,11 @@ TitlePhase::TitlePhase() {
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
 	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
-	titleSelectModel_.ID = Game::Asset::Model::Load("assets/application/model/Title_Select/TitleSelect.obj");
-	titleSelectModel_.instanceCount_ = kTitleSelectCount_;
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		const std::string titleSelectModelPath = "assets/application/model/Title_Select/Title_Select" + std::to_string(i + 1) + ".obj";
+
+		titleSelectModels_[i].ID = Game::Asset::Model::Load(titleSelectModelPath.c_str());
+	}
 
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		// iceModel_[0]にはTitle_Ice1.obj、
@@ -34,7 +37,9 @@ TitlePhase::TitlePhase() {
 	glassModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Water/Water.png");
 	CocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
 	ginModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Gin/Gin.png");
-	titleSelectModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		titleSelectModels_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
+	}
 }
 
 TitlePhase::~TitlePhase() {}
@@ -90,7 +95,9 @@ void TitlePhase::Initialize_LightModels() {
 	Initialize_Models(glassModel_);
 	Initialize_Models(CocktailModel_);
 	Initialize_Models(ginModel_);
-	Initialize_Models(titleSelectModel_);
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		Initialize_Models(titleSelectModels_[i]);
+	}
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Initialize_Models(iceModel_[i]);
 	}
@@ -100,10 +107,10 @@ void TitlePhase::Initialize_LightModels() {
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -50.0f));
 
 	// Selectになるまでは描画しないが、2つの選択モデルを先に初期化しておく
-	titleSelectModel_.transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 10.0f, -60.0f));
-	titleSelectModel_.transforms_[1] =
-	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 10.0f, -50.0f));
+	titleSelectModels_[0].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, -60.0f));
+	titleSelectModels_[1].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, -50.0f));
 
 	Initialize_IceTransforms();
 
@@ -157,9 +164,8 @@ void TitlePhase::Initialize_LightModels() {
 	// Spot Lights
 	// ========================================
 
-	// 既存のZ=-60を基準に、-方向へ1灯、+方向へ4灯を5.0f間隔で配置
 	constexpr float spotLightZPositions[] = {
-	    -60.0f, -65.0f, -55.0f, -50.0f, -45.0f, -40.0f,
+	    -60.0f, -75.0f, -55.0f, -50.0f, -35.0f, -10.0f,
 	};
 
 	for (int32_t i = 0; i < 6; ++i) {
@@ -480,7 +486,9 @@ void TitlePhase::Update_LightModels() {
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Update_Model(iceModel_[i]);
 	}
-	Update_Model(titleSelectModel_);
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		Update_Model(titleSelectModels_[i]);
+	}
 }
 
 void TitlePhase::Update_TitleSelect() {
@@ -488,12 +496,12 @@ void TitlePhase::Update_TitleSelect() {
 		return;
 	}
 
-	// Aキーまたは左矢印キーでZ=-55側を選択
+	// Aキーまたは左矢印キーでZ=-60側を選択
 	if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
 		selectedTitleIndex_ = 0;
 	}
 
-	// Dキーまたは右矢印キーでZ=-40側を選択
+	// Dキーまたは右矢印キーでZ=-50側を選択
 	if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
 		selectedTitleIndex_ = 1;
 	}
@@ -502,7 +510,7 @@ void TitlePhase::Update_TitleSelect() {
 		const float scale = i == selectedTitleIndex_ ? kTitleSelectSelectedScale_ : kTitleSelectNormalScale_;
 		const float z = i == 0 ? -60.0f : -50.0f;
 
-		titleSelectModel_.transforms_[i] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, z));
+		titleSelectModels_[i].transforms_[0] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, z));
 	}
 }
 
@@ -551,6 +559,8 @@ void TitlePhase::Draw_LightModels() {
 
 	// 2つの選択モデルはSelect中だけ表示する
 	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
-		titleSelectModel_.Models_->Draw();
+		for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+			titleSelectModels_[i].Models_->Draw();
+		}
 	}
 }
