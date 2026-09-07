@@ -2,6 +2,7 @@
 #include <GameObject/Glass/Glass.h>
 #include <GameObject/TableObject/TableObject.h>
 #include <GameObject/Table/Table.h>
+#include <GameObject/CocktailWater/CocktailWater.h>
 #include <System/CollisionManager/CollisionManager.h>
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
@@ -98,6 +99,7 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 
 
     // オブジェクト実体生成
+	cocktailWater_ = std::make_unique<CocktailWater>();
     table_ = std::make_unique<Table>();
     glass_ = std::make_unique<Glass>();
     for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
@@ -133,6 +135,7 @@ void SikouteiDevelopPhase::Initialize()
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
+	cocktailWater_->Initialize();
 
 	LoadObstacleData(0);
 }
@@ -146,6 +149,7 @@ void SikouteiDevelopPhase::Update()
         Initialize();
     }
 
+    // テーブル外判定
     Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
     Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
     if (IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glass_->GetRadius()))
@@ -178,47 +182,19 @@ void SikouteiDevelopPhase::Update()
 		deleteIndex = -1;
     }
 
+	// オブジェクト更新
     glass_->Update(c_main_);
+    cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{0.0f,-0.09f,0.0f});
+	cocktailWater_->Update(c_main_);
     table_->Update(c_main_);
     for (int32_t i = 0; i < obstacleCount; i++)
 	{
 		obstacles_[i]->Update(c_main_);
 	}
 
-    //コライダー描画のための更新
+    //コライダー更新
     if (isDebugDraw_) collisionManager_->DebugUpdate(c_main_);
-
     CheckColliders();
-
-
-
-
-
-    // マーカーと人
-	const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
-    const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
-	for (int32_t i = 0; i < 3; i++)
-	{
-        Matrix4x4 world = humanTransforms_[i].GetWorldMatrix();
-		Matrix4x4 wvp = world * viewPro;
-        Vector4 color = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-        human_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-        human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
-        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-	}
-	for (int32_t i = 0; i < 6; i++)
-	{
-        Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
-		Matrix4x4 wvp = world * viewPro;
-		Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
-
-        markers_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-        markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
-        markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-	}
 
     // ショットテスト
     if (Game::IO::Mouse::IsJustPressed(0))
@@ -267,14 +243,33 @@ void SikouteiDevelopPhase::Update()
 
 void SikouteiDevelopPhase::Draw()
 {
-    for (int32_t i = 0; i < 6; i++)
-    {
-		markers_[i]->Draw();
-    }
+	const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
+    const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
+
 	for (int32_t i = 0; i < 3; i++)
 	{
+        Matrix4x4 world = humanTransforms_[i].GetWorldMatrix();
+        Matrix4x4 wvp = world * viewPro;
+        Vector4 color = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+        human_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+        human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
+        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
+        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
 		human_[i]->Draw();
 	}
+    for (int32_t i = 0; i < 6; i++)
+    {
+        Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
+        Matrix4x4 wvp = world * viewPro;
+        Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+        markers_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+        markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
+        markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
+        markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
+		markers_[i]->Draw();
+    }
 
     //テーブルの描画
     table_->Draw();
@@ -283,6 +278,7 @@ void SikouteiDevelopPhase::Draw()
 	{
 		obstacles_[i]->Draw();
 	}
+	cocktailWater_->Draw();
     //グラスは半透明なので後に描画する
     glass_->Draw();
 
@@ -293,6 +289,7 @@ void SikouteiDevelopPhase::Draw()
 void SikouteiDevelopPhase::DrawImGui()
 {
     glass_->DrawImGui();
+	cocktailWater_->DrawImGui();
     obstacles_[0]->DrawImGui();
     //table_->DrawImGui();
     //collisionManager_->DebugImGui();

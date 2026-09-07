@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
     <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.cpp" />
     <ClCompile Include="src\application\GameObject\Effect\Particle\Particle.cpp" />
@@ -121,6 +122,7 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
     <ClInclude Include="src\application\GameObject\TableObject\TableObject.h" />
     <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h" />
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
