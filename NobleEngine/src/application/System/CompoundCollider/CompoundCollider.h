@@ -6,9 +6,8 @@
 #include"../Collider/Collider.h"
 namespace Collision {
     
-    void SettingColliderFromModelData(
+    void SettingCollider(
         Collider* collider,
-        const int32_t modelID,
         Matrix4x4& mat,
         const uint32_t attribute,
         const uint32_t mask,

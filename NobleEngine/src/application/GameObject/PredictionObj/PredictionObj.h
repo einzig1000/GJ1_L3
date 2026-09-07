@@ -14,18 +14,19 @@ public:
     void DrawImGui();
 
     void SetTranslate(const Vector3& translate) { emitter_.transform.translate = translate; };
-    void SetVelocity(const Vector3& vel) { emitter_.velocity; };
+    void SetNormal(const Vector3& normal) { emitter_.normal = normal; };
 
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return colliders_; };
 
     struct PredictionEmitter {
         EulerTransforms transform{};
-        Vector3 velocity{};
+        Vector3 normal;
+        float kSpeed = 10.0f;
         //生存時間
-        float lifeTime = 10.0f;
+        float lifeTime = 2.0f;
         float frequencyTime = 0.0f;
-        float frequency = 1.0f;
+        float frequency = 0.5f;
     };
 
     struct PredictionParam {

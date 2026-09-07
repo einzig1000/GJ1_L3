@@ -2,7 +2,7 @@
 
 PredictionObj::PredictionObj()
 {
-    std::string filePath = "assets/engine/model/cube/cube.obj";
+    std::string filePath = "assets/engine/model/sphere/sphere.obj";
     std::string textureFilePath = "assets/engine/texture/white1x1.png";
     //モデルとテクスチャIDをセットする
     modelID_ = Game::Asset::Model::Load(filePath);
@@ -31,15 +31,19 @@ PredictionObj::~PredictionObj()
 void PredictionObj::Initialize()
 { 
   
-    transforms_.resize(instanceCount_, EulerTransforms());
+    transforms_.resize(instanceCount_, EulerTransforms{ .scale = {10.0f,10.0f,10.0f},.rotate = {0.0f,0.0f,0.0f},.translate = {0.0f,0.0f,0.0f} });
     worldMatrices_.resize(instanceCount_, Matrix4x4());
-    //黄色
-    colors_.resize(instanceCount_, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+    //緑
+    colors_.resize(instanceCount_, Vector4(0.0f, 1.0f, 0.0f, 1.0f));
     textureIndices_.resize(instanceCount_, textureID_);
 
     colliders_.resize(instanceCount_);
     //生存時間
     param_.resize(instanceCount_);
+
+    //最初から出るぞー
+    emitter_.frequencyTime = emitter_.frequency;
+
 
     for (int i = 0; i < instanceCount_; ++i) {
 
@@ -48,9 +52,8 @@ void PredictionObj::Initialize()
 
         colliders_[i] = std::make_unique<Collider>();
         //一旦サークルとして扱う
-        Collision::SettingColliderFromModelData(
+        Collision::SettingCollider(
             colliders_[i].get(), 
-            modelID_,
             worldMatrices_[i],
             CollisionTag::GetTag("Prediction"),
             CollisionTag::GetTag("Target") |
@@ -97,7 +100,7 @@ void PredictionObj::Update(const int32_t cameraID)
             if (!param_[i].isAlive) {
                 param_[i].isAlive = true;
               //コライダーの初速度を設定する
-                colliders_[i]->SetVelocity(emitter_.velocity);
+                colliders_[i]->SetVelocity(emitter_.normal* emitter_.kSpeed);
                 //位置をセットする
                 transforms_[i] = emitter_.transform;
                 //一度設定したらループを抜ける
@@ -163,6 +166,9 @@ void PredictionObj::DrawImGui()
         ImGui::PushID(i);
         if (ImGui::TreeNode("Predictions"))
         {
+            ImGui::Checkbox("isAlive", &param_[i].isAlive);
+            ImGui::DragFloat("lifeTime", &param_[i].lifeTime, 0.1f, 0.0f,emitter_.lifeTime);
+
             static Vector3 vel;
             ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
             //物理ボディ
