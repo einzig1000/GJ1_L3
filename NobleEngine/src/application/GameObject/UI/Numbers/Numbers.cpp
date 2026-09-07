@@ -16,6 +16,9 @@ void Numbers::Load()
         modelIDs_.push_back(modelID);
     }
 
+    //10を指定するとマイナス値のモデルが得られる。
+    modelIDs_.push_back(Game::Asset::Model::Load("assets/application/model/Minus/minus.obj"));
+
     std::string textureFilePath = "assets/engine/texture/white1x1.png";
     textureID = Game::Asset::Texture::Load(textureFilePath);
 }
@@ -73,4 +76,9 @@ void Numbers::SetModelId(const uint32_t number)
 void Numbers::Draw()
 {
     obj_->Draw();
+}
+
+void Numbers::SetColor(const Vector4& color)
+{
+    color_ = color;
 }
