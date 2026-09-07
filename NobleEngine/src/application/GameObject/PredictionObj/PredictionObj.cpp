@@ -11,8 +11,8 @@ PredictionObj::PredictionObj()
     //レンダーオブジェクトのインスタンス作成
     obj_ = std::make_unique<RenderObject>();
     //シンプルモデルのシェーダー適用
-    obj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
-    obj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+    obj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
+    obj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
     obj_->SetupFromShaders();
     obj_->modelID_ = modelID_;
     obj_->instanceNum_ = instanceCount_;
