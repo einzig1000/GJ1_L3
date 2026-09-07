@@ -121,6 +121,19 @@ private:
 	};
 
 	static const int32_t kMaxIceCount_ = 11;
+	static const int32_t kTitleSelectCount_ = 2;
+
+	// ========================================
+	// Title Select
+	// ========================================
+
+	// カクテルと同じ通常スケール
+	static constexpr float kTitleSelectNormalScale_ = 1.0f;
+
+	// 選択中の拡大スケール
+	static constexpr float kTitleSelectSelectedScale_ = 2.0f;
+
+	int32_t selectedTitleIndex_ = 0;
 
 	// ========================================
 	// Ice Layout
@@ -128,9 +141,9 @@ private:
 
 	// 最初に氷を縦一列で置くグラス側の基準位置
 	static constexpr float kIceStartX_ = -60.0f;
-	static constexpr float kIceStartBottomY_ = 2.5f;
+	static constexpr float kIceStartBottomY_ = 4.5f;
 	static constexpr float kIceStartZ_ = -60.0f;
-	static constexpr float kIceVerticalSpacing_ = 0.4f;
+	static constexpr float kIceVerticalSpacing_ = 0.2f;
 
 	// 最後に氷を面状に並べるカクテル側の基準位置
 	static constexpr float kIceTargetCenterX_ = -60.0f;
@@ -164,6 +177,9 @@ private:
 	// カクテル側へ傾ける角度（+30度）
 	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> / 6.0f;
 
+	// 氷を入れ終わった後、グラスが元の位置へ戻る時間（秒）
+	static constexpr float kGlassReturnDuration_ = 0.75f;
+
 	// 氷の移動完了後、ジンが傾いて元へ戻るまでの時間（秒）
 	static constexpr float kGinTiltDuration_ = 1.0f;
 
@@ -183,6 +199,9 @@ private:
 	float iceAnimationElapsedTime_ = 0.0f;
 	bool isIceAnimationFinished_ = false;
 
+	float glassReturnElapsedTime_ = 0.0f;
+	bool isGlassReturnFinished_ = false;
+
 	float ginAnimationElapsedTime_ = 0.0f;
 	TitlePhaseSelection titlePhaseSelection_ = TitlePhaseSelection::Start;
 
@@ -193,6 +212,7 @@ private:
 	Model iceModel_[kMaxIceCount_];
 	Model CocktailModel_;
 	Model ginModel_;
+	Model titleSelectModels_[kTitleSelectCount_];
 
 	// カメラID
 	int32_t c_main_ = -1;
@@ -202,6 +222,7 @@ private:
 
 	void Initialize_Models(Model& model);
 	void Initialize_IceTransforms();
+	void Update_TitleSelect();
 	void Update_Model(Model& model);
 	void Update_Animation();
 	void Initialize_LightModels();

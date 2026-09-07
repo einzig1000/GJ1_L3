@@ -17,6 +17,11 @@ TitlePhase::TitlePhase() {
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
 	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		const std::string titleSelectModelPath = "assets/application/model/Title_Select/Title_Select" + std::to_string(i + 1) + ".obj";
+
+		titleSelectModels_[i].ID = Game::Asset::Model::Load(titleSelectModelPath.c_str());
+	}
 
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		// iceModel_[0]にはTitle_Ice1.obj、
@@ -32,6 +37,9 @@ TitlePhase::TitlePhase() {
 	glassModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Water/Water.png");
 	CocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
 	ginModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Gin/Gin.png");
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		titleSelectModels_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
+	}
 }
 
 TitlePhase::~TitlePhase() {}
@@ -47,6 +55,7 @@ void TitlePhase::Update() {
 	Game::Camera::Update(c_main_);
 
 	Update_Animation();
+	Update_TitleSelect();
 	Update_LightModels();
 }
 
@@ -86,6 +95,9 @@ void TitlePhase::Initialize_LightModels() {
 	Initialize_Models(glassModel_);
 	Initialize_Models(CocktailModel_);
 	Initialize_Models(ginModel_);
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		Initialize_Models(titleSelectModels_[i]);
+	}
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Initialize_Models(iceModel_[i]);
 	}
@@ -93,6 +105,12 @@ void TitlePhase::Initialize_LightModels() {
 	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
 	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -50.0f));
+
+	// Selectになるまでは描画しないが、2つの選択モデルを先に初期化しておく
+	titleSelectModels_[0].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, -60.0f));
+	titleSelectModels_[1].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, -50.0f));
 
 	Initialize_IceTransforms();
 
@@ -146,9 +164,8 @@ void TitlePhase::Initialize_LightModels() {
 	// Spot Lights
 	// ========================================
 
-	// 既存のZ=-60を基準に、-方向へ1灯、+方向へ4灯を5.0f間隔で配置
 	constexpr float spotLightZPositions[] = {
-	    -60.0f, -65.0f, -55.0f, -50.0f, -45.0f, -40.0f,
+	    -60.0f, -75.0f, -55.0f, -50.0f, -35.0f, -10.0f,
 	};
 
 	for (int32_t i = 0; i < 6; ++i) {
@@ -252,8 +269,11 @@ void TitlePhase::Initialize_IceTransforms() {
 	isGlassTiltHoldFinished_ = false;
 	iceAnimationElapsedTime_ = 0.0f;
 	isIceAnimationFinished_ = false;
+	glassReturnElapsedTime_ = 0.0f;
+	isGlassReturnFinished_ = false;
 	ginAnimationElapsedTime_ = 0.0f;
 	titlePhaseSelection_ = TitlePhaseSelection::Start;
+	selectedTitleIndex_ = 0;
 	previousAnimationTime_ = std::chrono::steady_clock::now();
 }
 
@@ -405,6 +425,35 @@ void TitlePhase::Update_Animation() {
 	}
 
 	// ========================================
+	// Glass Return Animation
+	// ========================================
+
+	if (!isGlassReturnFinished_) {
+		glassReturnElapsedTime_ += deltaTime;
+
+		float returnT = glassReturnElapsedTime_ / kGlassReturnDuration_;
+		if (returnT >= 1.0f) {
+			returnT = 1.0f;
+			isGlassReturnFinished_ = true;
+		}
+
+		// 始点と終点で速度が滑らかになるように補間する
+		const float smoothReturnT = returnT * returnT * (3.0f - 2.0f * returnT);
+		const float remainingAmount = 1.0f - smoothReturnT;
+
+		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
+		const Vector3 glassRotate(kGlassTiltAngle_ * remainingAmount, 0.0f, 0.0f);
+		const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_ * remainingAmount, -60.0f);
+
+		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
+
+		// グラスが元の位置と角度へ戻ってからジンのアニメーションへ進む
+		if (!isGlassReturnFinished_) {
+			return;
+		}
+	}
+
+	// ========================================
 	// Gin Animation
 	// ========================================
 
@@ -436,6 +485,32 @@ void TitlePhase::Update_LightModels() {
 	Update_Model(ginModel_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Update_Model(iceModel_[i]);
+	}
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		Update_Model(titleSelectModels_[i]);
+	}
+}
+
+void TitlePhase::Update_TitleSelect() {
+	if (titlePhaseSelection_ != TitlePhaseSelection::Select) {
+		return;
+	}
+
+	// Aキーまたは左矢印キーでZ=-60側を選択
+	if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
+		selectedTitleIndex_ = 0;
+	}
+
+	// Dキーまたは右矢印キーでZ=-50側を選択
+	if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
+		selectedTitleIndex_ = 1;
+	}
+
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		const float scale = i == selectedTitleIndex_ ? kTitleSelectSelectedScale_ : kTitleSelectNormalScale_;
+		const float z = i == 0 ? -60.0f : -50.0f;
+
+		titleSelectModels_[i].transforms_[0] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, z));
 	}
 }
 
@@ -480,5 +555,12 @@ void TitlePhase::Draw_LightModels() {
 	ginModel_.Models_->Draw();
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].Models_->Draw();
+	}
+
+	// 2つの選択モデルはSelect中だけ表示する
+	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
+		for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+			titleSelectModels_[i].Models_->Draw();
+		}
 	}
 }
