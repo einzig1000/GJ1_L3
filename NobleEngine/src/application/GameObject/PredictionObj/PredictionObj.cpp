@@ -1,4 +1,5 @@
 #include "PredictionObj.h"
+#include<algorithm>
 
 PredictionObj::PredictionObj()
 {
@@ -9,19 +10,20 @@ PredictionObj::PredictionObj()
     textureID_ = Game::Asset::Texture::Load(textureFilePath);
 
     //レンダーオブジェクトのインスタンス作成
-    obj_ = std::make_unique<RenderObject>();
+    drawObj_ = std::make_unique<RenderObject>();
     //シンプルモデルのシェーダー適用
-    obj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
-    obj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
-    obj_->SetupFromShaders();
-    obj_->modelID_ = modelID_;
-    obj_->instanceNum_ = instanceCount_;
+    drawObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModels.VS.hlsl";
+    drawObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
+    drawObj_->SetupFromShaders();
+    drawObj_->modelID_ = modelID_;
+    drawObj_->instanceNum_ = instanceCountForDraw_;
 
+    //描画用
+    worldMatrixHeapSlotForDraw_ = Game::Resource::CreateDynamic();
+    colorHeapSlotForDraw_ = Game::Resource::CreateDynamic();
+    textureIndexHeapSlotForDraw_ = Game::Resource::CreateDynamic();
 
-    worldMatrixHeapSlot_ = Game::Resource::CreateDynamic();
-    colorHeapSlot_ = Game::Resource::CreateDynamic();
-    textureIndexHeapSlot_ = Game::Resource::CreateDynamic();
-
+    emitter_.transform.scale = { 0.125f,0.125f,0.125f };
 }
 
 PredictionObj::~PredictionObj()
@@ -30,23 +32,19 @@ PredictionObj::~PredictionObj()
 
 void PredictionObj::Initialize()
 { 
-  
-    transforms_.resize(instanceCount_, EulerTransforms{ .scale = {10.0f,10.0f,10.0f},.rotate = {0.0f,0.0f,0.0f},.translate = {0.0f,0.0f,0.0f} });
+    //生存時間 判定用
+    transforms_.resize(instanceCount_, EulerTransforms());
     worldMatrices_.resize(instanceCount_, Matrix4x4());
-    //緑
-    colors_.resize(instanceCount_, Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-    textureIndices_.resize(instanceCount_, textureID_);
-
     colliders_.resize(instanceCount_);
-    //生存時間
     param_.resize(instanceCount_);
 
     //最初から出るぞー
     emitter_.frequencyTime = emitter_.frequency;
 
 
-    for (int i = 0; i < instanceCount_; ++i) {
 
+    for (int i = 0; i < instanceCount_; ++i) {
+  
         param_[i].isAlive = true;
         param_[i].lifeTime = emitter_.lifeTime;
 
@@ -58,7 +56,8 @@ void PredictionObj::Initialize()
             CollisionTag::GetTag("Prediction"),
             CollisionTag::GetTag("Target") |
             CollisionTag::GetTag("Obstacles"),
-            Collider::ColliderType::kColliderType_XZ_Circle
+            Collider::ColliderType::kColliderType_XZ_Circle,
+           4.0f
         );
 
         // 自分のコライダーを変数に保持
@@ -78,12 +77,20 @@ void PredictionObj::Initialize()
 
             if (isCollisionResponse) {
                 myTransform.translate += myCollider->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-            }
+            
+                drawPrediction_.isHit = true;
+                //描画ヒット座標と反射を記録する
+                drawPrediction_.hitPos = myTransform.translate;
+                drawPrediction_.reflect = myCollider->GetPhysicsBody().velocity;
 
+            
+            }
+            
+       
             });
     }
 
-
+    InitializeForDrawPrediction();
 }
 
 void PredictionObj::Update(const int32_t cameraID)
@@ -103,6 +110,7 @@ void PredictionObj::Update(const int32_t cameraID)
                 colliders_[i]->SetVelocity(emitter_.normal* emitter_.kSpeed);
                 //位置をセットする
                 transforms_[i] = emitter_.transform;
+               //射出と同時にヒットしてないとする
                 //一度設定したらループを抜ける
                 break;
             }
@@ -138,23 +146,12 @@ void PredictionObj::Update(const int32_t cameraID)
         worldMatrices_[i] = transforms_[i].GetWorldMatrix();
     }
 
-    Game::Resource::UpdateData(worldMatrixHeapSlot_, worldMatrices_);
-    Game::Resource::UpdateData(colorHeapSlot_, colors_);
-    Game::Resource::UpdateData(textureIndexHeapSlot_, textureIndices_);
-
-    Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-    int32_t vsHeapSlot = Game::Resource::GetSRV(worldMatrixHeapSlot_);
-    Vector2uint psHeapSlot{ Game::Resource::GetSRV(colorHeapSlot_), Game::Resource::GetSRV(textureIndexHeapSlot_) };
-
-   obj_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
-   obj_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
-   obj_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
-
+   UpdateForDrawPrediction(cameraID);
 }
 
 void PredictionObj::Draw()
 {
-    obj_->Draw();
+    drawObj_->Draw();
 }
 
 void PredictionObj::DrawImGui()
@@ -190,8 +187,7 @@ void PredictionObj::DrawImGui()
                 ImGui::DragFloat3("Scale", &transforms_[i].scale.x, 0.01f);
                 ImGui::DragFloat3("Rotate", &transforms_[i].rotate.x, 0.01f);
                 ImGui::DragFloat3("Translate", &transforms_[i].translate.x, 0.01f);
-                ImGui::ColorEdit4("Color", &colors_[i].x);
-
+  
                 ImGui::TreePop();
             }
 
@@ -202,4 +198,67 @@ void PredictionObj::DrawImGui()
     }
     }
     ImGui::End();
+}
+
+void PredictionObj::InitializeForDrawPrediction()
+{
+    drawPrediction_.hitPos = { 0.0f };
+    drawPrediction_.reflect = { 0.0f };
+
+    transformsForDraw_.resize(instanceCountForDraw_, EulerTransforms{ .scale = {0.125f,0.125f,0.125f},.rotate = {0.0f,0.0f,0.0f},.translate = {0.0f,0.0f,0.0f} });
+    worldMatricesForDraw_.resize(instanceCountForDraw_, Matrix4x4());
+    //赤
+    colorsForDraw_.resize(instanceCountForDraw_, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+    textureIndicesForDraw_.resize(instanceCountForDraw_, textureID_);
+
+}
+
+void PredictionObj::UpdateForDrawPrediction(int32_t cameraID)
+{
+
+    float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+    currentTime_ -= deltaTime;
+    currentTime_ = std::clamp(currentTime_,0.0f,hitTime_);
+
+    if (currentTime_ <= 0.0f) {
+        drawPrediction_.isHit = false;
+        currentTime_ = hitTime_;
+    }
+
+    for (int i = 0; i < instanceCountForDraw_; ++i) {
+
+        if (drawPrediction_.isHit) {
+            //描画ヒット座標と反射
+            Vector3 allLength = drawPrediction_.hitPos - emitter_.transform.translate;
+            Vector3 reflectPos = drawPrediction_.hitPos - drawPrediction_.reflect.Normalized() * allLength;
+
+            if (i < 5) {
+                transformsForDraw_[i].translate = Game::Math::Ease::Easing(emitter_.transform.translate, drawPrediction_.hitPos, EaseType::LINEAR, 1.0f / 5.0f * i);
+            } /*else if (i == 5) {
+                transformsForDraw_[i].translate = Game::Math::Ease::Easing(emitter_.transform.translate, drawPrediction_.hitPos, EaseType::LINEAR, 0.9f);
+            } */else {
+                transformsForDraw_[i].translate = Game::Math::Ease::Easing(drawPrediction_.hitPos, reflectPos, EaseType::LINEAR, 1.0f / 5.0f * i - 1.0f);
+            }
+        } else {
+
+           //Vector3 noHitPos = drawPrediction_.hitPos + emitter_.normal *i;
+            transformsForDraw_[i].translate = emitter_.transform.translate + emitter_.normal * i *0.5f;
+        }
+
+      
+        worldMatricesForDraw_[i] = transformsForDraw_[i].GetWorldMatrix();
+    }
+
+    Game::Resource::UpdateData(worldMatrixHeapSlotForDraw_, worldMatricesForDraw_);
+    Game::Resource::UpdateData(colorHeapSlotForDraw_, colorsForDraw_);
+    Game::Resource::UpdateData(textureIndexHeapSlotForDraw_, textureIndicesForDraw_);
+
+    Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
+    int32_t vsHeapSlot = Game::Resource::GetSRV(worldMatrixHeapSlotForDraw_);
+    Vector2uint psHeapSlot{ Game::Resource::GetSRV(colorHeapSlotForDraw_), Game::Resource::GetSRV(textureIndexHeapSlotForDraw_) };
+
+    drawObj_->SetCBufferData(0, ShaderType::VertexShader, &viewProjection);
+    drawObj_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
+    drawObj_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
+
 }
