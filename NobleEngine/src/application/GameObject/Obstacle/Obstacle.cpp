@@ -16,7 +16,8 @@ Obstacle::Obstacle()
 }
 
 Obstacle::~Obstacle()
-{}
+{
+}
 
 void Obstacle::Initialize()
 {
@@ -66,7 +67,7 @@ void Obstacle::Update(const int32_t cameraID)
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
-    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_); 
+    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
 
     glassParticle_->Update(cameraID);
 
@@ -126,7 +127,7 @@ void Obstacle::DrawImGui()
 
 void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
 {
-	glassType_ = type;
+    glassType_ = type;
 
     std::string modelPath;
     std::string texturePath;
@@ -135,31 +136,31 @@ void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
     {
     case GlassType::Bottle:
         modelPath = "assets/application/Alcohol/Bottle/Bottle.obj";
-		texturePath = "assets/application/Alcohol/Bottle/Bottle.png";
+        texturePath = "assets/application/Alcohol/Bottle/Bottle.png";
         //緑色
         color = { 56.0f / 256.0f,100.0f / 256.0f,65.0f / 256.0f,1.0f };
         break;
     case GlassType::Champagne:
         modelPath = "assets/application/Alcohol/Champagne/Champagne.obj";
-		texturePath = "assets/application/Alcohol/Champagne/Champagne.png";
+        texturePath = "assets/application/Alcohol/Champagne/Champagne.png";
         //大体同じだけれど緑色
         color = { 63.0f / 256.0f,100.0f / 256.0f,80.0f / 256.0f,1.0f };
         break;
     case GlassType::Gin:
-		modelPath = "assets/application/Alcohol/Gin/Gin.obj";
-		texturePath = "assets/application/Alcohol/Gin/Gin.png";
+        modelPath = "assets/application/Alcohol/Gin/Gin.obj";
+        texturePath = "assets/application/Alcohol/Gin/Gin.png";
         color = { 1.0f,1.0f,1.0f,1.0f };
 
         break;
     case GlassType::JapaneseSake:
-		modelPath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.obj";
-		texturePath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.png";
+        modelPath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.obj";
+        texturePath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.png";
         //グレー
         color = { 0.3125f,0.3125f,0.3125f,1.0f };
         break;
     case GlassType::Plumwine:
-		modelPath = "assets/application/Alcohol/Plumwine/Plumwine.obj";
-		texturePath = "assets/application/Alcohol/Plumwine/Plumwine.png";
+        modelPath = "assets/application/Alcohol/Plumwine/Plumwine.obj";
+        texturePath = "assets/application/Alcohol/Plumwine/Plumwine.png";
         //オレンジがかった黄色
         color = { 200.0f / 256.0f,180.0f / 256.0f,36.0f / 256.0f,1.0f };
         break;
@@ -187,7 +188,7 @@ void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
         worldMatrix_,
         CollisionTag::GetTag("Obstacles"),
         //CollisionTag::GetTag("Table") | CollisionTag::GetTag("Glass"));
-        CollisionTag::GetTag("Glass"));
+        CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction"));
 
     comCollider_.colliders.at(0)->SetMass(10.0f);
     //非弾性衝突　としてみると
@@ -208,6 +209,9 @@ void Obstacle::SetGlassTypeAndLoadModels(const GlassType type)
                 glassParticle_->Emit(transform_.translate, comCollider_.colliders.at(0)->GetPhysicsBody().velocity);
             }
 
+            //if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
+            //    //予測線と当たった時
+            //}
 
             });
     }

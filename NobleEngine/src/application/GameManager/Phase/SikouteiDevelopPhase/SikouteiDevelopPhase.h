@@ -6,6 +6,7 @@ class Glass;
 class Obstacle;
 class Table;
 class CollisionManager;
+class PredictionObj;
 
 class SikouteiDevelopPhase :
 	public IPhase
@@ -39,5 +40,7 @@ private:
 
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);
+
+	std::unique_ptr<PredictionObj>predictionObj_ = nullptr;
 };
 

@@ -35,7 +35,7 @@ public:
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
 	//void SetVelocity(const Vector3& vel) { velocity_ = vel; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
-
+    const Vector3& GetTranslate() { return transform_.translate; };
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 private:

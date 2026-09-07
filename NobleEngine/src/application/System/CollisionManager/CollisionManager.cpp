@@ -22,6 +22,9 @@ void CollisionManager::Load()
     //障害物
     CollisionTag::AddTag("Table");
 
+    //予測線
+    CollisionTag::AddTag("Prediction");
+
     CollisionTag::SaveTagNames();
 }
 
@@ -440,8 +443,10 @@ void CollisionManager::CheckAllCollisions() {
 
     //全ての衝突判定を初期化する
     for (auto& collider : colliders_) {
+        //一応押し戻し量をクリアしておく
+        collider->SetPenetrationVector({0.0f,0.0f,0.0f});
+        //コライダー座標の計算フラグをリセットする
         collider->InitCalcuatedTisFrameFlag();
-        //collider->GetCollisionInfo().collided = false;
         //このフレーム内で更新をかけてみる
         collider->CalculateWorldTransform();
     }

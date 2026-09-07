@@ -5,6 +5,14 @@
 #include "../../../engine/EngineDefinition/EngineDefinition.h"
 #include"../Collider/Collider.h"
 namespace Collision {
+    
+    void SettingColliderFromModelData(
+        Collider* collider,
+        const int32_t modelID,
+        Matrix4x4& mat,
+        const uint32_t attribute,
+        const uint32_t mask,
+        const Collider::ColliderType colliderType);
 
     struct CompoundCollider {
         //モデルデータからコライダーを作るよ

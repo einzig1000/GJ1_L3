@@ -5,6 +5,7 @@
 #include <System/CollisionManager/CollisionManager.h>
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
+#include<GameObject/PredictionObj/PredictionObj.h>
 
 SikouteiDevelopPhase::SikouteiDevelopPhase()
 {
@@ -19,6 +20,7 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
     // オブジェクト実体生成
     glass_ = std::make_unique<Glass>();
     table_ = std::make_unique<Table>();
+    predictionObj_ = std::make_unique<PredictionObj>();
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -29,6 +31,8 @@ void SikouteiDevelopPhase::Initialize()
 	// オブジェクト初期化
     glass_->Initialize();
     table_->Initialize();
+    //予測オブジェクト
+    predictionObj_->Initialize();
 	for (auto& obstacle : obstacles_)
 	{
 		obstacle->Initialize();
@@ -53,6 +57,7 @@ void SikouteiDevelopPhase::Update()
 	{
 		obstacle->Update(c_main_);
 	}
+
 
     //コライダー描画のための更新
     if (DisebugDraw_) collisionManager_->DebugUpdate(c_main_);
@@ -103,7 +108,10 @@ void SikouteiDevelopPhase::Update()
         glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
 
-
+    //予測オブジェクト
+    predictionObj_->SetTranslate(glass_->GetTranslate());
+    predictionObj_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
+    predictionObj_->Update(c_main_);
 
     CheckColliders();
 }
@@ -117,6 +125,9 @@ void SikouteiDevelopPhase::Draw()
 	{
 		obstacle->Draw();
 	}
+    //予測オブジェクト
+    predictionObj_->Draw();
+
     //グラスは半透明なので後に描画する
     glass_->Draw();
 
@@ -133,7 +144,7 @@ void SikouteiDevelopPhase::DrawImGui()
 	}
     //table_->DrawImGui();
     //collisionManager_->DebugImGui();
-
+    predictionObj_->DrawImGui();
 
     ImGui::Begin("StageEditor");
 
@@ -261,6 +272,10 @@ void SikouteiDevelopPhase::CheckColliders()
     for (auto& collider : table_->GetColliders())
     {
         collisionManager_->AddCollider(collider.get());
+    }
+
+    for (auto& prediction : predictionObj_->GetColliders()) {
+        collisionManager_->AddCollider(prediction.get());
     }
 
     //コライダーをチェックする
