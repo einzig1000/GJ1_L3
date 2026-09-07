@@ -15,7 +15,9 @@ GlassParticle::GlassParticle()
 
 	emitterSphere_.speedRange = 5.0f;
 	emitterSphere_.reflectDirection = {0.0f,0.0f,0.0f};
-	
+	emitterSphere_.color = { 1.0f,1.0f,1.0f,1.0f };
+
+
 	hitPosition_.tableCenter = {0.0f,1.2f,0.0f};//テーブルセンター
 	hitPosition_.tableRadius = 10.0f;//テーブル半径
 	hitPosition_.tableThickness = 0.0625f;//テーブルの高さ
@@ -75,28 +77,19 @@ GlassParticle::~GlassParticle()
 
 void GlassParticle::Initialize()
 {
+	emitterSphere_.translate = { 0.0f,0.0f,0.0f };
 
 	emitterSphere_.emit = 0;
 	emitterSphere_.reflectDirection = { 0.0f,0.0f,0.0f };
+
 	hitPosition_.tableCenter = { 0.0f,1.2f,0.0f };//テーブルセンター
 	hitPosition_.tableRadius = 10.0f;//テーブル半径
 }
-
-
 
 void GlassParticle::Update(int32_t cameraID)
 {
 
 	const float deltaTime = Game::Time::GetScaledDeltaTimeMs()*0.001f;
-	//emitterSphere_.frequencyTime += deltaTime;
-	//if (emitterSphere_.frequency <= emitterSphere_.frequencyTime)
-	//{
-	//	emitterSphere_.frequencyTime -= emitterSphere_.frequency;
-	//	emitterSphere_.emit = 1;
-	//} else
-	//{
-	//	emitterSphere_.emit = 0;
-	//}
 
 	for (int i = 0; i < maxParticle_; ++i) {
 		emitComputes_[i]->SetUAVData(0, Game::Resource::GetUAV(particleSRVIDs_[i]));
@@ -139,17 +132,14 @@ void GlassParticle::Draw()
 		particles_[i]->Draw();
 	}
 }
+void GlassParticle::DebugImGui(int32_t id){
 
-void GlassParticle::SetEmitterPos(Vector3 pos)
-{
-	emitterSphere_.translate = pos;
-}
-
-void GlassParticle::DebugImGui()
-{
 	ImGui::Begin("System");
 
+	ImGui::PushID(id);
 	if (ImGui::TreeNode("GlassParticle")) {
+
+
 		// 位置座標 (3Dベクター)
 		ImGui::DragFloat3("Translate", &emitterSphere_.translate.x, 0.01f);
 
@@ -167,7 +157,9 @@ void GlassParticle::DebugImGui()
 		// 物理・移動力
 		ImGui::SliderFloat("Speed Range", &emitterSphere_.speedRange, 0.0f, 10.0f);
 		ImGui::SliderFloat3("reflectDirection", &emitterSphere_.reflectDirection.x, -10.0f, 10.0f);
-
+		float colors[4] = { emitterSphere_.color.x,emitterSphere_.color.y ,emitterSphere_.color.z ,emitterSphere_.color.w };
+		ImGui::ColorEdit4("color", colors);
+		emitterSphere_.color = { colors[0],colors[1],colors[2],colors[3] };
 		ImGui::Separator();
 
 		// 1回発生させるトリガーボタンの例
@@ -196,12 +188,25 @@ void GlassParticle::DebugImGui()
 		ImGui::TreePop();
 
 	}
+	ImGui::PopID();
 
 	ImGui::End();
 }
 
-void GlassParticle::Emit()
+
+void GlassParticle::SetEmitColor(const Vector4& color)
 {
+	emitterSphere_.color = color;
+}
+
+
+void GlassParticle::Emit(const Vector3& pos, const Vector3& reflectDirection)
+{
+	//射出位置
+	emitterSphere_.translate = pos;
+	//反射方向
+	emitterSphere_.reflectDirection = reflectDirection;
+
 	if (emitterSphere_.emit == 0) {
 		emitterSphere_.emit = 1;
 	}

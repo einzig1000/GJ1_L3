@@ -43,46 +43,45 @@ void Glass::Initialize()
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
 
-        CollisionTag::GetTag("Target")|
+        CollisionTag::GetTag("Target") |
         CollisionTag::GetTag("Obstacles")
     );
 
-  
+
     if (!comCollider_.colliders.empty()) {
 
         // 自分のコライダーを変数に保持
         auto& myCollider = comCollider_.colliders.at(0);
 
         myCollider->SetOnCollisionCallback([this](Collider* collider) {
-            
+
             bool isCollisionResponse = false;
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Target")) {
-               //ターゲットだったら
+                //ターゲットだったら
                 isCollisionResponse = true;
             }
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles")) {
                 //障害物だったら 押し戻す
                 isCollisionResponse = true;
-              
+
             }
 
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table")) {
                 //テーブルだったら
             }
-            
+
             if (isCollisionResponse) {
-                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration*Game::Time::GetScaledDeltaTimeMs()*0.001f;
+                transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
             }
 
 
-        });
+            });
     }
 
 
     // GlassParticle
     glassParticle_ = std::make_unique<GlassParticle>();
     glassParticle_->Initialize();
-    glassParticle_->SetEmitterPos({ 0.0f,0.0f,0.0f });
 }
 
 void Glass::Update(const int32_t cameraID)
@@ -123,8 +122,7 @@ void Glass::Update(const int32_t cameraID)
     if (isHitFloor_) {
         if (!isBroken_) {
             isBroken_ = true;
-            glassParticle_->Emit();
-            glassParticle_->SetEmitterPos(transform_.translate);
+            glassParticle_->Emit(transform_.translate);
         }
 
         if (isBroken_) {
@@ -187,7 +185,7 @@ void Glass::DrawImGui()
 
     ImGui::End();
 
-    glassParticle_->DebugImGui();
+    //glassParticle_->DebugImGui();
 }
 
 void Glass::SetGlassTypeAndLoadModels(const GlassType type)

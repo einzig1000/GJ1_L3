@@ -5,7 +5,7 @@
 #include <System/CompoundCollider/CompoundCollider.h>
 
 class Collider;
-
+class GlassParticle;
 
 class Obstacle
 {
@@ -35,7 +35,6 @@ private:
     //床との当たり判定
     bool isHitFloor_ = false;
 
-
 	GlassType glassType_ = GlassType::GLASS_MAX;
 
     //グラス
@@ -44,10 +43,13 @@ private:
     //テクスチャID
     int32_t textureID_ = -1;
 
-    //インスタンス数に応じてそれぞれの構造を持たせる
     EulerTransforms transform_;
     Matrix4x4 worldMatrix_;
     Vector4 color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+    //複合コライダー
     Collision::CompoundCollider comCollider_;
+
+    //パーティクル
+    std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
 };
 
