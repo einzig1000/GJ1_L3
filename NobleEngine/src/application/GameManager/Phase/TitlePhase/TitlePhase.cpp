@@ -5,6 +5,7 @@
 #include <cmath>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
+#include <string>
 TitlePhase::TitlePhase() {
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
@@ -18,7 +19,11 @@ TitlePhase::TitlePhase() {
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
 
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-		iceModel_[i].ID = Game::Asset::Model::Load("assets/application/model/Title_Ice/Title_Ice1.obj");
+		// iceModel_[0]にはTitle_Ice1.obj、
+		// iceModel_[10]にはTitle_Ice11.objを順番に割り当てる
+		const std::string iceModelPath = "assets/application/model/Title_Ice/Title_Ice" + std::to_string(i + 1) + ".obj";
+
+		iceModel_[i].ID = Game::Asset::Model::Load(iceModelPath.c_str());
 		iceModel_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Ice/Title_Ice.png");
 	}
 
@@ -100,8 +105,8 @@ void TitlePhase::Initialize_LightModels() {
 	// 環境光
 	lightBuffer_.ambientColor = Vector3(0.15f, 0.15f, 0.15f);
 
-	// 使用するライト数
-	lightBuffer_.lightCount = 1;
+	// Directional Light + Spot Light
+	lightBuffer_.lightCount = 2;
 
 	// ========================================
 	// Directional Light
@@ -113,7 +118,8 @@ void TitlePhase::Initialize_LightModels() {
 
 	directionalLight.color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	directionalLight.intensity = 1.0f;
+	// 全体を暗めに照らす
+	directionalLight.intensity = 0.25f;
 
 	// 光が進む方向
 	directionalLight.direction = Vector3(0.0f, -1.0f, 1.0f);
@@ -135,6 +141,36 @@ void TitlePhase::Initialize_LightModels() {
 
 	// Directionalでは使用しない
 	directionalLight.cosFalloffStart = 0.9f;
+
+	// ========================================
+	// Spot Light
+	// ========================================
+
+	Light& spotLight = lightBuffer_.lights[1];
+
+	spotLight.type = 2;
+
+	// オレンジ色
+	spotLight.color = Vector4(1.0f, 0.35f, 0.05f, 1.0f);
+
+	spotLight.intensity = 4.0f;
+
+	// 真下へ照らす
+	spotLight.direction = Vector3(0.0f, -1.0f, 0.0f);
+
+	spotLight.position = Vector3(-60.0f, 10.0f, -60.0f);
+
+	spotLight.radius = 4.0f;
+
+	spotLight.decay = 2.0f;
+
+	spotLight.distance = 15.0f;
+
+	// 外側：約36.9度
+	spotLight.cosAngle = 0.8f;
+
+	// 内側：約25.8度。この範囲までは最大強度で照らす
+	spotLight.cosFalloffStart = 0.9f;
 }
 
 void TitlePhase::Initialize_IceTransforms() {
@@ -170,7 +206,8 @@ void TitlePhase::Initialize_IceTransforms() {
 	const float backZ = kIceTargetCenterZ_ - kIceDepthSpacing_;
 
 	for (int32_t i = 0; i < backIceCount; ++i) {
-		const float x = backStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
+		// 1,2,3,4の位置を4,3,2,1へ反転する
+		const float x = backStartX + static_cast<float>(backIceCount - 1 - i) * kIceHorizontalSpacing_;
 
 		iceTargetPositions_[backStartIndex + i] = rotateTargetPosition(x, backZ);
 	}
@@ -181,7 +218,8 @@ void TitlePhase::Initialize_IceTransforms() {
 	const float middleStartX = kIceTargetCenterX_ - (static_cast<float>(middleIceCount - 1) * kIceHorizontalSpacing_ * 0.5f);
 
 	for (int32_t i = 0; i < middleIceCount; ++i) {
-		const float x = middleStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
+		// 5,6,7,8,9の位置を9,8,7,6,5へ反転する
+		const float x = middleStartX + static_cast<float>(middleIceCount - 1 - i) * kIceHorizontalSpacing_;
 
 		iceTargetPositions_[middleStartIndex + i] = rotateTargetPosition(x, kIceTargetCenterZ_);
 	}
@@ -193,18 +231,22 @@ void TitlePhase::Initialize_IceTransforms() {
 	const float frontZ = kIceTargetCenterZ_ + kIceDepthSpacing_;
 
 	for (int32_t i = 0; i < frontIceCount; ++i) {
-		const float x = frontStartX + static_cast<float>(i) * kIceHorizontalSpacing_;
+		// 10,11の位置を11,10へ反転する
+		const float x = frontStartX + static_cast<float>(frontIceCount - 1 - i) * kIceHorizontalSpacing_;
 
 		iceTargetPositions_[frontStartIndex + i] = rotateTargetPosition(x, frontZ);
 	}
 
 	iceAnimationElapsedTime_ = 0.0f;
 	isIceAnimationFinished_ = false;
+	ginAnimationElapsedTime_ = 0.0f;
+	titlePhaseSelection_ = TitlePhaseSelection::Start;
 	previousAnimationTime_ = std::chrono::steady_clock::now();
 }
 
 void TitlePhase::Update_Animation() {
-	if (isIceAnimationFinished_) {
+	// ジンのアニメーションまで完了した後は更新しない
+	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
 		return;
 	}
 
@@ -219,36 +261,67 @@ void TitlePhase::Update_Animation() {
 		deltaTime = 0.1f;
 	}
 
-	iceAnimationElapsedTime_ += deltaTime;
+	if (!isIceAnimationFinished_) {
+		iceAnimationElapsedTime_ += deltaTime;
 
-	float t = iceAnimationElapsedTime_ / kIceMoveDuration_;
-	if (t >= 1.0f) {
-		t = 1.0f;
-		isIceAnimationFinished_ = true;
+		float iceT = iceAnimationElapsedTime_ / kIceMoveDuration_;
+		if (iceT >= 1.0f) {
+			iceT = 1.0f;
+			isIceAnimationFinished_ = true;
+		}
+
+		const Vector3 iceScale(0.2f, 0.2f, 0.2f);
+
+		// カクテルへ到着した時点で、氷本体も反時計回りへ90度になる
+		const float targetIceRotationY = -std::numbers::pi_v<float> * 0.5f;
+		const Vector3 iceRotate(0.0f, targetIceRotationY * iceT, 0.0f);
+
+		for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+			// 開始位置から、それぞれの完成位置へ線形補間する
+			const Vector3 position = iceStartPositions_[i] * (1.0f - iceT) + iceTargetPositions_[i] * iceT;
+
+			iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, position);
+		}
+
+		// 移動中だけグラスを少し持ち上げ、カクテルへ傾ける
+		const float glassMotionAmount = std::sin(std::numbers::pi_v<float> * iceT);
+
+		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
+		const Vector3 glassRotate(std::numbers::pi_v<float> / 6.0f * glassMotionAmount, 0.0f, 0.0f);
+		const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_ * glassMotionAmount, -60.0f);
+
+		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
+
+		// 氷が移動中なら、まだジンのアニメーションへ進まない
+		if (!isIceAnimationFinished_) {
+			return;
+		}
 	}
 
-	const Vector3 iceScale(0.2f, 0.2f, 0.2f);
+	// ========================================
+	// Gin Animation
+	// ========================================
 
-	// カクテルへ到着した時点で、氷本体も反時計回りへ90度になる
-	const float targetIceRotationY = -std::numbers::pi_v<float> * 0.5f;
-	const Vector3 iceRotate(0.0f, targetIceRotationY * t, 0.0f);
+	ginAnimationElapsedTime_ += deltaTime;
 
-	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-		// 開始位置から、それぞれの完成位置へ線形補間する
-		const Vector3 position = iceStartPositions_[i] * (1.0f - t) + iceTargetPositions_[i] * t;
-
-		iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, position);
+	float ginT = ginAnimationElapsedTime_ / kGinTiltDuration_;
+	if (ginT >= 1.0f) {
+		ginT = 1.0f;
 	}
 
-	// 移動中だけグラスを少し持ち上げ、+Z側にあるカクテルへ傾ける。
-	// sin(pi * t)により、開始時と終了時は元の姿勢へ戻る。
-	const float glassMotionAmount = std::sin(std::numbers::pi_v<float> * t);
+	// 0度 → カクテル方向へ20度 → 0度
+	const float ginTiltAmount = std::sin(std::numbers::pi_v<float> * ginT);
 
-	const Vector3 glassScale(10.0f, 10.0f, 10.0f);
-	const Vector3 glassRotate(std::numbers::pi_v<float> / 6.0f * glassMotionAmount, 0.0f, 0.0f);
-	const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_ * glassMotionAmount, -60.0f);
+	const Vector3 ginScale(10.0f, 10.0f, 10.0f);
+	const Vector3 ginRotate(-std::numbers::pi_v<float> / 9.0f * ginTiltAmount, 0.0f, 0.0f);
+	const Vector3 ginPosition(-60.0f, 7.0f, -45.0f);
 
-	glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
+	ginModel_.transforms_[0] = EulerTransforms(ginScale, ginRotate, ginPosition);
+
+	// ジンが元の姿勢へ戻ったらタイトル選択状態をSelectへ変更
+	if (ginT >= 1.0f) {
+		titlePhaseSelection_ = TitlePhaseSelection::Select;
+	}
 }
 
 void TitlePhase::Update_LightModels() {

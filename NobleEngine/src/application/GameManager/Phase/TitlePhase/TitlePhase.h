@@ -114,6 +114,11 @@ private:
 		int32_t textureID_ = -1;
 	};
 
+	enum class TitlePhaseSelection {
+		Start,
+		Select,
+	};
+
 	static const int32_t kMaxIceCount_ = 11;
 
 	// ========================================
@@ -143,11 +148,18 @@ private:
 	// 氷の移動中にグラスを持ち上げる最大量
 	static constexpr float kGlassLiftHeight_ = 1.0f;
 
+	// 氷の移動完了後、ジンが傾いて元へ戻るまでの時間（秒）
+	static constexpr float kGinTiltDuration_ = 1.0f;
+
 	Vector3 iceStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};
 
 	float iceAnimationElapsedTime_ = 0.0f;
 	bool isIceAnimationFinished_ = false;
+
+	float ginAnimationElapsedTime_ = 0.0f;
+	TitlePhaseSelection titlePhaseSelection_ = TitlePhaseSelection::Start;
+
 	std::chrono::steady_clock::time_point previousAnimationTime_{};
 
 	Model barModel_;

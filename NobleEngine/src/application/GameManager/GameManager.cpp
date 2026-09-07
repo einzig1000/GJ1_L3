@@ -14,7 +14,8 @@
 
 GameManager::GameManager() 
 {
-	currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);
+	/*currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);*/
+	currentPhase_ = CreatePhase(Phase::Phase_Title);
 	currentPhase_->SetContext(&phaseContext_);
 	currentPhase_->Initialize();
 
