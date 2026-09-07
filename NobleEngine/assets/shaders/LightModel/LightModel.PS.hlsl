@@ -80,35 +80,40 @@ struct PSOutput
 };
 
 
+struct LightingResult
+{
+    float3 diffuse;
+    float3 specular;
+};
+
+
 SamplerState gSampler : register(s0);
 
 
 // ========================================
-// Half Lambert
+// Smooth Diffuse Reflection
 // ========================================
 
-float CalculateHalfLambert(
+float CalculateSmoothDiffuse(
     float3 normal,
     float3 directionToLight)
 {
-    float halfLambert =
+    float normalDotLight =
         dot(
             normal,
             directionToLight
-        ) *
-        0.5f +
-        0.5f;
-
-    halfLambert =
-        saturate(
-            halfLambert
         );
 
-    // 暗部が明るくなりすぎないよう二乗する
-    halfLambert *=
-        halfLambert;
+    // 明暗の境界を広げて、モデル表面の陰影を滑らかにつなぐ
+    static const float shadowStart = -0.10f;
+    static const float shadowEnd = 0.50f;
 
-    return halfLambert;
+    return
+        smoothstep(
+            shadowStart,
+            shadowEnd,
+            normalDotLight
+        );
 }
 
 
@@ -135,6 +140,17 @@ float CalculatePhongSpecular(
             )
         );
 
+    // ライトと反対側の暗部には鏡面反射を出さない
+    float frontLightAmount =
+        smoothstep(
+            0.0f,
+            0.1f,
+            dot(
+                normal,
+                directionToLight
+            )
+        );
+
     // 大きいほどハイライトが小さく鋭くなる
     static const float specularPower = 32.0f;
 
@@ -146,17 +162,18 @@ float CalculatePhongSpecular(
             reflectionAmount,
             specularPower
         ) *
-        specularStrength;
+        specularStrength *
+        frontLightAmount;
 }
 
 
-float CalculatePhongLighting(
+float2 CalculatePhongLighting(
     float3 normal,
     float3 directionToLight,
     float3 directionToView)
 {
     float diffuse =
-        CalculateHalfLambert(
+        CalculateSmoothDiffuse(
             normal,
             directionToLight
         );
@@ -168,7 +185,7 @@ float CalculatePhongLighting(
             directionToView
         );
 
-    return diffuse + specular;
+    return float2(diffuse, specular);
 }
 
 
@@ -238,7 +255,7 @@ float CalculateDistanceAttenuation(
 // Directional Light
 // ========================================
 
-float3 CalculateDirectionalLight(
+LightingResult CalculateDirectionalLight(
     Light light,
     float3 normal,
     float3 directionToView)
@@ -249,17 +266,22 @@ float3 CalculateDirectionalLight(
             -light.direction
         );
 
-    float phongLighting =
+    float2 phongLighting =
         CalculatePhongLighting(
             normal,
             directionToLight,
             directionToView
         );
 
-    return
+    LightingResult result;
+    float3 lightAmount =
         light.color.rgb *
-        light.intensity *
-        phongLighting;
+        light.intensity;
+
+    result.diffuse = lightAmount * phongLighting.x;
+    result.specular = lightAmount * phongLighting.y;
+
+    return result;
 }
 
 
@@ -267,7 +289,7 @@ float3 CalculateDirectionalLight(
 // Point Light
 // ========================================
 
-float3 CalculatePointLight(
+LightingResult CalculatePointLight(
     Light light,
     float3 worldPosition,
     float3 normal,
@@ -284,16 +306,17 @@ float3 CalculatePointLight(
 
     if (lightDistance <= 0.0001f)
     {
-        return
-            light.color.rgb *
-            light.intensity;
+        LightingResult result;
+        result.diffuse = light.color.rgb * light.intensity;
+        result.specular = float3(0.0f, 0.0f, 0.0f);
+        return result;
     }
 
     float3 directionToLight =
         toLight /
         lightDistance;
 
-    float phongLighting =
+    float2 phongLighting =
         CalculatePhongLighting(
             normal,
             directionToLight,
@@ -308,11 +331,16 @@ float3 CalculatePointLight(
             light.decay
         );
 
-    return
+    LightingResult result;
+    float3 lightAmount =
         light.color.rgb *
         light.intensity *
-        phongLighting *
         attenuation;
+
+    result.diffuse = lightAmount * phongLighting.x;
+    result.specular = lightAmount * phongLighting.y;
+
+    return result;
 }
 
 
@@ -320,7 +348,7 @@ float3 CalculatePointLight(
 // Spot Light
 // ========================================
 
-float3 CalculateSpotLight(
+LightingResult CalculateSpotLight(
     Light light,
     float3 worldPosition,
     float3 normal,
@@ -337,9 +365,10 @@ float3 CalculateSpotLight(
 
     if (lightDistance <= 0.0001f)
     {
-        return
-            light.color.rgb *
-            light.intensity;
+        LightingResult result;
+        result.diffuse = light.color.rgb * light.intensity;
+        result.specular = float3(0.0f, 0.0f, 0.0f);
+        return result;
     }
 
     // ピクセルからライトへ向かう方向
@@ -347,7 +376,7 @@ float3 CalculateSpotLight(
         toLight /
         lightDistance;
 
-    float phongLighting =
+    float2 phongLighting =
         CalculatePhongLighting(
             normal,
             directionToLight,
@@ -405,12 +434,17 @@ float3 CalculateSpotLight(
             angleAttenuation
         );
 
-    return
+    LightingResult result;
+    float3 lightAmount =
         light.color.rgb *
         light.intensity *
-        phongLighting *
         distanceAttenuation *
         angleAttenuation;
+
+    result.diffuse = lightAmount * phongLighting.x;
+    result.specular = lightAmount * phongLighting.y;
+
+    return result;
 }
 
 
@@ -418,7 +452,7 @@ float3 CalculateSpotLight(
 // Area Light
 // ========================================
 
-float3 CalculateAreaLight(
+LightingResult CalculateAreaLight(
     Light light,
     float3 worldPosition,
     float3 normal,
@@ -435,16 +469,17 @@ float3 CalculateAreaLight(
 
     if (lightDistance <= 0.0001f)
     {
-        return
-            light.color.rgb *
-            light.intensity;
+        LightingResult result;
+        result.diffuse = light.color.rgb * light.intensity;
+        result.specular = float3(0.0f, 0.0f, 0.0f);
+        return result;
     }
 
     float3 directionToLight =
         toLight /
         lightDistance;
 
-    float phongLighting =
+    float2 phongLighting =
         CalculatePhongLighting(
             normal,
             directionToLight,
@@ -470,16 +505,24 @@ float3 CalculateAreaLight(
 
     float softDiffuse =
         lerp(
-            phongLighting,
+            phongLighting.x,
             1.0f,
             softness * 0.5f
         );
 
-    return
+    LightingResult result;
+    float3 lightAmount =
         light.color.rgb *
         light.intensity *
-        softDiffuse *
         attenuation;
+
+    result.diffuse = lightAmount * softDiffuse;
+    result.specular =
+        lightAmount *
+        phongLighting.y *
+        (1.0f - softness * 0.5f);
+
+    return result;
 }
 
 
@@ -555,8 +598,14 @@ PSOutput main(PSInput input)
         );
 
 
-    float3 lighting =
+    // 環境光と拡散反射はモデル・テクスチャ色へ掛ける
+    float3 diffuseLighting =
         gAmbientColor;
+
+
+    // 鏡面反射は表面色とは分け、ライト色として加算する
+    float3 specularLighting =
+        float3(0.0f, 0.0f, 0.0f);
 
 
     int lightCount =
@@ -577,10 +626,15 @@ PSOutput main(PSInput input)
             gLights[index];
 
 
+        LightingResult lightResult;
+        lightResult.diffuse = float3(0.0f, 0.0f, 0.0f);
+        lightResult.specular = float3(0.0f, 0.0f, 0.0f);
+
+
         if (light.type ==
             LIGHT_TYPE_DIRECTIONAL)
         {
-            lighting +=
+            lightResult =
                 CalculateDirectionalLight(
                     light,
                     normal,
@@ -590,7 +644,7 @@ PSOutput main(PSInput input)
         else if (light.type ==
                  LIGHT_TYPE_POINT)
         {
-            lighting +=
+            lightResult =
                 CalculatePointLight(
                     light,
                     input.worldPosition,
@@ -601,7 +655,7 @@ PSOutput main(PSInput input)
         else if (light.type ==
                  LIGHT_TYPE_SPOT)
         {
-            lighting +=
+            lightResult =
                 CalculateSpotLight(
                     light,
                     input.worldPosition,
@@ -612,7 +666,7 @@ PSOutput main(PSInput input)
         else if (light.type ==
                  LIGHT_TYPE_AREA)
         {
-            lighting +=
+            lightResult =
                 CalculateAreaLight(
                     light,
                     input.worldPosition,
@@ -620,12 +674,17 @@ PSOutput main(PSInput input)
                     directionToView
                 );
         }
+
+
+        diffuseLighting += lightResult.diffuse;
+        specularLighting += lightResult.specular;
     }
 
 
     output.color.rgb =
         baseColor.rgb *
-        lighting;
+        diffuseLighting +
+        specularLighting;
 
 
     output.color.a =
