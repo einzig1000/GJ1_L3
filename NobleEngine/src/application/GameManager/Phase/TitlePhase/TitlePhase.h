@@ -3,6 +3,7 @@
 #include <GameManager/Phase/IPhase.h>
 #include <chrono>
 #include <cstdint>
+#include <numbers>
 
 class TitlePhase : public IPhase {
 public:
@@ -114,6 +115,11 @@ private:
 		int32_t textureID_ = -1;
 	};
 
+	enum class TitlePhaseSelection {
+		Start,
+		Select,
+	};
+
 	static const int32_t kMaxIceCount_ = 11;
 
 	// ========================================
@@ -140,14 +146,46 @@ private:
 	// グラスからカクテルへ移動する時間（秒）
 	static constexpr float kIceMoveDuration_ = 2.0f;
 
-	// 氷の移動中にグラスを持ち上げる最大量
-	static constexpr float kGlassLiftHeight_ = 1.0f;
+	// 傾いたグラスからカクテルへ飛ぶときの放物線の高さ
+	static constexpr float kIceArcHeight_ = 3.0f;
+
+	// 氷の移動前にグラスと氷を持ち上げる時間（秒）
+	static constexpr float kPreLiftDuration_ = 1.0f;
+
+	// 氷の移動前にグラスと氷を持ち上げる量
+	static constexpr float kGlassLiftHeight_ = 4.0f;
+
+	// 持ち上げ後、グラスと氷を一緒に傾ける時間（秒）
+	static constexpr float kGlassTiltDuration_ = 0.75f;
+
+	// グラスと氷を傾けたまま停止する時間（秒）
+	static constexpr float kGlassTiltHoldDuration_ = 0.5f;
+
+	// カクテル側へ傾ける角度（+30度）
+	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> / 6.0f;
+
+	// 氷の移動完了後、ジンが傾いて元へ戻るまでの時間（秒）
+	static constexpr float kGinTiltDuration_ = 1.0f;
 
 	Vector3 iceStartPositions_[kMaxIceCount_]{};
+	Vector3 iceTiltedStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};
+
+	float preLiftElapsedTime_ = 0.0f;
+	bool isPreLiftFinished_ = false;
+
+	float glassTiltElapsedTime_ = 0.0f;
+	bool isGlassTiltFinished_ = false;
+
+	float glassTiltHoldElapsedTime_ = 0.0f;
+	bool isGlassTiltHoldFinished_ = false;
 
 	float iceAnimationElapsedTime_ = 0.0f;
 	bool isIceAnimationFinished_ = false;
+
+	float ginAnimationElapsedTime_ = 0.0f;
+	TitlePhaseSelection titlePhaseSelection_ = TitlePhaseSelection::Start;
+
 	std::chrono::steady_clock::time_point previousAnimationTime_{};
 
 	Model barModel_;
