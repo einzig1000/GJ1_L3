@@ -274,7 +274,7 @@
     <ClInclude Include="src\engine\TimeManager\TimeScaler\TimeScaler.h" />
     <ClInclude Include="src\application\GameObject\Table\Table.h" />
     <ClInclude Include="src\application\GameObject\HumanModel\HumanModel.h" />
-    <ClInclude Include="src\application\GameObject\Obstacle\Obstacle.h">
+
     <ClInclude Include="src\application\GameObject\TableObject\TableObject.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -296,7 +296,7 @@
     <None Include="resources\shaders\Block\versionInfo.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\application\GameObject\Obstacle\Obstacle.cpp">
+    
     <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
