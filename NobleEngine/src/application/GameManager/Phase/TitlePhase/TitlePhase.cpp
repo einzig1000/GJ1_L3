@@ -252,6 +252,8 @@ void TitlePhase::Initialize_IceTransforms() {
 	isGlassTiltHoldFinished_ = false;
 	iceAnimationElapsedTime_ = 0.0f;
 	isIceAnimationFinished_ = false;
+	glassReturnElapsedTime_ = 0.0f;
+	isGlassReturnFinished_ = false;
 	ginAnimationElapsedTime_ = 0.0f;
 	titlePhaseSelection_ = TitlePhaseSelection::Start;
 	previousAnimationTime_ = std::chrono::steady_clock::now();
@@ -400,6 +402,35 @@ void TitlePhase::Update_Animation() {
 
 		// 氷が移動中なら、まだジンのアニメーションへ進まない
 		if (!isIceAnimationFinished_) {
+			return;
+		}
+	}
+
+	// ========================================
+	// Glass Return Animation
+	// ========================================
+
+	if (!isGlassReturnFinished_) {
+		glassReturnElapsedTime_ += deltaTime;
+
+		float returnT = glassReturnElapsedTime_ / kGlassReturnDuration_;
+		if (returnT >= 1.0f) {
+			returnT = 1.0f;
+			isGlassReturnFinished_ = true;
+		}
+
+		// 始点と終点で速度が滑らかになるように補間する
+		const float smoothReturnT = returnT * returnT * (3.0f - 2.0f * returnT);
+		const float remainingAmount = 1.0f - smoothReturnT;
+
+		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
+		const Vector3 glassRotate(kGlassTiltAngle_ * remainingAmount, 0.0f, 0.0f);
+		const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_ * remainingAmount, -60.0f);
+
+		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
+
+		// グラスが元の位置と角度へ戻ってからジンのアニメーションへ進む
+		if (!isGlassReturnFinished_) {
 			return;
 		}
 	}

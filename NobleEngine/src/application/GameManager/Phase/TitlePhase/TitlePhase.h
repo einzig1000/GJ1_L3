@@ -164,6 +164,9 @@ private:
 	// カクテル側へ傾ける角度（+30度）
 	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> / 6.0f;
 
+	// 氷を入れ終わった後、グラスが元の位置へ戻る時間（秒）
+	static constexpr float kGlassReturnDuration_ = 0.75f;
+
 	// 氷の移動完了後、ジンが傾いて元へ戻るまでの時間（秒）
 	static constexpr float kGinTiltDuration_ = 1.0f;
 
@@ -182,6 +185,9 @@ private:
 
 	float iceAnimationElapsedTime_ = 0.0f;
 	bool isIceAnimationFinished_ = false;
+
+	float glassReturnElapsedTime_ = 0.0f;
+	bool isGlassReturnFinished_ = false;
 
 	float ginAnimationElapsedTime_ = 0.0f;
 	TitlePhaseSelection titlePhaseSelection_ = TitlePhaseSelection::Start;
