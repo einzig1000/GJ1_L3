@@ -291,10 +291,7 @@
     <ClInclude Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObject\UI\Numbers\Numbers.h">
+      <ClInclude Include="src\application\GameObject\UI\Numbers\Numbers.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\application\GameObject\UI\Benefit\Benefit.h">
@@ -633,10 +630,7 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp">
+       <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp">

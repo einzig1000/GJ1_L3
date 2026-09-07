@@ -32,7 +32,7 @@ void Benefit::Update(const int32_t cameraID)
         for (int digit = maxDigit-1; digit >= 0; digit--) {
             int digitNum = std::powf(10, digit);
             int num = tempBenefit / digitNum;
-            numbers_[maxDigit-1]->SetModelId(num);
+            numbers_[maxDigit-1-digit]->SetModelId(num);
             tempBenefit %= digitNum;
         }
     }
@@ -55,7 +55,7 @@ void Benefit::DrawImGui()
     ImGui::Begin("UI");
 
     static int32_t benefit = 0;
-    ImGui::SliderInt("benefit", &benefit, 0, 100000);
+    ImGui::SliderInt("benefit", &benefit, 0, 999999);
     
     if (ImGui::Button("UpdateBenefit")) {
         SetBenefit(benefit);
