@@ -246,6 +246,10 @@ void TitlePhase::Initialize_IceTransforms() {
 
 	preLiftElapsedTime_ = 0.0f;
 	isPreLiftFinished_ = false;
+	glassTiltElapsedTime_ = 0.0f;
+	isGlassTiltFinished_ = false;
+	glassTiltHoldElapsedTime_ = 0.0f;
+	isGlassTiltHoldFinished_ = false;
 	iceAnimationElapsedTime_ = 0.0f;
 	isIceAnimationFinished_ = false;
 	ginAnimationElapsedTime_ = 0.0f;
@@ -302,6 +306,65 @@ void TitlePhase::Update_Animation() {
 		return;
 	}
 
+	// ========================================
+	// Glass And Ice Tilt Animation
+	// ========================================
+
+	if (!isGlassTiltFinished_) {
+		glassTiltElapsedTime_ += deltaTime;
+
+		float tiltT = glassTiltElapsedTime_ / kGlassTiltDuration_;
+		if (tiltT >= 1.0f) {
+			tiltT = 1.0f;
+			isGlassTiltFinished_ = true;
+		}
+
+		const float currentTiltAngle = kGlassTiltAngle_ * tiltT;
+		const float tiltCos = std::cos(currentTiltAngle);
+		const float tiltSin = std::sin(currentTiltAngle);
+		const float glassPivotY = 7.0f + kGlassLiftHeight_;
+		const float glassPivotZ = kIceStartZ_;
+
+		const Vector3 iceScale(0.2f, 0.2f, 0.2f);
+		const Vector3 iceRotate(currentTiltAngle, 0.0f, 0.0f);
+
+		for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+			const float liftedIceY = kIceStartBottomY_ + static_cast<float>(i) * kIceVerticalSpacing_ + kGlassLiftHeight_;
+			const float relativeY = liftedIceY - glassPivotY;
+
+			// グラスの基準位置を中心として、氷の位置もグラスと同じ角度だけ回転する
+			const float tiltedY = glassPivotY + relativeY * tiltCos;
+			const float tiltedZ = glassPivotZ + relativeY * tiltSin;
+			const Vector3 tiltedPosition(kIceStartX_, tiltedY, tiltedZ);
+
+			iceTiltedStartPositions_[i] = tiltedPosition;
+			iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, tiltedPosition);
+		}
+
+		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
+		const Vector3 glassRotate(currentTiltAngle, 0.0f, 0.0f);
+		const Vector3 glassPosition(-60.0f, glassPivotY, -60.0f);
+		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
+
+		return;
+	}
+
+	// ========================================
+	// Tilt Hold
+	// ========================================
+
+	if (!isGlassTiltHoldFinished_) {
+		glassTiltHoldElapsedTime_ += deltaTime;
+
+		if (glassTiltHoldElapsedTime_ >= kGlassTiltHoldDuration_) {
+			glassTiltHoldElapsedTime_ = kGlassTiltHoldDuration_;
+			isGlassTiltHoldFinished_ = true;
+		}
+
+		// 傾いた状態を維持してから、氷の移動へ進む
+		return;
+	}
+
 	if (!isIceAnimationFinished_) {
 		iceAnimationElapsedTime_ += deltaTime;
 
@@ -315,23 +378,23 @@ void TitlePhase::Update_Animation() {
 
 		// カクテルへ到着した時点で、氷本体も反時計回りへ90度になる
 		const float targetIceRotationY = -std::numbers::pi_v<float> * 0.5f;
-		const Vector3 iceRotate(0.0f, targetIceRotationY * iceT, 0.0f);
+		const Vector3 iceRotate(kGlassTiltAngle_ * (1.0f - iceT), targetIceRotationY * iceT, 0.0f);
 
 		for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-			// 持ち上げ後の位置から、それぞれの完成位置へ線形補間する
-			const Vector3 liftedStartPosition = iceStartPositions_[i] + Vector3(0.0f, kGlassLiftHeight_, 0.0f);
-			const Vector3 position = liftedStartPosition * (1.0f - iceT) + iceTargetPositions_[i] * iceT;
+			// グラスと一緒に傾いた位置から、それぞれの完成位置へ向かう
+			const Vector3 linearPosition = iceTiltedStartPositions_[i] * (1.0f - iceT) + iceTargetPositions_[i] * iceT;
+
+			// t=0とt=1では高さ0、中央のt=0.5で最大になる放物線
+			const float arcOffsetY = 4.0f * kIceArcHeight_ * iceT * (1.0f - iceT);
+			const Vector3 position = linearPosition + Vector3(0.0f, arcOffsetY, 0.0f);
 
 			iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, position);
 		}
 
-		// 持ち上げた位置から滑らかに元の高さへ戻しながら、カクテルへ傾ける
-		const float glassMotionAmount = std::sin(std::numbers::pi_v<float> * iceT);
-		const float glassLiftAmount = std::cos(std::numbers::pi_v<float> * 0.5f * iceT);
-
+		// 氷が移動している間も、グラスは持ち上げて傾けた状態を維持する
 		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
-		const Vector3 glassRotate(std::numbers::pi_v<float> / 6.0f * glassMotionAmount, 0.0f, 0.0f);
-		const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_ * glassLiftAmount, -60.0f);
+		const Vector3 glassRotate(kGlassTiltAngle_, 0.0f, 0.0f);
+		const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_, -60.0f);
 
 		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
 
@@ -351,7 +414,7 @@ void TitlePhase::Update_Animation() {
 	if (ginT >= 1.0f) {
 		ginT = 1.0f;
 	}
-	
+
 	const float ginTiltAmount = std::sin(std::numbers::pi_v<float> * ginT);
 
 	const Vector3 ginScale(10.0f, 10.0f, 10.0f);
