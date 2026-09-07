@@ -115,6 +115,59 @@ private:
 		int32_t textureID_ = -1;
 	};
 
+	struct alignas(16) WaterTransformBuffer {
+		Matrix4x4 world;
+		Matrix4x4 worldInverseTranspose;
+		Matrix4x4 viewProjection;
+	};
+
+	struct alignas(16) WaterWaveBuffer {
+		Vector4 relativeScale;
+		Vector4 waveAxisXWS;
+		Vector4 waveAxisYWS;
+		Vector4 waveAxisZWS;
+		float surfaceY;
+		float commonWorldScale;
+		float sideWaveDepth;
+		float waveHeight;
+		float waveFrequency;
+		float waveSpeed;
+		float motionHeightBoost;
+		float motionIntensity;
+		float motionWaveTime;
+		float padding[3];
+	};
+
+	struct alignas(16) WaterCameraBuffer {
+		Vector3 cameraPositionWS;
+		float padding;
+	};
+
+	struct alignas(16) WaterColorBuffer {
+		Vector4 colorA;
+		Vector4 colorB;
+		Vector4 baseColor;
+		float colorBalance;
+		float colorBlendWidth;
+		float colorDistortion;
+		float colorPatternScale;
+		float convectionSpeed;
+		float convectionStrength;
+		float convectionScale;
+		float mixProgress;
+		float motionIntensity;
+		float motionWaveTime;
+		float smoothness;
+		float fresnelStrength;
+	};
+
+	struct alignas(16) WaterLightingBuffer {
+		Vector4 mainLightDirection;
+		Vector4 mainLightColor;
+		Vector4 ambientSky;
+		Vector4 ambientGround;
+	};
+
 	enum class TitlePhaseSelection {
 		Start,
 		Select,
@@ -183,6 +236,9 @@ private:
 	// 氷の移動完了後、ジンが傾いて元へ戻るまでの時間（秒）
 	static constexpr float kGinTiltDuration_ = 1.0f;
 
+	// ジンが最大まで傾いた後、液体が現れるまでの時間（秒）
+	static constexpr float kCocktailWaterScaleDuration_ = 0.5f;
+
 	Vector3 iceStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTiltedStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};
@@ -203,6 +259,9 @@ private:
 	bool isGlassReturnFinished_ = false;
 
 	float ginAnimationElapsedTime_ = 0.0f;
+	float cocktailWaterScaleElapsedTime_ = 0.0f;
+	float cocktailWaterAnimationTime_ = 0.0f;
+	bool isCocktailWaterAppearing_ = false;
 	TitlePhaseSelection titlePhaseSelection_ = TitlePhaseSelection::Start;
 
 	std::chrono::steady_clock::time_point previousAnimationTime_{};
@@ -211,6 +270,7 @@ private:
 	Model glassModel_;
 	Model iceModel_[kMaxIceCount_];
 	Model CocktailModel_;
+	Model cocktailWaterModel_;
 	Model ginModel_;
 	Model titleSelectModels_[kTitleSelectCount_];
 
@@ -219,11 +279,17 @@ private:
 
 	// ライト用定数バッファ
 	LightBuffer lightBuffer_{};
+	WaterWaveBuffer waterWaveBuffer_{};
+	WaterCameraBuffer waterCameraBuffer_{};
+	WaterColorBuffer waterColorBuffer_{};
+	WaterLightingBuffer waterLightingBuffer_{};
 
 	void Initialize_Models(Model& model);
+	void Initialize_WaterModel();
 	void Initialize_IceTransforms();
 	void Update_TitleSelect();
 	void Update_Model(Model& model);
+	void Update_WaterModel();
 	void Update_Animation();
 	void Initialize_LightModels();
 	void Update_LightModels();

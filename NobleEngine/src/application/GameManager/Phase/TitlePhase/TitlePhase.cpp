@@ -16,6 +16,7 @@ TitlePhase::TitlePhase() {
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
 	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
+	cocktailWaterModel_.ID = Game::Asset::Model::Load("assets/application/model/Water/CocktailWater.obj");
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		const std::string titleSelectModelPath = "assets/application/model/Title_Select/Title_Select" + std::to_string(i + 1) + ".obj";
@@ -89,11 +90,23 @@ void TitlePhase::Initialize_Models(Model& model) {
 	model.textureIndices_.resize(model.instanceCount_, model.textureID_);
 }
 
+void TitlePhase::Initialize_WaterModel() {
+	cocktailWaterModel_.Models_ = std::make_unique<RenderObject>();
+	cocktailWaterModel_.Models_->psoConfig_.vs = "assets/shaders/WaterSurface/WaterSurface.VS.hlsl";
+	cocktailWaterModel_.Models_->psoConfig_.ps = "assets/shaders/WaterSurface/WaterSurface.PS.hlsl";
+	cocktailWaterModel_.Models_->SetupFromShaders();
+	cocktailWaterModel_.Models_->modelID_ = cocktailWaterModel_.ID;
+	cocktailWaterModel_.Models_->instanceNum_ = 1;
+	cocktailWaterModel_.transforms_.resize(1, EulerTransforms());
+	cocktailWaterModel_.worldMatrices_.resize(1, Matrix4x4());
+}
+
 void TitlePhase::Initialize_LightModels() {
 
 	Initialize_Models(barModel_);
 	Initialize_Models(glassModel_);
 	Initialize_Models(CocktailModel_);
+	Initialize_WaterModel();
 	Initialize_Models(ginModel_);
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		Initialize_Models(titleSelectModels_[i]);
@@ -104,7 +117,41 @@ void TitlePhase::Initialize_LightModels() {
 
 	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
 	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
+	cocktailWaterModel_.transforms_[0] = EulerTransforms(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -50.0f));
+
+	waterWaveBuffer_.relativeScale = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+	waterWaveBuffer_.waveAxisXWS = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+	waterWaveBuffer_.waveAxisYWS = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+	waterWaveBuffer_.waveAxisZWS = Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+	waterWaveBuffer_.surfaceY = 7.0f;
+	waterWaveBuffer_.commonWorldScale = 10.0f;
+	waterWaveBuffer_.sideWaveDepth = 0.5f;
+	waterWaveBuffer_.waveHeight = 0.02f;
+	waterWaveBuffer_.waveFrequency = 2.0f;
+	waterWaveBuffer_.waveSpeed = 1.0f;
+	waterWaveBuffer_.motionHeightBoost = 0.35f;
+	waterWaveBuffer_.motionIntensity = 0.0f;
+
+	waterColorBuffer_.colorA = Vector4(0.08f, 0.32f, 0.55f, 1.0f);
+	waterColorBuffer_.colorB = Vector4(0.10f, 0.55f, 0.75f, 1.0f);
+	waterColorBuffer_.baseColor = Vector4(1.0f, 1.0f, 1.0f, 0.75f);
+	waterColorBuffer_.colorBalance = 0.5f;
+	waterColorBuffer_.colorBlendWidth = 0.25f;
+	waterColorBuffer_.colorDistortion = 0.3f;
+	waterColorBuffer_.colorPatternScale = 1.0f;
+	waterColorBuffer_.convectionSpeed = 0.35f;
+	waterColorBuffer_.convectionStrength = 0.2f;
+	waterColorBuffer_.convectionScale = 1.0f;
+	waterColorBuffer_.mixProgress = 1.0f;
+	waterColorBuffer_.motionIntensity = 0.0f;
+	waterColorBuffer_.smoothness = 0.8f;
+	waterColorBuffer_.fresnelStrength = 0.2f;
+
+	waterLightingBuffer_.mainLightDirection = Vector4(0.0f, 0.70710678f, -0.70710678f, 0.0f);
+	waterLightingBuffer_.mainLightColor = Vector4(1.0f, 0.35f, 0.05f, 1.0f);
+	waterLightingBuffer_.ambientSky = Vector4(0.15f, 0.15f, 0.18f, 1.0f);
+	waterLightingBuffer_.ambientGround = Vector4(0.05f, 0.04f, 0.04f, 1.0f);
 
 	// Selectになるまでは描画しないが、2つの選択モデルを先に初期化しておく
 	titleSelectModels_[0].transforms_[0] =
@@ -272,17 +319,15 @@ void TitlePhase::Initialize_IceTransforms() {
 	glassReturnElapsedTime_ = 0.0f;
 	isGlassReturnFinished_ = false;
 	ginAnimationElapsedTime_ = 0.0f;
+	cocktailWaterScaleElapsedTime_ = 0.0f;
+	cocktailWaterAnimationTime_ = 0.0f;
+	isCocktailWaterAppearing_ = false;
 	titlePhaseSelection_ = TitlePhaseSelection::Start;
 	selectedTitleIndex_ = 0;
 	previousAnimationTime_ = std::chrono::steady_clock::now();
 }
 
 void TitlePhase::Update_Animation() {
-	// ジンのアニメーションまで完了した後は更新しない
-	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
-		return;
-	}
-
 	const std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
 
 	float deltaTime = std::chrono::duration<float>(currentTime - previousAnimationTime_).count();
@@ -292,6 +337,16 @@ void TitlePhase::Update_Animation() {
 	// デバッグ停止などで極端に大きな時間が入った場合の瞬間移動を防ぐ
 	if (deltaTime > 0.1f) {
 		deltaTime = 0.1f;
+	}
+
+	// 液体が表示された後は、Select中も波と対流を動かし続ける
+	if (isCocktailWaterAppearing_) {
+		cocktailWaterAnimationTime_ += deltaTime;
+	}
+
+	// ジンのアニメーションまで完了した後は、水面時間だけ更新して終了
+	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
+		return;
 	}
 
 	// ========================================
@@ -472,6 +527,22 @@ void TitlePhase::Update_Animation() {
 
 	ginModel_.transforms_[0] = EulerTransforms(ginScale, ginRotate, ginPosition);
 
+	// ジンが最大まで傾いた後、液体を0からカクテルと同じスケールまで拡大する
+	if (ginT >= 0.5f) {
+		isCocktailWaterAppearing_ = true;
+		cocktailWaterScaleElapsedTime_ += deltaTime;
+
+		float waterScaleT = cocktailWaterScaleElapsedTime_ / kCocktailWaterScaleDuration_;
+		if (waterScaleT > 1.0f) {
+			waterScaleT = 1.0f;
+		}
+
+		const float smoothWaterScaleT = waterScaleT * waterScaleT * (3.0f - 2.0f * waterScaleT);
+		const float waterScale = 10.0f * smoothWaterScaleT;
+
+		cocktailWaterModel_.transforms_[0] = EulerTransforms(Vector3(waterScale, waterScale, waterScale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
+	}
+
 	// ジンが元の姿勢へ戻ったらタイトル選択状態をSelectへ変更
 	if (ginT >= 1.0f) {
 		titlePhaseSelection_ = TitlePhaseSelection::Select;
@@ -482,6 +553,7 @@ void TitlePhase::Update_LightModels() {
 	Update_Model(barModel_);
 	Update_Model(glassModel_);
 	Update_Model(CocktailModel_);
+	Update_WaterModel();
 	Update_Model(ginModel_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Update_Model(iceModel_[i]);
@@ -548,10 +620,37 @@ void TitlePhase::Update_Model(Model& model) {
 	model.Models_->SetCBufferData(1, ShaderType::PixelShader, &lightBuffer_);
 }
 
+void TitlePhase::Update_WaterModel() {
+	cocktailWaterModel_.worldMatrices_[0] = cocktailWaterModel_.transforms_[0].GetWorldMatrix();
+
+	WaterTransformBuffer transformBuffer{};
+	transformBuffer.world = cocktailWaterModel_.worldMatrices_[0];
+
+	// この演出ではXYZを同じ値で拡大するため、正規化後の法線方向はworld行列でも一致する
+	transformBuffer.worldInverseTranspose = cocktailWaterModel_.worldMatrices_[0];
+	transformBuffer.viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
+
+	waterWaveBuffer_.motionWaveTime = cocktailWaterAnimationTime_;
+	waterColorBuffer_.motionWaveTime = cocktailWaterAnimationTime_;
+
+	// 現在のタイトルカメラ側から見たスペキュラとフレネルに使用する位置
+	waterCameraBuffer_.cameraPositionWS = Vector3(-80.0f, 30.0f, -55.0f);
+
+	// WaterSurface.VS.hlsl
+	cocktailWaterModel_.Models_->SetCBufferData(0, ShaderType::VertexShader, &transformBuffer);
+	cocktailWaterModel_.Models_->SetCBufferData(1, ShaderType::VertexShader, &waterWaveBuffer_);
+
+	// WaterSurface.PS.hlsl
+	cocktailWaterModel_.Models_->SetCBufferData(0, ShaderType::PixelShader, &waterCameraBuffer_);
+	cocktailWaterModel_.Models_->SetCBufferData(1, ShaderType::PixelShader, &waterColorBuffer_);
+	cocktailWaterModel_.Models_->SetCBufferData(2, ShaderType::PixelShader, &waterLightingBuffer_);
+}
+
 void TitlePhase::Draw_LightModels() {
 	barModel_.Models_->Draw();
 	glassModel_.Models_->Draw();
 	CocktailModel_.Models_->Draw();
+	cocktailWaterModel_.Models_->Draw();
 	ginModel_.Models_->Draw();
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].Models_->Draw();
