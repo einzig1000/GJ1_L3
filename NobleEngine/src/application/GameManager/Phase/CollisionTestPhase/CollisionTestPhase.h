@@ -40,8 +40,7 @@ private:
 	//モデル
 	std::unique_ptr<HumanModel>humanModel_ = nullptr;
 #pragma endregion
-	//利益
-	std::unique_ptr<NumMeshs>benefit_ = nullptr;
+
 #pragma region
 	//コリジョン管理
 	std::unique_ptr<CollisionManager>collisionManager_ = nullptr;

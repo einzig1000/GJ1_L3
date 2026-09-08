@@ -1,4 +1,4 @@
-#include "Benefit.h"
+#include "NumMeshs.h"
 #include"../Numbers/Numbers.h"
 
 NumMeshs::NumMeshs()
@@ -16,17 +16,18 @@ NumMeshs::~NumMeshs()
 {
 }
 
-void NumMeshs::Initialize(const uint32_t maxDigit, const Vector3 startPos)
+void NumMeshs::Initialize(const uint32_t maxDigit, const Vector3& startPos, const Vector3& rotate, const Vector3& scale)
 {
     //最初はマイナス値にしてみる
     isMinus_ = true;
 
     for (int i = 0; i < maxDigit; ++i) {
-        numbers_[i]->Initialize(0, startPos+ Vector3{ i * 0.5f,0.0f,0.0f });
+
+        numbers_[i]->Initialize(0, startPos + Vector3{ i * scale.x * 0.5f,0.0f,0.0f }, rotate, scale);
     }
 
     //マイナスは10のインデックスに入っている
-    minus_->Initialize(10, startPos - Vector3{ 0.5f,0.0f,0.0f });
+    minus_->Initialize(10, startPos - Vector3{ scale.x*0.5f,0.0f,0.0f }, rotate, scale);
 }
 
 void NumMeshs::Update(const int32_t cameraID)
@@ -42,7 +43,7 @@ void NumMeshs::Update(const int32_t cameraID)
           
             int digitNum = std::powf(10, digit);
             int num = tempBenefit / digitNum;
-            numbers_[maxDigit-1-digit]->SetModelId(num);
+            numbers_[maxDigit - 1-digit]->SetModelId(num);
             tempBenefit %= digitNum;
         }
     }

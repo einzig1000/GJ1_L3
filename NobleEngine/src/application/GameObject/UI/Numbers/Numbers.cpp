@@ -3,7 +3,7 @@
 std::vector<int32_t> Numbers::modelIDs_;
 
 namespace {
-    int32_t textureID = -1;
+    int32_t textureID_ = -1;
 }
 
 void Numbers::Load()
@@ -20,7 +20,7 @@ void Numbers::Load()
     modelIDs_.push_back(Game::Asset::Model::Load("assets/application/model/Minus/minus.obj"));
 
     std::string textureFilePath = "assets/engine/texture/white1x1.png";
-    textureID = Game::Asset::Texture::Load(textureFilePath);
+    textureID_ = Game::Asset::Texture::Load(textureFilePath);
 }
 
 Numbers::Numbers()
@@ -30,7 +30,7 @@ Numbers::Numbers()
     //シンプルモデルのシェーダー適用
     obj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
     obj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
-    obj_->psoConfig_.depthStencilID = DepthStencilID::Disable;
+    //obj_->psoConfig_.depthStencilID = DepthStencilID::Disable;
     obj_->SetupFromShaders();
 }
 
@@ -60,12 +60,13 @@ void Numbers::Update(const int32_t cameraID)
     worldMatrix_ = transform_.GetWorldMatrix();
 
     Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-    Matrix4x4 wvp = worldMatrix_ * viewProjection;
+    Matrix4x4 orthographicMatrix = Game::Camera::Getter::GetOrthoProjectionMatrix(cameraID);
+    Matrix4x4 wvp = worldMatrix_ * orthographicMatrix;
 
     obj_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
     obj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     obj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
-    obj_->SetCBufferData(1, ShaderType::PixelShader, &textureID);
+    obj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
 }
 
 void Numbers::SetModelId(const uint32_t number)

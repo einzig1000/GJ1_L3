@@ -10,6 +10,8 @@ class CollisionManager;
 class CocktailWater;
 class PredictionObj;
 class SimpleObstaclePlacementFlow;
+class UIManager;
+
 
 enum class CameraPhase
 {
@@ -77,6 +79,8 @@ private:
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;
 	//配置開始までのシステム
 	std::unique_ptr<SimpleObstaclePlacementFlow>simpleObstaclePlacementFlow_ = nullptr;
+	//UI管理
+	std::unique_ptr<UIManager>uiManager_ = nullptr;
 };
 
 

@@ -7,8 +7,9 @@
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
-#include"../../../GameObject/PredictionObj/PredictionObj.h"
+#include<GameObject/PredictionObj/PredictionObj.h>
 #include<GameObject/SimpleObstaclePlacementFlow/SimpleObstaclePlacementFlow.h>
+#include<GameObject/UI/UIManager/UIManager.h>
 
 namespace
 {
@@ -133,6 +134,9 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 
 
     simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
+
+    uiManager_ = std::make_unique<UIManager>();
+
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -143,8 +147,11 @@ void SikouteiDevelopPhase::Initialize()
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
-	  cocktailWater_->Initialize();
+	cocktailWater_->Initialize();
+    //予測オブジェクト
     prediction_->Initialize();
+    //UI管理
+    uiManager_->Initialize();
 
     EulerTransforms spawnTransform;
     spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
@@ -300,7 +307,8 @@ void SikouteiDevelopPhase::Update()
     prediction_->SetTranslate(glass_->GetTranslate());
     prediction_->Update(c_main_);
 
-
+    //UI管理
+    uiManager_->Update();
 
 }
 
@@ -351,6 +359,8 @@ void SikouteiDevelopPhase::Draw()
 
     //コライダーデバック描画
     if (isDebugDraw_) collisionManager_->DebugDraw();
+    //UIなので一番最後に描画する
+    uiManager_->Draw();
 }
 
 void SikouteiDevelopPhase::DrawImGui()
@@ -361,6 +371,7 @@ void SikouteiDevelopPhase::DrawImGui()
     //table_->DrawImGui();
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
+    uiManager_->DebugImGui();
 
     ImGui::Begin("camera");
 
