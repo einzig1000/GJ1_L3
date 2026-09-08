@@ -209,8 +209,8 @@ void TitlePhase::Initialize_LightModels() {
 	// 環境光
 	lightBuffer_.ambientColor = Vector3(0.15f, 0.15f, 0.15f);
 
-	// Directional Light + Spot Light x 6
-	lightBuffer_.lightCount = 7;
+	// Directional Light + 既存Spot Light x 6 + TitleSelect用Spot Light x 2
+	lightBuffer_.lightCount = 9;
 
 	// ========================================
 	// Directional Light
@@ -280,6 +280,40 @@ void TitlePhase::Initialize_LightModels() {
 
 		// 内側：約25.8度。この範囲までは最大強度で照らす
 		spotLight.cosFalloffStart = 0.9f;
+	}
+
+	// ========================================
+	// Title Select Spot Lights
+	// ========================================
+
+	// 2つのTitleSelectそれぞれの真上から、1灯ずつ真下へ照らす。
+	constexpr float titleSelectSpotLightZPositions[kTitleSelectCount_] = {
+	    kTitleSelectFirstZ_,
+	    kTitleSelectSecondZ_,
+	};
+
+	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
+		Light& titleSelectSpotLight = lightBuffer_.lights[7 + i];
+
+		titleSelectSpotLight.type = 2;
+
+		// 既存のバー照明と合わせたオレンジ色
+		titleSelectSpotLight.color = Vector4(1.0f, 0.35f, 0.05f, 1.0f);
+		titleSelectSpotLight.intensity = 4.0f;
+
+		// TitleSelectの真上から真下へ照らす
+		titleSelectSpotLight.direction = Vector3(0.0f, -1.0f, 0.0f);
+		titleSelectSpotLight.position = Vector3(-70.0f, 20.0f, titleSelectSpotLightZPositions[i]);
+
+		titleSelectSpotLight.radius = 4.0f;
+		titleSelectSpotLight.decay = 2.0f;
+		titleSelectSpotLight.distance = 15.0f;
+
+		// 外側：約36.9度
+		titleSelectSpotLight.cosAngle = 0.8f;
+
+		// 内側：約25.8度。この範囲までは最大強度で照らす
+		titleSelectSpotLight.cosFalloffStart = 0.9f;
 	}
 }
 
