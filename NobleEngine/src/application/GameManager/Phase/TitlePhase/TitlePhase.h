@@ -179,7 +179,7 @@ private:
 		Matrix4x4 worldToObject;
 	};
 
-struct alignas(16) TitleRayMaterialBuffer {
+	struct alignas(16) TitleRayMaterialBuffer {
 		// TitleRayの光の色
 		// RGB：光の色
 		// A：通常の透明度ではなく、最終的な光量へ掛ける強度倍率
@@ -243,6 +243,39 @@ struct alignas(16) TitleRayMaterialBuffer {
 	static const int32_t kMaxIceCount_ = 11;
 	static const int32_t kTitleSelectCount_ = 2;
 
+	// PresentationIceDX12の挙動をTitlePhase内だけで完結させる氷の実行状態。
+	struct IcePresentationState {
+		Vector3 position{};
+		Vector3 rotation{};
+		Vector3 scale{0.2f, 0.2f, 0.2f};
+		Vector3 velocity{};
+		Vector3 sourceLocalPosition{};
+		Vector3 sinkStartPosition{};
+		Vector3 submergedPosition{};
+		Vector3 submergedRotation{};
+		Vector3 arrangeStartPosition{};
+		Vector3 arrangeStartRotation{};
+		Vector3 floatStartPosition{};
+		Vector3 floatStartRotation{};
+		float releaseDelay = 0.0f;
+		float floatDelay = 0.0f;
+		float floatDurationScale = 1.0f;
+		float driveSpeedScale = 1.0f;
+		float horizontalDrift = 0.0f;
+		float sinkTimer = 0.0f;
+		float arrangeTimer = 0.0f;
+		float floatTimer = 0.0f;
+		bool isFollowingSourceGlass = true;
+		bool hasReleased = false;
+		bool hasEnteredCocktailGlass = false;
+		bool isPhysicsActive = false;
+		bool hasSunkInCocktailGlass = false;
+		bool isArranging = false;
+		bool hasArranged = false;
+		bool isFloating = false;
+		bool hasReachedTarget = false;
+	};
+
 	// ========================================
 	// Title Select
 	// ========================================
@@ -252,6 +285,10 @@ struct alignas(16) TitleRayMaterialBuffer {
 
 	// 選択中の拡大スケール
 	static constexpr float kTitleSelectSelectedScale_ = 2.0f;
+
+	// Select中に両方のTitleSelectを呼吸するように拡大縮小する設定
+	static constexpr float kTitleSelectPulseAmplitude_ = 0.08f;
+	static constexpr float kTitleSelectPulseDuration_ = 1.2f;
 
 	int32_t selectedTitleIndex_ = 0;
 
@@ -279,11 +316,40 @@ struct alignas(16) TitleRayMaterialBuffer {
 	// グラスからカクテルへ移動する時間（秒）
 	static constexpr float kIceMoveDuration_ = 2.0f;
 
-	// 傾いたグラスからカクテルへ飛ぶときの放物線の高さ
-	static constexpr float kIceArcHeight_ = 3.0f;
+	// カクテルグラスを上面が開いた円筒として扱う当たり判定
+	static constexpr float kCocktailCollisionRadius_ = 1.2f;
+	static constexpr float kCocktailCollisionBottomLocalY_ = -0.5f;
+	static constexpr float kCocktailCollisionTopLocalY_ = 1.8f;
+	static constexpr float kIceCollisionHalfExtent_ = 0.1f;
+
+	// PresentationIceの疑似物理・浮上設定
+	static constexpr float kIceDriveAcceleration_ = 30.0f;
+	static constexpr float kIceMaxDriveSpeed_ = 12.0f;
+	static constexpr float kIceGravity_ = 3.0f;
+	static constexpr float kIceBounce_ = 0.25f;
+	static constexpr float kIceSlideRetention_ = 0.96f;
+	static constexpr float kIceSeparationAcceleration_ = 1.8f;
+	static constexpr float kIceMaximumSeparationSpeed_ = 0.65f;
+	static constexpr float kIceArrangeDuration_ = 0.55f;
+	static constexpr float kIceFloatDuration_ = 0.4f;
+	static constexpr float kIceFloatInterval_ = 0.025f;
+	static constexpr float kIceRollMultiplier_ = 2.0f;
+
+	// 氷を同時に放さず、1個ずつ異なる動きで投入する設定
+	static constexpr float kIceFirstReleaseDelay_ = 0.3f;
+	// グラスの傾斜開始後、従来の放出開始時刻からさらに待つ時間
+	static constexpr float kIceMoveStartDelay_ = 0.15f;
+	static constexpr float kIceReleaseInterval_ = 0.03f;
+	static constexpr float kIceSinkDuration_ = 0.45f;
+	static constexpr float kIceSubmergedDepth_ = 0.55f;
+	static constexpr float kIceSubmergedDepthVariation_ = 0.08f;
+	static constexpr float kIceSubmergedScatterRadius_ = 0.75f;
 
 	// 最初にグラス・氷・ジンが定位置へ滑り込む時間（秒）
 	static constexpr float kEntranceDuration_ = 1.0f;
+
+	// 3つのモデルが揃った状態を映像と同じ間だけ見せる
+	static constexpr float kEntranceHoldDuration_ = 3.0f;
 
 	// グラス・氷・ジンが寄る前にTitleRayを伸ばす時間（秒）
 	static constexpr float kTitleRayRevealDuration_ = 1.0f;
@@ -296,14 +362,17 @@ struct alignas(16) TitleRayMaterialBuffer {
 	// 定位置からZ方向へ離しておく距離
 	static constexpr float kEntranceZDistance_ = 15.0f;
 
-	// 氷の移動前にグラスと氷を持ち上げる時間（秒）
+	// グラスを動かす前にカメラを準備する時間（秒）
 	static constexpr float kPreLiftDuration_ = 1.0f;
 
-	// 氷の移動前にグラスと氷を持ち上げる量
+	// 傾斜と同時にグラスと氷を持ち上げる量
 	static constexpr float kGlassLiftHeight_ = 4.0f;
 
-	// 持ち上げ後、グラスと氷を一緒に傾ける時間（秒）
-	static constexpr float kGlassTiltDuration_ = 0.75f;
+	// 傾斜と同時にグラスと氷をZのプラス方向へ動かす量
+	static constexpr float kGlassTiltMoveZ_ = 3.0f;
+
+	// グラスと氷を持ち上げながら同時に傾ける時間（秒）
+	static constexpr float kGlassTiltDuration_ = 0.5f;
 
 	// カメラが氷用グラスへ向きを変える時間（秒）
 	static constexpr float kGlassCameraLookDuration_ = 0.5f;
@@ -311,32 +380,35 @@ struct alignas(16) TitleRayMaterialBuffer {
 	// グラスと氷を傾けたまま停止する時間（秒）
 	static constexpr float kGlassTiltHoldDuration_ = 0.5f;
 
-	// カクテル側へ傾ける角度（+30度）
-	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> / 3.0f;
+	// カクテル側へ傾ける角度
+	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> * 2 / 3.0f;
 
 	// 氷を入れ終わった後、グラスが元の位置へ戻る時間（秒）
 	static constexpr float kGlassReturnDuration_ = 0.75f;
 
+	// 氷が沈み切った俯瞰画を保ってからジンへ戻るまでの間
+	static constexpr float kIceSettledHoldDuration_ = 1.25f;
+
 	// ジンが最大角度まで傾く時間（秒）
-	static constexpr float kGinTiltDuration_ = 0.5f;
+	static constexpr float kGinTiltDuration_ = 0.75f;
+
+	// 傾斜量1.0のときにジンを持ち上げる高さ
+	static constexpr float kGinLiftHeight_ = 8.0f;
 
 	// ジンが最大まで傾いた姿勢で停止する時間（秒）
-	static constexpr float kGinTiltHoldDuration_ = 1.0f;
+	static constexpr float kGinTiltHoldDuration_ = 2.0f;
 
 	// ジンが最大角度から元の姿勢へ戻る時間（秒）
 	static constexpr float kGinReturnDuration_ = 0.5f;
 
-	// カメラをジンへ向ける時間（秒）
-	static constexpr float kGinCameraMoveDuration_ = 0.35f;
+	// 真上の液面を見せてから、水面下で氷の整列を始めるまでの間
+	static constexpr float kIceFloatWaitDuration_ = 2.25f;
 
 	// ジンが最大まで傾いた後、液体が現れるまでの時間（秒）
 	static constexpr float kCocktailWaterScaleDuration_ = 0.5f;
 
-	// ジンが元の姿勢へ戻ってから退場を始めるまでの待機時間（秒）
-	static constexpr float kPostGinWaitDuration_ = 5.0f;
-
 	// グラス・ジンの退場とTitleSelectの登場に掛ける時間（秒）
-	static constexpr float kTitleSelectTransitionDuration_ = 1.0f;
+	static constexpr float kTitleSelectTransitionDuration_ = 0.3f;
 
 	// グラスとジンをZ方向へ退場させる距離
 	static constexpr float kExitZDistance_ = 15.0f;
@@ -350,8 +422,26 @@ struct alignas(16) TitleRayMaterialBuffer {
 	// 最初の少し上から斜め下へ見るカメラ角度（15度）
 	static constexpr float kInitialCameraPhi_ = std::numbers::pi_v<float> / 12.0f;
 
-	// ジン演出後、カクテルグラスを真上から見るカメラ距離
-	static constexpr float kPostGinOverheadDistance_ = 12.0f;
+	// 氷の移動中に向かう、カクテル斜め上カメラ
+	static constexpr float kIceTransferCameraPhi_ = std::numbers::pi_v<float> / 4.0f;
+	static constexpr float kIceTransferCameraTheta_ = std::numbers::pi_v<float> / 4.0f;
+	static constexpr float kIceTransferCameraDistance_ = 14.0f;
+	// 最初の氷を放すまでにカメラ補間を完了させる
+	static constexpr float kIceTransferCameraDuration_ = kIceFirstReleaseDelay_;
+
+	// 氷投入後、ZとYを固定してカメラをXのプラス方向へ動かす量
+	static constexpr float kGinCameraMoveX_ = 5.0f;
+	static constexpr float kGinViewCameraDuration_ = 0.75f;
+	// ジンを見る位置へカメラが引き終わってから、ジンを動かすまでの停止時間
+	static constexpr float kGinCameraHoldDuration_ = 0.5f;
+
+	// ジンの傾斜中に到達する、真上から30度傾いたカクテル注視角度
+	static constexpr float kCocktailPeekCameraPhi_ = std::numbers::pi_v<float> / 3.0f;
+	// カクテルを正面から見るY軸まわりの角度
+	static constexpr float kCocktailFrontCameraTheta_ = 0.0f;
+	// ジンを置いた後、上記の角度を維持したまま近づく距離と時間
+	static constexpr float kCocktailPeekCameraDistance_ = 8.0f;
+	static constexpr float kCocktailApproachCameraDuration_ = 2.0f;
 
 	// 選択確定後、カクテルと氷を選択位置へ移動する時間（秒）
 	static constexpr float kSelectionConfirmMoveDuration_ = 1.0f;
@@ -375,14 +465,27 @@ struct alignas(16) TitleRayMaterialBuffer {
 	static constexpr float kSelectionCameraTopPhi_ = std::numbers::pi_v<float> / 2.0f;
 
 	Vector3 iceStartPositions_[kMaxIceCount_]{};
-	Vector3 iceTiltedStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};
+	IcePresentationState presentationIce_[kMaxIceCount_]{};
+	Vector3 sourceGlassIcePosition_{};
+	float sourceGlassIceRotationX_ = 0.0f;
+	bool isIcePseudoPhysicsReleased_ = false;
+	bool isIceSubmergeFinished_ = false;
+	bool isIceFloatStarted_ = false;
+	float iceOverheadCameraElapsedTime_ = 0.0f;
+	float iceSettledHoldElapsedTime_ = 0.0f;
+	float iceFloatWaitElapsedTime_ = 0.0f;
 
 	float titleRayRevealElapsedTime_ = 0.0f;
 	bool isTitleRayRevealFinished_ = false;
+	float titleSelectRayRevealElapsedTime_ = 0.0f;
+	bool isTitleSelectRayActive_ = false;
+	Vector3 titleRayPosition_{};
 
 	float entranceElapsedTime_ = 0.0f;
 	bool isEntranceFinished_ = false;
+	float entranceHoldElapsedTime_ = 0.0f;
+	bool isEntranceHoldFinished_ = false;
 
 	float preLiftElapsedTime_ = 0.0f;
 	bool isPreLiftFinished_ = false;
@@ -403,13 +506,13 @@ struct alignas(16) TitleRayMaterialBuffer {
 
 	float ginAnimationElapsedTime_ = 0.0f;
 	bool isGinCameraStarted_ = false;
-	float postGinWaitElapsedTime_ = 0.0f;
-	float postGinCameraElapsedTime_ = 0.0f;
-	bool isPostGinOverheadCameraStarted_ = false;
+	bool isCocktailViewCameraStarted_ = false;
+	bool isCocktailPeekCameraStarted_ = false;
 	float titleSelectCameraElapsedTime_ = 0.0f;
 	float titleSelectTransitionElapsedTime_ = 0.0f;
 	bool isTitleSelectTransitionStarted_ = false;
 	bool isTitleSelectInputEnabled_ = false;
+	float titleSelectPulseElapsedTime_ = 0.0f;
 	float cocktailWaterScaleElapsedTime_ = 0.0f;
 	float cocktailWaterAnimationTime_ = 0.0f;
 	bool isCocktailWaterAppearing_ = false;
@@ -422,6 +525,7 @@ struct alignas(16) TitleRayMaterialBuffer {
 	Vector3 presentationCameraPosition_{};
 	bool isPresentationCameraPositionFixed_ = false;
 	Vector3 glassCameraStartFocus_{};
+	Vector3 iceTransferCameraStartFocus_{};
 	Vector3 ginCameraStartFocus_{};
 
 	std::chrono::steady_clock::time_point previousAnimationTime_{};
@@ -453,6 +557,19 @@ struct alignas(16) TitleRayMaterialBuffer {
 	void Initialize_WaterModel();
 	void Initialize_TitleRayModel();
 	void Initialize_IceTransforms();
+	void Initialize_PresentationIce();
+	void Update_IceSourceTransform(const Vector3& position, float rotationX);
+	void Update_PresentationIce(float deltaTime, bool updatePhysics);
+	void Update_PresentationIcePhysics(float deltaTime);
+	void Apply_CocktailGlassCollision(IcePresentationState& ice);
+	void Apply_IceSeparation(float deltaTime);
+	void Update_IceFloat(IcePresentationState& ice, int32_t iceIndex, float deltaTime);
+	void Update_IceWave(IcePresentationState& ice, int32_t iceIndex);
+	void Sync_IceModelsFromPresentation();
+	static float Clamp01(float value);
+	static float EaseInOut01(float value);
+	static float VectorLength(const Vector3& value);
+	static Vector3 NormalizeVector(const Vector3& value);
 	void Update_TitleSelect();
 	void Start_SelectedCocktailAnimation();
 	void Update_SelectedCocktailAnimation();
@@ -462,6 +579,9 @@ struct alignas(16) TitleRayMaterialBuffer {
 	void Update_Animation();
 	void AimCameraFromFixedPosition(const Vector3& cameraPosition, const Vector3& target);
 	void Start_CocktailCameraAnimation();
+	void Start_GinCameraAnimation();
+	void Start_CocktailViewCameraAnimation();
+	void Start_CocktailPeekCameraAnimation();
 	void Start_SideCameraAnimation();
 	void Initialize_LightModels();
 	void Update_LightModels();
