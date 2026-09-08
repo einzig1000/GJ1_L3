@@ -17,11 +17,9 @@ PredictionObj::PredictionObj()
     obj_->modelID_ = modelID_;
     obj_->instanceNum_ = instanceCount_;
 
-
     worldMatrixHeapSlot_ = Game::Resource::CreateDynamic();
     colorHeapSlot_ = Game::Resource::CreateDynamic();
     textureIndexHeapSlot_ = Game::Resource::CreateDynamic();
-
 }
 
 PredictionObj::~PredictionObj()

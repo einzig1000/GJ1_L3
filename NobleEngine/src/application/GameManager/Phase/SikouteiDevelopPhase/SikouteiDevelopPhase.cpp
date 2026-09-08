@@ -6,6 +6,7 @@
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
+#include"../../../GameObject/PredictionObj/PredictionObj.h"
 
 namespace
 {
@@ -123,6 +124,9 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 		human_[i]->SetupFromShaders();
 		human_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
 	}
+
+
+    prediction_ = std::make_unique<PredictionObj>();
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -133,6 +137,7 @@ void SikouteiDevelopPhase::Initialize()
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
+    prediction_->Initialize();
 
 	LoadObstacleData(0);
 }
@@ -263,6 +268,11 @@ void SikouteiDevelopPhase::Update()
     {
         glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
+
+    Vector3 normal = { velocity_.x, 0.0f, velocity_.y };
+    prediction_->SetNormal(normal.Normalize());
+    prediction_->SetTranslate(glass_->GetTranslate());
+    prediction_->Update(c_main_);
 }
 
 void SikouteiDevelopPhase::Draw()
@@ -278,6 +288,9 @@ void SikouteiDevelopPhase::Draw()
 
     //テーブルの描画
     table_->Draw();
+
+    prediction_->Draw();
+
 	// 障害物の描画
     for (int32_t i = 0; i < obstacleCount; i++)
 	{
@@ -296,7 +309,7 @@ void SikouteiDevelopPhase::DrawImGui()
     obstacles_[0]->DrawImGui();
     //table_->DrawImGui();
     //collisionManager_->DebugImGui();
-
+    prediction_->DrawImGui();
 
     ImGui::Begin("Editor");
 
@@ -466,6 +479,10 @@ void SikouteiDevelopPhase::CheckColliders()
     for (auto& collider : table_->GetColliders())
     {
         collisionManager_->AddCollider(collider.get());
+    }
+
+    for (auto& prediction : prediction_->GetColliders()) {
+        collisionManager_->AddCollider(prediction.get());
     }
 
     //コライダーをチェックする

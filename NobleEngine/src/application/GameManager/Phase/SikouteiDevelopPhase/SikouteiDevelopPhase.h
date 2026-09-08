@@ -7,6 +7,7 @@ class Glass;
 class TableObject;
 class Table;
 class CollisionManager;
+class PredictionObj;
 
 class SikouteiDevelopPhase :
 	public IPhase
@@ -55,6 +56,11 @@ private:
 	EulerTransforms markerTransforms_[6];
 	std::vector<float> markerAngles_;
 	float humansize_ = 30.0f;
+
+
+
+	//予測オブジェ
+	std::unique_ptr<PredictionObj>prediction_ = nullptr;
 };
 
 
