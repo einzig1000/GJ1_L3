@@ -88,21 +88,18 @@ void Glass::Update(const int32_t cameraID)
 {
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
-    Vector3 vel = { 0.0f };
+    velocity_ = { 0.0f, 0.0f, 0.0f };
 
     //物理を呼ぶぞ！
     if (!comCollider_.colliders.empty())
     {
-        //comCollider_.colliders.at(0)->SetVelocity(velocity_);
-        //velocity_ *= 0.92f;
-
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
-        vel = phyB.velocity;
+        velocity_ = phyB.velocity;
     }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
-    transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+    transform_.translate += velocity_ * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
     worldMatrix_ = transform_.GetWorldMatrix();
     Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
