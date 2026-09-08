@@ -114,6 +114,7 @@
     <ClCompile Include="src\application\GameObject\Table\Table.cpp" />
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
     <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -391,6 +392,7 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
+    <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
