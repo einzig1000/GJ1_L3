@@ -194,9 +194,9 @@ void TitlePhase::Initialize_LightModels() {
 
 	// Selectになるまでは描画しないが、2つの選択モデルを先に初期化しておく
 	titleSelectModels_[0].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, -60.0f));
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, kTitleSelectFirstZ_));
 	titleSelectModels_[1].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, -50.0f));
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, kTitleSelectSecondZ_));
 
 	Initialize_IceTransforms();
 
@@ -414,9 +414,9 @@ void TitlePhase::Initialize_IceTransforms() {
 
 	// TitleSelectは切り替え演出が始まるまで完成位置の下で待機させる
 	titleSelectModels_[0].transforms_[0] = EulerTransforms(
-	    Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f - kTitleSelectRiseDistance_, -60.0f));
-	titleSelectModels_[1].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f - kTitleSelectRiseDistance_, -50.0f));
+	    Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f - kTitleSelectRiseDistance_, kTitleSelectFirstZ_));
+	titleSelectModels_[1].transforms_[0] = EulerTransforms(
+	    Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f - kTitleSelectRiseDistance_, kTitleSelectSecondZ_));
 
 	Initialize_PresentationIce();
 
@@ -1233,9 +1233,9 @@ void TitlePhase::Update_Animation() {
 	const float titleSelectY = (8.0f - kTitleSelectRiseDistance_) * (1.0f - smoothTransitionT) + 8.0f * smoothTransitionT;
 
 	titleSelectModels_[0].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, titleSelectY, -60.0f));
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, titleSelectY, kTitleSelectFirstZ_));
 	titleSelectModels_[1].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, titleSelectY, -50.0f));
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, titleSelectY, kTitleSelectSecondZ_));
 
 	// 退場と登場が両方終わってから選択入力を有効にする
 	if (transitionT >= 1.0f) {
@@ -1331,7 +1331,7 @@ void TitlePhase::Update_TitleSelect() {
 		titleRayMaterialBuffer_.reveal = 0.0f;
 	}
 
-	const float selectedTitleZ = selectedTitleIndex_ == 0 ? -60.0f : -50.0f;
+	const float selectedTitleZ = selectedTitleIndex_ == 0 ? kTitleSelectFirstZ_ : kTitleSelectSecondZ_;
 	titleRayPosition_ = Vector3(-70.0f, kTitleRayPositionY_, selectedTitleZ);
 	titleRayModel_.transforms_[0] = EulerTransforms(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), titleRayPosition_);
 
@@ -1342,7 +1342,7 @@ void TitlePhase::Update_TitleSelect() {
 		// 選択中と未選択の大きさの差を保ったまま、両方を常時拡大縮小する。
 		const float baseScale = i == selectedTitleIndex_ ? kTitleSelectSelectedScale_ : kTitleSelectNormalScale_;
 		const float scale = baseScale * pulseScale;
-		const float z = i == 0 ? -60.0f : -50.0f;
+		const float z = i == 0 ? kTitleSelectFirstZ_ : kTitleSelectSecondZ_;
 
 		titleSelectModels_[i].transforms_[0] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, z));
 	}
@@ -1357,13 +1357,9 @@ void TitlePhase::Start_SelectedCocktailAnimation() {
 	selectionConfirmElapsedTime_ = 0.0f;
 	selectionCameraElapsedTime_ = 0.0f;
 	selectionCameraTheta_ = 0.0f;
-	selectedCocktailTargetZ_ = selectedTitleIndex_ == 0 ? -60.0f : -50.0f;
+	selectedCocktailTargetZ_ = selectedTitleIndex_ == 0 ? kTitleSelectFirstZ_ : kTitleSelectSecondZ_;
+	selectionCameraFixedPosition_ = Game::Camera::Getter::GetWorldPosition(c_main_);
 	previousSelectionAnimationTime_ = std::chrono::steady_clock::now();
-
-	// 必ず横視点から開始し、Update側で周回しながら真上へ補間する
-	Game::Camera::Setter::SetPhiTarget(0.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetThetaTarget(0.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetDistance(kSelectionCameraStartDistance_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 }
 
 void TitlePhase::Update_SelectedCocktailAnimation() {
@@ -1376,7 +1372,6 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 	}
 
 	selectionConfirmElapsedTime_ += deltaTime;
-	selectionCameraElapsedTime_ += deltaTime;
 	float moveT = selectionConfirmElapsedTime_ / kSelectionConfirmMoveDuration_;
 	if (moveT > 1.0f) {
 		moveT = 1.0f;
@@ -1394,31 +1389,53 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, -std::numbers::pi_v<float> / 2.0f, 0.0f), icePosition);
 	}
 
-	// カメラの注視点は、選択位置へ移動中のカクテルを追従する
-	Game::Camera::Setter::SetCenter(Vector3(kIceTargetCenterX_, 7.0f, currentCocktailZ), 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	const Vector3 currentCocktailFocus(kIceTargetCenterX_, 7.0f, currentCocktailZ);
 
-	if (selectionCameraElapsedTime_ < kSelectionCameraRiseDuration_) {
-		// 横向きから真上へ滑らかに上がりながら、カクテルの周囲を2周する
-		const float riseT = selectionCameraElapsedTime_ / kSelectionCameraRiseDuration_;
-		const float smoothRiseT = EaseInOut01(riseT);
-		selectionCameraTheta_ = kSelectionCameraOrbitAngle_ * smoothRiseT;
-
-		Game::Camera::Setter::SetPhiTarget(kSelectionCameraTopPhi_ * smoothRiseT, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-		Game::Camera::Setter::SetThetaTarget(selectionCameraTheta_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-		Game::Camera::Setter::SetDistance(kSelectionCameraStartDistance_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	// カクテル移動中はカメラのワールド位置を固定し、
+	// 移動するカクテルへ向く角度だけを滑らかに追従させる。
+	if (moveT < 1.0f) {
+		AimCameraFromFixedPosition(selectionCameraFixedPosition_, currentCocktailFocus);
 		return;
 	}
 
-	// 真上へ到達した後は回転角を固定し、カクテルへ近づく
-	float approachT = (selectionCameraElapsedTime_ - kSelectionCameraRiseDuration_) / kSelectionCameraApproachDuration_;
-	if (approachT > 1.0f) {
-		approachT = 1.0f;
-	}
-	const float smoothApproachT = EaseInOut01(approachT);
-	const float cameraDistance = kSelectionCameraStartDistance_ * (1.0f - smoothApproachT) + kSelectionCameraStopDistance_ * smoothApproachT;
+	selectionCameraElapsedTime_ += deltaTime;
 
-	Game::Camera::Setter::SetPhiTarget(kSelectionCameraTopPhi_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetThetaTarget(kSelectionCameraOrbitAngle_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	// 固定していたカメラ位置から、移動完了後のカクテルを見る開始角度と距離を求める。
+	const float directionX = currentCocktailFocus.x - selectionCameraFixedPosition_.x;
+	const float directionY = currentCocktailFocus.y - selectionCameraFixedPosition_.y;
+	const float directionZ = currentCocktailFocus.z - selectionCameraFixedPosition_.z;
+	const float startDistance = std::sqrt(directionX * directionX + directionY * directionY + directionZ * directionZ);
+	const float normalizedY = std::clamp(directionY / startDistance, -1.0f, 1.0f);
+	const float startPhi = std::asin(-normalizedY);
+	const float startTheta = std::atan2(-directionZ, -directionX);
+
+	// 第1段階：高さと距離を変えず、カクテルの横を2周して正面で止まる。
+	if (selectionCameraElapsedTime_ < kSelectionCameraOrbitDuration_) {
+		const float orbitT = selectionCameraElapsedTime_ / kSelectionCameraOrbitDuration_;
+		const float smoothOrbitT = EaseInOut01(orbitT);
+		const float frontThetaAfterTwoTurns = kCocktailFrontCameraTheta_ + kSelectionCameraOrbitAngle_;
+		selectionCameraTheta_ = startTheta * (1.0f - smoothOrbitT) + frontThetaAfterTwoTurns * smoothOrbitT;
+		const float orbitDistance = startDistance * (1.0f - smoothOrbitT) + kSelectionCameraOrbitEndDistance_ * smoothOrbitT;
+
+		Game::Camera::Setter::SetCenter(currentCocktailFocus, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+		Game::Camera::Setter::SetPhiTarget(startPhi, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+		Game::Camera::Setter::SetThetaTarget(selectionCameraTheta_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+		Game::Camera::Setter::SetDistance(orbitDistance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+		return;
+	}
+
+	// 第2段階：正面位置から真上へ弧状に移動し、下へ向きながら近づく。
+	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
+	if (topMoveT > 1.0f) {
+		topMoveT = 1.0f;
+	}
+	const float smoothTopMoveT = EaseInOut01(topMoveT);
+	const float currentPhi = startPhi * (1.0f - smoothTopMoveT) + kSelectionCameraTopPhi_ * smoothTopMoveT;
+	const float cameraDistance = kSelectionCameraOrbitEndDistance_ * (1.0f - smoothTopMoveT) + kSelectionCameraStopDistance_ * smoothTopMoveT;
+
+	Game::Camera::Setter::SetCenter(currentCocktailFocus, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	Game::Camera::Setter::SetPhiTarget(currentPhi, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	Game::Camera::Setter::SetThetaTarget(kCocktailFrontCameraTheta_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetDistance(cameraDistance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 }
 

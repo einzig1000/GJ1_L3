@@ -307,6 +307,11 @@ private:
 	static constexpr float kIceTargetHeightY_ = 7.5f;
 	static constexpr float kIceTargetCenterZ_ = -55.0f;
 
+	// 2つのTitleSelectを、カクテル中央からZ方向へそれぞれ10離して配置する
+	static constexpr float kTitleSelectDistanceFromCenterZ_ = 10.0f;
+	static constexpr float kTitleSelectFirstZ_ = kIceTargetCenterZ_ - kTitleSelectDistanceFromCenterZ_;
+	static constexpr float kTitleSelectSecondZ_ = kIceTargetCenterZ_ + kTitleSelectDistanceFromCenterZ_;
+
 	// 同じ列に並ぶ氷同士の横間隔
 	static constexpr float kIceHorizontalSpacing_ = 0.4f;
 
@@ -446,17 +451,17 @@ private:
 	// 選択確定後、カクテルと氷を選択位置へ移動する時間（秒）
 	static constexpr float kSelectionConfirmMoveDuration_ = 1.0f;
 
-	// 横視点から真上へ上がりながら周回する時間（秒）
-	static constexpr float kSelectionCameraRiseDuration_ = 4.0f;
+	// 高さと距離を維持し、カクテルの横を2周する時間（秒）
+	static constexpr float kSelectionCameraOrbitDuration_ = 4.0f;
 
 	// 選択確定後にカクテルの周囲を2周する角度
 	static constexpr float kSelectionCameraOrbitAngle_ = std::numbers::pi_v<float> * 4.0f;
 
-	// 真上へ到達した後、カクテルへ近づく時間（秒）
-	static constexpr float kSelectionCameraApproachDuration_ = 1.25f;
+	// 横周回が終わった時点でのカクテルとの距離
+	static constexpr float kSelectionCameraOrbitEndDistance_ = 8.0f;
 
-	// 選択演出開始時のカメラ距離
-	static constexpr float kSelectionCameraStartDistance_ = 20.0f;
+	// 正面で周回を止めた後、真上へ移動しながら近づく時間（秒）
+	static constexpr float kSelectionCameraTopMoveDuration_ = 0.6f;
 
 	// カクテルへ近づいた後に停止するカメラ距離
 	static constexpr float kSelectionCameraStopDistance_ = 0.5f;
@@ -522,6 +527,7 @@ private:
 	float selectionCameraElapsedTime_ = 0.0f;
 	float selectionCameraTheta_ = 0.0f;
 	float selectedCocktailTargetZ_ = kIceTargetCenterZ_;
+	Vector3 selectionCameraFixedPosition_{};
 	Vector3 presentationCameraPosition_{};
 	bool isPresentationCameraPositionFixed_ = false;
 	Vector3 glassCameraStartFocus_{};
