@@ -1,21 +1,128 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ヘッダー ファイル">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="リソース ファイル">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
+    <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp" />
+    <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.cpp" />
+    <ClCompile Include="src\application\GameObject\Effect\Particle\Particle.cpp" />
+    <ClCompile Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.cpp" />
+    <ClCompile Include="src\application\System\CompoundCollider\CompoundCollider.cpp" />
+    <ClCompile Include="src\application\System\CollisionTag\CollisionTag.cpp" />
+    <ClCompile Include="src\application\System\Collider\Collider.cpp" />
+    <ClCompile Include="src\application\System\CollisionManager\CollisionManager.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp" />
+    <ClCompile Include="src\application\GameObject\Glass\Glass.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\TestPhase\TestPhase.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Font\FontManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\FrameProfiler\FrameProfiler.cpp" />
+    <ClCompile Include="src\application\Facade\App.cpp" />
+    <ClCompile Include="src\application\Application.cpp" />
+    <ClCompile Include="src\engine\ComputeSystem\ComputeSystem.cpp" />
+    <ClCompile Include="src\engine\ComputeSystem\ComputeObject\ComputeObject.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationComputer\AnimationComputer.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationLoader\AnimationLoader.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationBank\AnimationBank.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\allocator.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\clusterizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\indexanalyzer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\indexcodec.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\indexgenerator.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\meshletcodec.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\meshletutils.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\opacitymap.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\overdrawoptimizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\partition.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\quantization.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\rasterizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\simplifier.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\spatialorder.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\stripifier.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vcacheoptimizer.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vertexcodec.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vertexfilter.cpp" />
+    <ClCompile Include="externals\meshoptimizer-1.1\vfetchoptimizer.cpp" />
+    <ClCompile Include="src\application\definition\definition.cpp" />
+    <ClCompile Include="src\engine\Editor\RenderTexturePreview\RenderTexturePreview.cpp" />
+    <ClCompile Include="src\engine\Editor\EngineEditor.cpp" />
+    <ClCompile Include="src\engine\Editor\ModelPreview\ModelPreview.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioPlayer\AudioPlayer.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioLoader\AudioLoader.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioBank\AudioBank.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelBank\ModelBank.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelCreater\ModelCreater.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelLoader\ModelLoader.cpp" />
+    <ClCompile Include="src\application\Test\TestLine\LineDrawer.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Animation\AnimationManager.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\application\GameManager\GameManager.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\IPhase.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\TitlePhase\TitlePhase.cpp" />
+    <ClCompile Include="src\engine\Camera\Camera.cpp" />
+    <ClCompile Include="src\engine\Camera\CameraManager.cpp" />
+    <ClCompile Include="src\engine\EngineDefinition\EngineDefinition.cpp" />
+    <ClCompile Include="src\engine\DirectX\CommandContextManager\CommandContextManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\DescriptorHeapManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\DSV\DSVManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\RTV\RTVManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\SRV_UAV\SRV_UAVManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DeviceManager\DeviceManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\DirectXManager.cpp" />
+    <ClCompile Include="src\engine\RootBinding\FrameCbAllocator\FrameCbAllocator.cpp" />
+    <ClCompile Include="src\engine\DirectX\Pipeline\PipelineStateManager\PipelineStateManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\Pipeline\ShaderReflectionHelper\ShaderReflectionHelper.cpp" />
+    <ClCompile Include="src\engine\DirectX\RenderTarget\RenderTextureManager\RenderTextureManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\ResourceUtilities\ResourceUtilities.cpp" />
+    <ClCompile Include="src\engine\DirectX\RenderTarget\SwapChainManager\SwapChainManager.cpp" />
+    <ClCompile Include="src\engine\DirectX\SynchronizationManager\SynchronizationManager.cpp" />
+    <ClCompile Include="src\engine\DrawSystem\DrawSystem.cpp" />
+    <ClCompile Include="src\engine\DrawSystem\RenderData\RenderObject.cpp" />
+    <ClCompile Include="src\engine\Engine.cpp" />
+    <ClCompile Include="src\engine\Facade\Game.cpp" />
+    <ClCompile Include="src\engine\TimeManager\FixFPS\FixFPS.cpp" />
+    <ClCompile Include="src\engine\ImGuiManager\ImGuiManager.cpp" />
+    <ClCompile Include="src\engine\IO\IOManager.cpp" />
+    <ClCompile Include="src\engine\IO\Keyboard\KeyboardController.cpp" />
+    <ClCompile Include="src\engine\IO\Mouse\MouseController.cpp" />
+    <ClCompile Include="src\engine\IO\Pad\PadController.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Audio\AudioManager.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Model\ModelManager.cpp" />
+    <ClCompile Include="src\engine\AssetManager\AssetManager.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Texture\TextureManager.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\AngleConverter\AngleConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\ColorConverter\ColorConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\CoordinateConverter\CoordinateConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Converter\StringConverter\StringConverter.cpp" />
+    <ClCompile Include="src\engine\Utilities\Easing\Easing.cpp" />
+    <ClCompile Include="src\engine\Utilities\functions.cpp" />
+    <ClCompile Include="src\engine\Utilities\Json\JsonManager.cpp" />
+    <ClCompile Include="src\engine\Utilities\Logger\Logger.cpp" />
+    <ClCompile Include="src\engine\Utilities\Random\Random.cpp" />
+    <ClCompile Include="src\engine\Window\WindowManager.cpp" />
+    <ClCompile Include="src\application\Test\TestParticle\TestParticle.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Texture\TextureBank\TextureBank.cpp" />
+    <ClCompile Include="src\engine\AssetManager\Texture\TextureLoader\TextureLoader.cpp" />
+    <ClCompile Include="src\engine\Editor\TexturePreview\TexturePreview.cpp" />
+    <ClCompile Include="src\engine\Editor\TimeEditor\TimeEditor.cpp" />
+    <ClCompile Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.cpp" />
+    <ClCompile Include="src\engine\TimeManager\TimeManager.cpp" />
+    <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp" />
+    <ClCompile Include="src\application\GameObject\Table\Table.cpp" />
+    <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
+    <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
+    <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h" />
+    <ClInclude Include="src\application\GameObject\TableObject\TableObject.h" />
+    <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h" />
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
+    <ClInclude Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.h" />
+    <ClInclude Include="src\application\GameObject\UI\Benefit\Benefit.h" />
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
     <ClInclude Include="src\application\System\CollisionInfo.h" />
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />
@@ -274,363 +381,10 @@
     <ClInclude Include="src\engine\TimeManager\TimeScaler\TimeScaler.h" />
     <ClInclude Include="src\application\GameObject\Table\Table.h" />
     <ClInclude Include="src\application\GameObject\HumanModel\HumanModel.h" />
-    <ClInclude Include="src\application\GameObject\TableObject\TableObject.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h">
-    <ClInclude Include="src\application\GameObject\UI\Benefit\Benefit.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
+    <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
     <None Include="resources\shaders\Block\versionInfo.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\Effect\Particle\Particle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\System\CompoundCollider\CompoundCollider.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\System\CollisionTag\CollisionTag.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\System\Collider\Collider.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\System\CollisionManager\CollisionManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\Glass\Glass.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\TestPhase\TestPhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Font\FontManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\FrameProfiler\FrameProfiler.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\Facade\App.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\Application.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\ComputeSystem\ComputeSystem.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\ComputeSystem\ComputeObject\ComputeObject.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Animation\AnimationComputer\AnimationComputer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Animation\AnimationLoader\AnimationLoader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Animation\AnimationBank\AnimationBank.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\allocator.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\clusterizer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\indexanalyzer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\indexcodec.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\indexgenerator.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\meshletcodec.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\meshletutils.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\opacitymap.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\overdrawoptimizer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\partition.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\quantization.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\rasterizer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\simplifier.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\spatialorder.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\stripifier.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\vcacheoptimizer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\vertexcodec.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\vertexfilter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="externals\meshoptimizer-1.1\vfetchoptimizer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\definition\definition.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Editor\RenderTexturePreview\RenderTexturePreview.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Editor\EngineEditor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Editor\ModelPreview\ModelPreview.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\GameScenePhase\GameScenePhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Audio\AudioPlayer\AudioPlayer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Audio\AudioLoader\AudioLoader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Audio\AudioBank\AudioBank.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Model\ModelBank\ModelBank.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Model\ModelCreater\ModelCreater.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Model\ModelLoader\ModelLoader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\Test\TestLine\LineDrawer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Animation\AnimationManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\GameManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\IPhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\TitlePhase\TitlePhase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Camera\Camera.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Camera\CameraManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\EngineDefinition\EngineDefinition.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\CommandContextManager\CommandContextManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\DescriptorHeapManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\DSV\DSVManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\RTV\RTVManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\DescriptorHeapManager\SRV_UAV\SRV_UAVManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\DeviceManager\DeviceManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\DirectXManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\RootBinding\FrameCbAllocator\FrameCbAllocator.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\Pipeline\PipelineStateManager\PipelineStateManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\Pipeline\ShaderReflectionHelper\ShaderReflectionHelper.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\RenderTarget\RenderTextureManager\RenderTextureManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\ResourceUtilities\ResourceUtilities.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\RenderTarget\SwapChainManager\SwapChainManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DirectX\SynchronizationManager\SynchronizationManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DrawSystem\DrawSystem.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\DrawSystem\RenderData\RenderObject.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Engine.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Facade\Game.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\TimeManager\FixFPS\FixFPS.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\ImGuiManager\ImGuiManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\IO\IOManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\IO\Keyboard\KeyboardController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\IO\Mouse\MouseController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\IO\Pad\PadController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Audio\AudioManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Model\ModelManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\AssetManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Texture\TextureManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Converter\AngleConverter\AngleConverter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Converter\ColorConverter\ColorConverter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Converter\CoordinateConverter\CoordinateConverter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Converter\StringConverter\StringConverter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Easing\Easing.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\functions.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Json\JsonManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Logger\Logger.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Utilities\Random\Random.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Window\WindowManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\Test\TestParticle\TestParticle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Texture\TextureBank\TextureBank.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\AssetManager\Texture\TextureLoader\TextureLoader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Editor\TexturePreview\TexturePreview.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Editor\TimeEditor\TimeEditor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\RootBinding\StructuredBufferManager\StructuredBufferManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\TimeManager\TimeManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\Table\Table.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

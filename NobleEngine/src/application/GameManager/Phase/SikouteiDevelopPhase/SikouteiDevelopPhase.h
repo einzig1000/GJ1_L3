@@ -9,6 +9,7 @@ class Table;
 class CollisionManager;
 class CocktailWater;
 class PredictionObj;
+class SimpleObstaclePlacementFlow;
 
 enum class CameraPhase
 {
@@ -74,6 +75,8 @@ private:
 
 	//予測オブジェ
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;
+	//配置開始までのシステム
+	std::unique_ptr<SimpleObstaclePlacementFlow>simpleObstaclePlacementFlow_ = nullptr;
 };
 
 
