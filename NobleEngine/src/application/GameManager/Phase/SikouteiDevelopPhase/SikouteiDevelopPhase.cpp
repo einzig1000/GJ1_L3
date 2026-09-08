@@ -8,6 +8,7 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 #include"../../../GameObject/PredictionObj/PredictionObj.h"
+#include<GameObject/SimpleObstaclePlacementFlow/SimpleObstaclePlacementFlow.h>
 
 namespace
 {
@@ -133,6 +134,8 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
     prediction_->SetObstacleArray(obstacles_);
 
     Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(45.0f), 0.0f, EaseType::OUT_BACK, c_main_);
+
+    simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -146,7 +149,17 @@ void SikouteiDevelopPhase::Initialize()
 	cocktailWater_->Initialize();
     prediction_->Initialize();
 
-	LoadObstacleData(0);
+    EulerTransforms spawnTransform;
+    spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
+    spawnTransform.rotate = Vector3(0.0f, 0.0f, 0.0f);
+    spawnTransform.scale = Vector3(1.0f, 1.0f, 1.0f);
+    simpleObstaclePlacementFlow_->SetSpawnPoint(spawnTransform);
+    
+    LoadObstacleData(0);
+
+    simpleObstaclePlacementFlow_->HideAllPieces();
+    simpleObstaclePlacementFlow_->StartDisappear();
+	
 }
 
 void SikouteiDevelopPhase::Update()
@@ -198,6 +211,14 @@ void SikouteiDevelopPhase::Update()
     cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
     cocktailWater_->Update(c_main_);
     table_->Update(c_main_);
+  
+    simpleObstaclePlacementFlow_->Update();
+    for (int i = 0; i < obstacleCount; ++i) {
+        obstacles_[i]->SetTranslate(simpleObstaclePlacementFlow_->GetPieces(i).transform.translate);
+    }
+
+    
+
     for (int32_t i = 0; i < obstacleCount; i++)
     {
         obstacles_[i]->Update(c_main_);
@@ -266,6 +287,10 @@ void SikouteiDevelopPhase::Update()
 
 
     UpdateCameraPhase();
+    Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+    prediction_->SetVelocity(velocity);
+    prediction_->SetTranslate(glass_->GetTranslate());
+    prediction_->Update(c_main_);
 }
 
 void SikouteiDevelopPhase::Draw()
@@ -489,6 +514,8 @@ void SikouteiDevelopPhase::DrawImGui()
         ImGui::TreePop();
     }
 
+    simpleObstaclePlacementFlow_->DrawImGui();
+
     ImGui::End();
 }
 
@@ -532,6 +559,9 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
     std::string key = "/Stage" + std::to_string(stage) + "/Count";
 	bool success = JsonManager::Load(path, key, obstacleCount);
 	if (!success) return false;
+
+    simpleObstaclePlacementFlow_->Initialize();
+
     for (int32_t i = 0; i < obstacleCount; i++)
     {
         obstacles_[i]->Initialize();
@@ -544,7 +574,17 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
         key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/translate";
         Vector3 translate;
         JsonManager::Load(path, key, translate);
-		obstacles_[i]->SetTranslate(translate);
+	/*	obstacles_[i]->SetTranslate(translate);*/
+
+        //後で回転対応させる
+        EulerTransforms tempTransform = { 
+            .scale = {1.0f,1.0f,1.0f},
+             .rotate = {0.0f,0.0f,0.0f},
+            .translate = translate
+        };
+
+        //ここで読み込む
+        simpleObstaclePlacementFlow_->ReadObstaclePlacement(tempTransform);
     }
 
 
