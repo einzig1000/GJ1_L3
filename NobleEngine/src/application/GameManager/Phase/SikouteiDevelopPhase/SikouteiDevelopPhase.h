@@ -96,6 +96,10 @@ private:
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
 
+
+	LightDataForGPU lightData_;
+
+
 	int32_t c_main_ = -1;
 	Coordinate_spherical cameraSpherical_ = { 0.0f, 0.0f, 0.0f };
 	CameraPhase cameraPhase_ = CameraPhase::Free;
@@ -126,6 +130,7 @@ private:
 
 	// 人間
 	std::unique_ptr<RenderObject> human_[3];
+	Material material_;
 	EulerTransforms humanTransforms_[3];
 	float humanRotateDegree[3] = { 90.0f, 210.0f, 330.0f, };	// 人間がテーブルから見てどの角度にいるか
 	int32_t currentGlassUserIndex_ = 0;					// 現在グラスを持っている人間のインデックス
