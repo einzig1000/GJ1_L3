@@ -100,6 +100,10 @@ public:
     void SetSpawnPoint(const EulerTransforms& spawnPoint);
 
     const PieceMotion& GetPieces(int32_t index) { return pieces_[index]; };
+
+    // Editorから障害物の位置を直接書き換える(localPositionと現在のtransformを両方更新)
+    void SetPieceLocalPosition(int32_t index, const Vector3& position);
+
     void Initialize();
 
     void HideAllPieces();
