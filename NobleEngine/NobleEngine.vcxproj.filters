@@ -286,6 +286,9 @@
     <ClInclude Include="src\application\GameObject\UI\Benefit\Benefit.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
@@ -620,6 +623,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

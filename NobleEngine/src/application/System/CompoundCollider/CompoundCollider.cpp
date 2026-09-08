@@ -10,14 +10,17 @@ namespace Collision {
         Matrix4x4& mat,
         const uint32_t attribute,
         const uint32_t mask,
-        const Collider::ColliderType colliderType) {
+        const Collider::ColliderType colliderType,
+        const float scale
+        ) {
 
         //コライダーがあればここに入れる
         collider->SetWorldMatrixAddress(mat);
         collider->SetCollisionAttribute(attribute);
         collider->SetCollisionMask(mask);
-
-        Sphere sphere = { .center = {0.0f,0.0f,0.0f},.radius ={0.5f} };
+        
+        float s = 0.5f * scale;
+        Sphere sphere = { .center = {0.0f,0.0f,0.0f},.radius = s };
 
         if (colliderType == Collider::ColliderType::kColliderType_XZ_Circle) {
             // Circleのセット
@@ -27,7 +30,7 @@ namespace Collision {
             collider->SetSphere(sphere, false);
         } else if (colliderType == Collider::ColliderType::kColliderType_AABB) {
             //本ゲームにおいてはここは基本使用しないが
-            AABB aabb = { .min = {-0.5f,-0.5f,-0.5f},.max = {0.5f,0.5f,0.5f} };
+            AABB aabb = { .min = {-s,-s,-s},.max = {s,s,s} };
             collider->SetAABB(aabb);
         }
     }

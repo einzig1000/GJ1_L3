@@ -2,6 +2,7 @@
 
 GameScenePhase::GameScenePhase()
 {
+
 }
 
 GameScenePhase::~GameScenePhase() {}
@@ -13,13 +14,18 @@ void GameScenePhase::Initialize()
 
 void GameScenePhase::Update()
 {
+
+
 }
 
 void GameScenePhase::Draw()
 {
+
 }
 
 void GameScenePhase::DrawImGui()
 {
+
+
 }
 
