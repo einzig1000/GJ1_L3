@@ -148,7 +148,7 @@ void TitlePhase::Initialize_LightModels() {
 	titleRayMaterialBuffer_.color = Vector4(0.74f, 0.28f, 0.39f, 0.20f);
 	titleRayMaterialBuffer_.intensity = 2.5f;
 	titleRayMaterialBuffer_.tipRadius = 0.4f;
-	titleRayMaterialBuffer_.endRadius = 5.0f;
+	titleRayMaterialBuffer_.endRadius = kTitleRayEndRadius_;
 	titleRayMaterialBuffer_.coneLength = 16.0f;
 	titleRayMaterialBuffer_.reveal = 0.0f;
 	titleRayMaterialBuffer_.revealSoftness = 0.08f;
@@ -355,8 +355,12 @@ void TitlePhase::Initialize_IceTransforms() {
 	isTitleRayRevealFinished_ = false;
 	titleSelectRayRevealElapsedTime_ = 0.0f;
 	isTitleSelectRayActive_ = false;
+	isTitleSelectRayClosing_ = false;
+	titleSelectRayCloseStartReveal_ = 0.0f;
+	titleSelectRayDisplayIndex_ = selectedTitleIndex_;
 	titleRayPosition_ = Vector3(kTitleRayPositionX_, kTitleRayPositionY_, kTitleRayPositionZ_);
 	titleRayMaterialBuffer_.reveal = 0.0f;
+	titleRayMaterialBuffer_.endRadius = kTitleRayEndRadius_;
 	preLiftElapsedTime_ = 0.0f;
 	isPreLiftFinished_ = false;
 	glassTiltElapsedTime_ = 0.0f;
@@ -779,11 +783,29 @@ void TitlePhase::Update_Animation() {
 	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
 		titleSelectPulseElapsedTime_ += deltaTime;
 
-		// 選択中のTitleRayを、選択位置の上から下へ滑らかに伸ばす。
+		// 選択変更時は、旧位置のTitleRayを下端から上端へ縮めて閉じる。
+		// 完全に閉じた後、新しい選択位置で上端から下端へ伸ばし直す。
 		if (isTitleSelectRayActive_) {
 			titleSelectRayRevealElapsedTime_ += deltaTime;
-			const float rayT = Clamp01(titleSelectRayRevealElapsedTime_ / kTitleRayRevealDuration_);
-			titleRayMaterialBuffer_.reveal = EaseInOut01(rayT);
+			// 途中までしか出ていない光を閉じる場合も、伸縮速度が変わらないよう
+			// 現在の表示率に応じて閉じる時間を短くする。
+			const float rayDuration = isTitleSelectRayClosing_ ? std::max(kTitleSelectRayRevealDuration_ * titleSelectRayCloseStartReveal_, 0.01f) : kTitleSelectRayRevealDuration_;
+			const float rayT = Clamp01(titleSelectRayRevealElapsedTime_ / rayDuration);
+
+			if (isTitleSelectRayClosing_) {
+				const float closeT = EaseInOut01(rayT);
+				titleRayMaterialBuffer_.reveal = titleSelectRayCloseStartReveal_ * (1.0f - closeT);
+
+				if (rayT >= 1.0f) {
+					// 閉じ切った瞬間にだけ新しい選択位置へ切り替える。
+					titleSelectRayDisplayIndex_ = selectedTitleIndex_;
+					isTitleSelectRayClosing_ = false;
+					titleSelectRayRevealElapsedTime_ = 0.0f;
+					titleRayMaterialBuffer_.reveal = 0.0f;
+				}
+			} else {
+				titleRayMaterialBuffer_.reveal = EaseInOut01(rayT);
+			}
 		}
 		return;
 	}
@@ -1304,6 +1326,9 @@ void TitlePhase::Update_TitleSelect() {
 		return;
 	}
 
+	// 最初のカクテル上の光より、Select中の光だけを太くする
+	titleRayMaterialBuffer_.endRadius = kTitleSelectRayEndRadius_;
+
 	const int32_t previousSelectedTitleIndex = selectedTitleIndex_;
 
 	if (!isSelectionConfirmed_) {
@@ -1323,16 +1348,23 @@ void TitlePhase::Update_TitleSelect() {
 		}
 	}
 
-	// Selectへ入った直後、または選択先が変わった時に、
-	// 選択中のTitleSelectへ向けた上から下への光を最初から再生する。
-	if (!isTitleSelectRayActive_ || selectedTitleIndex_ != previousSelectedTitleIndex) {
+	// Selectへ入った直後は、選択中のTitleSelectで上から下へ光を伸ばす。
+	if (!isTitleSelectRayActive_) {
 		isTitleSelectRayActive_ = true;
+		isTitleSelectRayClosing_ = false;
+		titleSelectRayDisplayIndex_ = selectedTitleIndex_;
 		titleSelectRayRevealElapsedTime_ = 0.0f;
 		titleRayMaterialBuffer_.reveal = 0.0f;
+	} else if (selectedTitleIndex_ != previousSelectedTitleIndex) {
+		// 選択変更時は位置をすぐ切り替えず、旧位置の光を現在の長さから
+		// 下端→上端へ縮める。閉じ切った後の位置変更はUpdate_Animationで行う。
+		isTitleSelectRayClosing_ = true;
+		titleSelectRayCloseStartReveal_ = titleRayMaterialBuffer_.reveal;
+		titleSelectRayRevealElapsedTime_ = 0.0f;
 	}
 
-	const float selectedTitleZ = selectedTitleIndex_ == 0 ? kTitleSelectFirstZ_ : kTitleSelectSecondZ_;
-	titleRayPosition_ = Vector3(-70.0f, kTitleRayPositionY_, selectedTitleZ);
+	const float titleRayZ = titleSelectRayDisplayIndex_ == 0 ? kTitleSelectFirstZ_ : kTitleSelectSecondZ_;
+	titleRayPosition_ = Vector3(-70.0f, kTitleRayPositionY_, titleRayZ);
 	titleRayModel_.transforms_[0] = EulerTransforms(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), titleRayPosition_);
 
 	const float pulsePhase = titleSelectPulseElapsedTime_ * (std::numbers::pi_v<float> * 2.0f) / kTitleSelectPulseDuration_;

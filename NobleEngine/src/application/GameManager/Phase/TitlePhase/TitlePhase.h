@@ -359,10 +359,17 @@ private:
 	// グラス・氷・ジンが寄る前にTitleRayを伸ばす時間（秒）
 	static constexpr float kTitleRayRevealDuration_ = 1.0f;
 
+	// Select中にTitleRayを伸ばす時間（通常の2倍速）
+	static constexpr float kTitleSelectRayRevealDuration_ = kTitleRayRevealDuration_ * 0.5f;
+
 	// カクテルグラスの真上に置くTitleRayの先端位置
 	static constexpr float kTitleRayPositionX_ = -60.0f;
 	static constexpr float kTitleRayPositionY_ = 19.0f;
 	static constexpr float kTitleRayPositionZ_ = -55.0f;
+
+	// 通常時とSelect中のTitleRay末端側の幅
+	static constexpr float kTitleRayEndRadius_ = 5.0f;
+	static constexpr float kTitleSelectRayEndRadius_ = 12.0f;
 
 	// 定位置からZ方向へ離しておく距離
 	static constexpr float kEntranceZDistance_ = 15.0f;
@@ -461,10 +468,10 @@ private:
 	static constexpr float kSelectionCameraOrbitEndDistance_ = 8.0f;
 
 	// 正面で周回を止めた後、真上へ移動しながら近づく時間（秒）
-	static constexpr float kSelectionCameraTopMoveDuration_ = 1.0f;
+	static constexpr float kSelectionCameraTopMoveDuration_ = 1.4f;
 
 	// 正面から真上へ移動する放物線の、直線軌道からの追加高度
-	static constexpr float kSelectionCameraTopArcHeight_ = 10.0f;
+	static constexpr float kSelectionCameraTopArcHeight_ = 12.0f;
 
 	// カクテルへ近づいた後に停止するカメラ距離
 	static constexpr float kSelectionCameraStopDistance_ = 0.5f;
@@ -485,6 +492,11 @@ private:
 	bool isTitleRayRevealFinished_ = false;
 	float titleSelectRayRevealElapsedTime_ = 0.0f;
 	bool isTitleSelectRayActive_ = false;
+	// 選択変更時は、現在の光を下端から上端へ縮め切ってから
+	// 新しい選択位置で上端から下端へ伸ばし直す。
+	bool isTitleSelectRayClosing_ = false;
+	float titleSelectRayCloseStartReveal_ = 0.0f;
+	int32_t titleSelectRayDisplayIndex_ = 0;
 	Vector3 titleRayPosition_{};
 
 	float entranceElapsedTime_ = 0.0f;
