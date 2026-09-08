@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
     <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
     <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
     <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp" />
@@ -128,6 +129,7 @@
     <ClCompile Include="src\application\GameObject\UI\UIManager\UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
     <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
     <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h" />
@@ -403,6 +405,20 @@
       <SubType>
       </SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="assets\shaders\SpotLightRay\SpotLightRay.PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\SpotLightRay\SpotLightRay.VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

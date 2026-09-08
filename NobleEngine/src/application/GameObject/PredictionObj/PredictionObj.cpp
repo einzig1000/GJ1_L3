@@ -1,5 +1,9 @@
 #include "PredictionObj.h"
-#include<algorithm>
+#include <System/CollisionManager/CollisionManager.h>
+#include <GameObject/TableObject/TableObject.h>
+#include <algorithm>
+
+
 
 PredictionObj::PredictionObj()
 {
@@ -22,8 +26,6 @@ PredictionObj::PredictionObj()
     worldMatrixHeapSlotForDraw_ = Game::Resource::CreateDynamic();
     colorHeapSlotForDraw_ = Game::Resource::CreateDynamic();
     textureIndexHeapSlotForDraw_ = Game::Resource::CreateDynamic();
-
-    emitter_.transform.scale = { 0.125f,0.125f,0.125f };
 }
 
 PredictionObj::~PredictionObj()
@@ -31,116 +33,117 @@ PredictionObj::~PredictionObj()
 }
 
 void PredictionObj::Initialize()
-{ 
+{
     //生存時間 判定用
-    transforms_.resize(instanceCount_, EulerTransforms());
-    worldMatrices_.resize(instanceCount_, Matrix4x4());
-    colliders_.resize(instanceCount_);
-    param_.resize(instanceCount_);
+    worldMatricesForDraw_.resize(instanceCount_, Matrix4x4());
+    colorsForDraw_.resize(instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	textureIndicesForDraw_.resize(instanceCount_, textureID_);
 
-    //最初から出るぞー
-    emitter_.frequencyTime = emitter_.frequency;
+    colliders_ = std::make_unique<Collider>();
 
-    for (int i = 0; i < instanceCount_; ++i) {
-  
-        param_[i].isAlive = true;
-        param_[i].lifeTime = emitter_.lifeTime;
+    //一旦サークルとして扱う
+    Collision::SettingCollider(
+        colliders_.get(),
+        Game::Asset::Model::Load("assets/application/model/Cocktail/Cocktail.obj"),
+        worldMatrix_,
+        CollisionTag::GetTag("Prediction"),
+        CollisionTag::GetTag("Obstacles"),
+        Collider::ColliderType::kColliderType_XZ_Circle
+    );
 
-        //テーブルの高さを設定する
-        transforms_[i].translate.y = 12.8f;
-
-        colliders_[i] = std::make_unique<Collider>();
-        //一旦サークルとして扱う
-        Collision::SettingCollider(
-            colliders_[i].get(), 
-            worldMatrices_[i],
-            CollisionTag::GetTag("Prediction"),
-            CollisionTag::GetTag("Obstacles"),
-            Collider::ColliderType::kColliderType_XZ_Circle,
-           4.0f
-        );
-
-        // 自分のコライダーを変数に保持
-        auto& myCollider = colliders_[i];
-        myCollider->SetCoefficiendOfRestituion(1.0f);
-        auto& myTransform = transforms_[i];
-        myCollider->SetOnCollisionCallback([this, &myCollider, &myTransform](Collider* collider) {
-
+    // 自分のコライダーを変数に保持
+    auto& myCollider = colliders_;
+    myCollider->SetCoefficiendOfRestituion(1.0f);
+    auto& myTransform = transforms_;
+    myCollider->SetOnCollisionCallback([this, &myCollider, &myTransform](Collider* collider)
+        {
             bool isCollisionResponse = false;
 
-            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles")) {
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles"))
+            {
                 //障害物だったら 押し戻す
                 isCollisionResponse = true;
             }
 
-            if (isCollisionResponse) {
+            if (isCollisionResponse)
+            {
                 myTransform.translate += myCollider->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
             }
-            
-       
-            });
-    }
+        });
 
     InitializeForDrawPrediction();
 }
 
 void PredictionObj::Update(const int32_t cameraID)
 {
+    //float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+    float deltaTime = 1.0f / 60.0f;
 
-    float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-    emitter_.frequencyTime += deltaTime;
-  
-    if (emitter_.frequency <= emitter_.frequencyTime)
+    // 発射フェーズ
+    //コライダーの初速度を設定する
+    colliders_->SetVelocity(emitter_.velocity);
+
+    //位置をセットする
+    transforms_.translate = emitter_.translate;
+
+    // 障害物側の物理状態を退避(仮想衝突での書き換えを後で元に戻すため)
+    SnapshotObstaclePhysics();
+
+    // 物理を呼ぶぞ！
+    for (int i = 0; i < instanceCount_; ++i)
     {
-        emitter_.frequencyTime -= emitter_.frequency;
-
-        for (int i = 0; i < instanceCount_; ++i) {
-            if (!param_[i].isAlive) {
-                param_[i].isAlive = true;
-              //コライダーの初速度を設定する
-                colliders_[i]->SetVelocity(emitter_.velocity.Normalize()* emitter_.kSpeed);
-                //位置をセットする
-                transforms_[i] = emitter_.transform;
-                colorsForDraw_[i] = {1.0f,1.0f,1.0f,1.0f};
-               //射出と同時にヒットしてないとする
-                //一度設定したらループを抜ける
-                break;
-            }
-        }  
-    }
-
-    //物理を呼ぶぞ！
-    for (int i = 0; i < instanceCount_;++i) {
-
-        if (param_[i].isAlive) {
-            param_[i].lifeTime -= deltaTime;
-
-            if (param_[i].lifeTime <= 0.0f) {
-                param_[i].isAlive = false;
-                //エミッター共通のライフタイムを入れる
-                param_[i].lifeTime = emitter_.lifeTime;
-            }
-            Vector3 vel = { 0.0f };
-
-            auto  phyB = colliders_[i]->GetPhysicsBody();
-            float mass = phyB.mass;
+        Vector3 vel = { 0.0f };
+    
+        for (int k = 0; k < 10; k++)
+        {
+            auto phyB = colliders_->GetPhysicsBody();
             vel = phyB.velocity;
-
-            //スケールタイム適用済みのデルタタイムを取得して座標を動かす
-            transforms_[i].translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-        } else {
-            //下方向に退避する
-            transforms_[i].translate = { 0.0f,-10.0f,0.0f };
-            //一応初期化する
-            colliders_[i]->SetVelocity({0.0f,0.0f,0.0f});
-            //透明にする
-            colorsForDraw_[i] = { 0.0f,0.0f,0.0f,0.0f };
+			transforms_.translate += vel * deltaTime;
+            //vel *= 0.99f;
+            //colliders_->SetVelocity(vel);
+			worldMatrix_ = transforms_.GetWorldMatrix();
+            CheckColliders();
         }
-
-        worldMatrices_[i] = transforms_[i].GetWorldMatrix();
+    
+		EulerTransforms transformsForDraw = transforms_;
+        transformsForDraw.scale = { 0.125f, 0.125f, 0.125f };
+        //スケールタイム適用済みのデルタタイムを取得して座標を動かす
+        worldMatricesForDraw_[i] = transformsForDraw.GetWorldMatrix();
     }
 
-   UpdateForDrawPrediction(cameraID);
+    //constexpr float kDotSpacing = 0.3f;        // 弾同士の間隔(ワールド単位。要調整)
+    //constexpr int32_t kMaxSubStepsPerDot = 60; // 1点あたりの最大サブステップ数(速度0近くでの無限ループ防止)
+    //
+    //// 物理を呼ぶぞ！
+    //for (int i = 0; i < instanceCount_; ++i)
+    //{
+    //    float travelled = 0.0f;
+    //    int32_t subStep = 0;
+    //
+    //    while (travelled < kDotSpacing && subStep < kMaxSubStepsPerDot)
+    //    {
+    //        auto phyB = colliders_->GetPhysicsBody();
+    //        Vector3 vel = phyB.velocity;
+    //
+    //        Vector3 delta = vel * deltaTime;
+    //        transforms_.translate += delta;
+    //        travelled += delta.Length();
+    //
+    //        vel *= 0.99f;
+    //        colliders_->SetVelocity(vel);
+    //
+    //        worldMatrix_ = transforms_.GetWorldMatrix();
+    //        CheckColliders();
+    //
+    //        ++subStep;
+    //    }
+    //
+    //    EulerTransforms transformsForDraw = transforms_;
+    //    transformsForDraw.scale = { 0.125f, 0.125f, 0.125f };
+    //    worldMatricesForDraw_[i] = transformsForDraw.GetWorldMatrix();
+    //}
+
+    UpdateForDrawPrediction(cameraID);
 }
 
 void PredictionObj::Draw()
@@ -154,49 +157,73 @@ void PredictionObj::Draw()
 
 void PredictionObj::DrawImGui()
 {
-    ImGui::Begin("GameObj");
-
-    if (!colliders_.empty()) {
-    for (int i = 0; i < instanceCount_; ++i) {
-        ImGui::PushID(i);
-        if (ImGui::TreeNode("Predictions"))
-        {
-            ImGui::Checkbox("isAlive", &param_[i].isAlive);
-            ImGui::DragFloat("lifeTime", &param_[i].lifeTime, 0.1f, 0.0f,emitter_.lifeTime);
-
-            static Vector3 vel;
-            ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
-            //物理ボディ
-            if (ImGui::TreeNode("PhysicsBody")) {
-       
-                 auto& collider = colliders_[i];
-                 auto  phyB = collider->GetPhysicsBody();
-                 float mass = phyB.mass;
-
-                 ImGui::SliderFloat3("velocity", &phyB.velocity.x, 0.001f, 1000.0f);
-                 ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-                 collider->SetMass(phyB.mass);
-
-                 if (ImGui::Button("Shot"))
-                 {
-                     collider->SetVelocity(vel);
-                 }
-             
-                ImGui::DragFloat3("Scale", &transforms_[i].scale.x, 0.01f);
-                ImGui::DragFloat3("Rotate", &transforms_[i].rotate.x, 0.01f);
-                ImGui::DragFloat3("Translate", &transforms_[i].translate.x, 0.01f);
-  
-                ImGui::TreePop();
-            }
-
-            ImGui::TreePop();
-        }
-
-        ImGui::PopID();
-    }
-    }
-    ImGui::End();
+    //ImGui::Begin("GameObj");
+    //
+    //if (!colliders_.empty()) {
+    //for (int i = 0; i < instanceCount_; ++i) {
+    //    ImGui::PushID(i);
+    //    if (ImGui::TreeNode("Predictions"))
+    //    {
+    //        ImGui::Checkbox("isAlive", &param_[i].isAlive);
+    //        ImGui::DragFloat("lifeTime", &param_[i].lifeTime, 0.1f, 0.0f,emitter_.lifeTime);
+    //
+    //        static Vector3 vel;
+    //        ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
+    //        //物理ボディ
+    //        if (ImGui::TreeNode("PhysicsBody")) {
+    //   
+    //             auto& collider = colliders_[i];
+    //             auto  phyB = collider->GetPhysicsBody();
+    //             float mass = phyB.mass;
+    //
+    //             ImGui::SliderFloat3("velocity", &phyB.velocity.x, 0.001f, 1000.0f);
+    //             ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+    //             collider->SetMass(phyB.mass);
+    //
+    //             if (ImGui::Button("Shot"))
+    //             {
+    //                 collider->SetVelocity(vel);
+    //             }
+    //         
+    //            ImGui::DragFloat3("Scale", &transforms_[i].scale.x, 0.01f);
+    //            ImGui::DragFloat3("Rotate", &transforms_[i].rotate.x, 0.01f);
+    //            ImGui::DragFloat3("Translate", &transforms_[i].translate.x, 0.01f);
+    //
+    //            ImGui::TreePop();
+    //        }
+    //
+    //        ImGui::TreePop();
+    //    }
+    //
+    //    ImGui::PopID();
+    //}
+    //}
+    //ImGui::End();
 }
+
+void PredictionObj::CheckColliders()
+{
+    //コライダーリストを毎フレーム削除してみる？
+    collisionManager_->ClearColliders();
+
+    //コライダーを追加する
+    for (int32_t i = 0; i < obstacleCount_; i++)
+    {
+        for (auto& collider : obstacles_[i]->GetColliders())
+        {
+            collisionManager_->AddCollider(collider.get());
+        }
+    }
+
+    collisionManager_->AddCollider(colliders_.get());
+
+    //コライダーをチェックする
+    collisionManager_->CheckAllCollisions();
+
+    // 仮想衝突によって書き換えられた障害物側の速度・めり込み量を元に戻す
+    RestoreObstaclePhysics();
+}
+
 
 void PredictionObj::InitializeForDrawPrediction()
 {
@@ -209,7 +236,7 @@ void PredictionObj::InitializeForDrawPrediction()
 void PredictionObj::UpdateForDrawPrediction(int32_t cameraID)
 {
 
-    Game::Resource::UpdateData(worldMatrixHeapSlotForDraw_, worldMatrices_);
+    Game::Resource::UpdateData(worldMatrixHeapSlotForDraw_, worldMatricesForDraw_);
     Game::Resource::UpdateData(colorHeapSlotForDraw_, colorsForDraw_);
     Game::Resource::UpdateData(textureIndexHeapSlotForDraw_, textureIndicesForDraw_);
 
@@ -221,4 +248,27 @@ void PredictionObj::UpdateForDrawPrediction(int32_t cameraID)
     drawObj_->SetCBufferData(1, ShaderType::VertexShader, &vsHeapSlot);
     drawObj_->SetCBufferData(0, ShaderType::PixelShader, &psHeapSlot);
 
+}
+
+void PredictionObj::SnapshotObstaclePhysics()
+{
+    obstaclePhysicsSnapshot_.clear();
+
+    for (int32_t i = 0; i < obstacleCount_; i++)
+    {
+        for (auto& collider : obstacles_[i]->GetColliders())
+        {
+            auto phyB = collider->GetPhysicsBody();
+            obstaclePhysicsSnapshot_.push_back({ collider.get(), phyB.velocity, phyB.penetration });
+        }
+    }
+}
+
+void PredictionObj::RestoreObstaclePhysics()
+{
+    for (auto& snapshot : obstaclePhysicsSnapshot_)
+    {
+        snapshot.collider->SetVelocity(snapshot.velocity);
+        snapshot.collider->SetPenetrationVector(snapshot.penetration);
+    }
 }
