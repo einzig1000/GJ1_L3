@@ -11,7 +11,7 @@ public:
     /// @brief 初期化
     /// @param maxDigit　最大桁 
     /// @param startPos 初期位置
-    void Initialize(const uint32_t maxDigit,const Vector3 startPos);
+    void Initialize(const uint32_t maxDigit,const Vector3& startPos,const Vector3& rotate,const Vector3& scale);
     void Update(const int32_t cameraID);
     void Draw();
     void DrawImGui();

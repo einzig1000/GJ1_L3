@@ -1,0 +1,12 @@
+# Blender 4.4.0 MTL File: 'UIIII.blend'
+# www.blender.org
+
+newmtl マテリアル.010
+Ns 24.078476
+Ka 0.715517 0.715517 0.715517
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd UI.png

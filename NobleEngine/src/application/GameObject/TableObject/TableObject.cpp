@@ -124,7 +124,6 @@ void TableObject::DrawImGui()
 
     ImGui::End();
 
-
     //バーティクルデバック表示
     glassParticle_->DebugImGui(static_cast<int32_t>(glassType_));
 }
