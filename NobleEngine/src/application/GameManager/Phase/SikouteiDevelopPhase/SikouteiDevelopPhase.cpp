@@ -112,7 +112,7 @@ void SikouteiDevelopPhase::Update()
     //予測オブジェクト
     predictionObj_->SetTranslate(glass_->GetTranslate());
     Vector3 glassNormalVel = Vector3(velocity_.x, 0.0f, velocity_.y);
-    predictionObj_->SetNormal(glassNormalVel);
+    predictionObj_->SetVelocity(glassNormalVel.Normalize());
     predictionObj_->Update(c_main_);
 
     CheckColliders();

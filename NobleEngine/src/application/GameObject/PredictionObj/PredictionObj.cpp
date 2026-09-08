@@ -16,7 +16,7 @@ PredictionObj::PredictionObj()
     drawObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModels.PS.hlsl";
     drawObj_->SetupFromShaders();
     drawObj_->modelID_ = modelID_;
-    drawObj_->instanceNum_ = instanceCountForDraw_;
+    drawObj_->instanceNum_ = instanceCount_;
 
     //描画用
     worldMatrixHeapSlotForDraw_ = Game::Resource::CreateDynamic();
@@ -41,12 +41,13 @@ void PredictionObj::Initialize()
     //最初から出るぞー
     emitter_.frequencyTime = emitter_.frequency;
 
-
-
     for (int i = 0; i < instanceCount_; ++i) {
   
         param_[i].isAlive = true;
         param_[i].lifeTime = emitter_.lifeTime;
+
+        //テーブルの高さを設定する
+        transforms_[i].translate.y = 12.8f;
 
         colliders_[i] = std::make_unique<Collider>();
         //一旦サークルとして扱う
@@ -54,7 +55,6 @@ void PredictionObj::Initialize()
             colliders_[i].get(), 
             worldMatrices_[i],
             CollisionTag::GetTag("Prediction"),
-            CollisionTag::GetTag("Target") |
             CollisionTag::GetTag("Obstacles"),
             Collider::ColliderType::kColliderType_XZ_Circle,
            4.0f
@@ -62,14 +62,12 @@ void PredictionObj::Initialize()
 
         // 自分のコライダーを変数に保持
         auto& myCollider = colliders_[i];
+        myCollider->SetCoefficiendOfRestituion(1.0f);
         auto& myTransform = transforms_[i];
         myCollider->SetOnCollisionCallback([this, &myCollider, &myTransform](Collider* collider) {
 
             bool isCollisionResponse = false;
-            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Target")) {
-                //ターゲットだったら
 
-            }
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Obstacles")) {
                 //障害物だったら 押し戻す
                 isCollisionResponse = true;
@@ -77,13 +75,6 @@ void PredictionObj::Initialize()
 
             if (isCollisionResponse) {
                 myTransform.translate += myCollider->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-            
-                drawPrediction_.isHit = true;
-                //描画ヒット座標と反射を記録する
-                drawPrediction_.hitPos = myTransform.translate;
-                drawPrediction_.reflect = myCollider->GetPhysicsBody().velocity;
-
-            
             }
             
        
@@ -107,9 +98,10 @@ void PredictionObj::Update(const int32_t cameraID)
             if (!param_[i].isAlive) {
                 param_[i].isAlive = true;
               //コライダーの初速度を設定する
-                colliders_[i]->SetVelocity(emitter_.normal* emitter_.kSpeed);
+                colliders_[i]->SetVelocity(emitter_.velocity.Normalize()* emitter_.kSpeed);
                 //位置をセットする
                 transforms_[i] = emitter_.transform;
+                colorsForDraw_[i] = {1.0f,1.0f,1.0f,1.0f};
                //射出と同時にヒットしてないとする
                 //一度設定したらループを抜ける
                 break;
@@ -141,6 +133,8 @@ void PredictionObj::Update(const int32_t cameraID)
             transforms_[i].translate = { 0.0f,-10.0f,0.0f };
             //一応初期化する
             colliders_[i]->SetVelocity({0.0f,0.0f,0.0f});
+            //透明にする
+            colorsForDraw_[i] = { 0.0f,0.0f,0.0f,0.0f };
         }
 
         worldMatrices_[i] = transforms_[i].GetWorldMatrix();
@@ -202,54 +196,16 @@ void PredictionObj::DrawImGui()
 
 void PredictionObj::InitializeForDrawPrediction()
 {
-    drawPrediction_.hitPos = { 0.0f };
-    drawPrediction_.reflect = { 0.0f };
-
-    transformsForDraw_.resize(instanceCountForDraw_, EulerTransforms{ .scale = {0.125f,0.125f,0.125f},.rotate = {0.0f,0.0f,0.0f},.translate = {0.0f,0.0f,0.0f} });
-    worldMatricesForDraw_.resize(instanceCountForDraw_, Matrix4x4());
     //赤
-    colorsForDraw_.resize(instanceCountForDraw_, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-    textureIndicesForDraw_.resize(instanceCountForDraw_, textureID_);
+    colorsForDraw_.resize(instanceCount_, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+    textureIndicesForDraw_.resize(instanceCount_, textureID_);
 
 }
 
 void PredictionObj::UpdateForDrawPrediction(int32_t cameraID)
 {
 
-    float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-    currentTime_ -= deltaTime;
-    currentTime_ = std::clamp(currentTime_,0.0f,hitTime_);
-
-    if (currentTime_ <= 0.0f) {
-        drawPrediction_.isHit = false;
-        currentTime_ = hitTime_;
-    }
-
-    for (int i = 0; i < instanceCountForDraw_; ++i) {
-
-        if (drawPrediction_.isHit) {
-            //描画ヒット座標と反射
-            Vector3 allLength = drawPrediction_.hitPos - emitter_.transform.translate;
-            Vector3 reflectPos = drawPrediction_.hitPos - drawPrediction_.reflect.Normalized() * allLength;
-
-            if (i < 5) {
-                transformsForDraw_[i].translate = Game::Math::Ease::Easing(emitter_.transform.translate, drawPrediction_.hitPos, EaseType::LINEAR, 1.0f / 5.0f * i);
-            } /*else if (i == 5) {
-                transformsForDraw_[i].translate = Game::Math::Ease::Easing(emitter_.transform.translate, drawPrediction_.hitPos, EaseType::LINEAR, 0.9f);
-            } */else {
-                transformsForDraw_[i].translate = Game::Math::Ease::Easing(drawPrediction_.hitPos, reflectPos, EaseType::LINEAR, 1.0f / 5.0f * i - 1.0f);
-            }
-        } else {
-
-           //Vector3 noHitPos = drawPrediction_.hitPos + emitter_.normal *i;
-            transformsForDraw_[i].translate = emitter_.transform.translate + emitter_.normal * i *0.5f;
-        }
-
-      
-        worldMatricesForDraw_[i] = transformsForDraw_[i].GetWorldMatrix();
-    }
-
-    Game::Resource::UpdateData(worldMatrixHeapSlotForDraw_, worldMatricesForDraw_);
+    Game::Resource::UpdateData(worldMatrixHeapSlotForDraw_, worldMatrices_);
     Game::Resource::UpdateData(colorHeapSlotForDraw_, colorsForDraw_);
     Game::Resource::UpdateData(textureIndexHeapSlotForDraw_, textureIndicesForDraw_);
 
