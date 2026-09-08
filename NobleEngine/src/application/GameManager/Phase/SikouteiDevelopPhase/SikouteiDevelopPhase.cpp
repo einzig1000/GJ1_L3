@@ -7,6 +7,7 @@
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
+#include"../../../GameObject/PredictionObj/PredictionObj.h"
 
 namespace
 {
@@ -125,6 +126,9 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 		human_[i]->SetupFromShaders();
 		human_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
 	}
+
+
+    prediction_ = std::make_unique<PredictionObj>();
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -135,7 +139,8 @@ void SikouteiDevelopPhase::Initialize()
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
-	cocktailWater_->Initialize();
+	  cocktailWater_->Initialize();
+    prediction_->Initialize();
 
 	LoadObstacleData(0);
 }
@@ -296,11 +301,70 @@ void SikouteiDevelopPhase::Draw()
         markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
         markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
         markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
+	}
+
+    // ショットテスト
+    if (Game::IO::Mouse::IsJustPressed(0))
+    {
+        dragStartPos_ = Game::IO::Mouse::Get2DPosition();
+        velocity_ = Vector2(0.0f, 0.0f);
+    }
+    if (Game::IO::Mouse::IsHeld(0))
+    {
+        Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
+        float dragLength = dragVector.Length();
+
+        constexpr float kPowerScale = 0.05f; // 感度。要調整
+        constexpr float kMaxSpeed = 20.0f;   // 上限。要調整
+
+        if (dragLength > 1.0f)
+        {
+            float angle = std::atan2(-dragVector.x, -dragVector.y);
+
+            Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
+            cameraDir.y = 0.0f;
+            cameraDir.Normalize();
+
+            float cosA = std::cos(angle);
+            float sinA = std::sin(angle);
+
+            Vector3 shotDir = Vector3(
+                cameraDir.x * cosA - cameraDir.z * sinA,
+                0.0f,
+                cameraDir.x * sinA + cameraDir.z * cosA
+            );
+
+            float power = std::clamp(dragLength * kPowerScale, 0.0f, kMaxSpeed);
+            velocity_ = Vector2(shotDir.x, shotDir.z) * power;
+        }
+        else
+        {
+            velocity_ = Vector2(0.0f, 0.0f);
+        }
+    }
+    if (!Game::IO::Key::IsHeld(VK_LSHIFT) && Game::IO::Mouse::IsJustReleased(0))
+    {
+        glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
+    }
+
+    Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+    prediction_->SetVelocity(velocity);
+    prediction_->SetTranslate(glass_->GetTranslate());
+    prediction_->Update(c_main_);
+}
+
+void SikouteiDevelopPhase::Draw()
+{
+    for (int32_t i = 0; i < 6; i++)
+    {
 		markers_[i]->Draw();
     }
 
     //テーブルの描画
     table_->Draw();
+
+    prediction_->Draw();
+
 	// 障害物の描画
     for (int32_t i = 0; i < obstacleCount; i++)
 	{
@@ -320,6 +384,7 @@ void SikouteiDevelopPhase::DrawImGui()
     cocktailWater_->DrawImGui();
     obstacles_[0]->DrawImGui();
     //table_->DrawImGui();
+    prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
 
     ImGui::Begin("camera");
@@ -510,6 +575,10 @@ void SikouteiDevelopPhase::CheckColliders()
     for (auto& collider : table_->GetColliders())
     {
         collisionManager_->AddCollider(collider.get());
+    }
+
+    for (auto& prediction : prediction_->GetColliders()) {
+        collisionManager_->AddCollider(prediction.get());
     }
 
     //コライダーをチェックする

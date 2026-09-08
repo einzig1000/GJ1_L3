@@ -7,6 +7,7 @@ class Glass;
 class Table;
 class CollisionManager;
 class HumanModel;
+class NumMeshs;
 
 class CollisionTestPhase :
 	public IPhase
@@ -21,7 +22,7 @@ public:
 	void Draw() override;
 	void DrawImGui() override;
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
-
+	
 private:
 	void InitGameObj();
 	void UpdateGameObj(const int32_t cameraID);
@@ -39,7 +40,8 @@ private:
 	//モデル
 	std::unique_ptr<HumanModel>humanModel_ = nullptr;
 #pragma endregion
-
+	//利益
+	std::unique_ptr<NumMeshs>benefit_ = nullptr;
 #pragma region
 	//コリジョン管理
 	std::unique_ptr<CollisionManager>collisionManager_ = nullptr;
