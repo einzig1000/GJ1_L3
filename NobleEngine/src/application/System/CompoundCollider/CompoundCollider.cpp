@@ -6,32 +6,32 @@ namespace Collision {
 
     void SettingCollider(
         Collider* collider,
-
+        const int32_t modelID,
         Matrix4x4& mat,
         const uint32_t attribute,
         const uint32_t mask,
-        const Collider::ColliderType colliderType,
-        const float scale
+        const Collider::ColliderType colliderType
         ) {
+
+        const ModelData* modelData = Game::Asset::Model::GetData(modelID);
+        size_t aabbCount = modelData->colliderShape.aabbs.size();
+        size_t sphereCount = modelData->colliderShape.spheres.size();
+        size_t maxCount = aabbCount + sphereCount;
 
         //コライダーがあればここに入れる
         collider->SetWorldMatrixAddress(mat);
         collider->SetCollisionAttribute(attribute);
         collider->SetCollisionMask(mask);
-        
-        float s = 0.5f * scale;
-        Sphere sphere = { .center = {0.0f,0.0f,0.0f},.radius = s };
 
         if (colliderType == Collider::ColliderType::kColliderType_XZ_Circle) {
             // Circleのセット
-            collider->SetSphere(sphere,true);
+            collider->SetSphere(modelData->colliderShape.spheres[0],true);
         } else if (colliderType == Collider::ColliderType::kColliderType_Sphere) {
             //本ゲームにおいてはここは基本使用しないが サークルではない
-            collider->SetSphere(sphere, false);
+            collider->SetSphere(modelData->colliderShape.spheres[0], false);
         } else if (colliderType == Collider::ColliderType::kColliderType_AABB) {
             //本ゲームにおいてはここは基本使用しないが
-            AABB aabb = { .min = {-s,-s,-s},.max = {s,s,s} };
-            collider->SetAABB(aabb);
+            collider->SetAABB(modelData->colliderShape.aabbs[0]);
         }
     }
 

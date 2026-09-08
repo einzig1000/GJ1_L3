@@ -41,13 +41,13 @@ void TableObject::Update(const int32_t cameraID)
     isHitFloor_ = false;
     Vector3 vel = { 0.0f };
 
-    //物理を呼ぶぞ！
-    if (!comCollider_.colliders.empty())
-    {
-        auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
-        float mass = phyB.mass;
-        vel = phyB.velocity;
-    }
+    ////物理を呼ぶぞ！
+    //if (!comCollider_.colliders.empty())
+    //{
+    //    auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
+    //    float mass = phyB.mass;
+    //    vel = phyB.velocity;
+    //}
 
 
     if (transform_.translate.y <= deadLine_)
