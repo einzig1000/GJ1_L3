@@ -19,8 +19,10 @@ void CollisionManager::Load()
     CollisionTag::AddTag("Chair");
     //障害物
     CollisionTag::AddTag("Obstacles");
-    //障害物
+    //テーブル
     CollisionTag::AddTag("Table");
+    //予測
+    CollisionTag::AddTag("Prediction");
 
     CollisionTag::SaveTagNames();
 }

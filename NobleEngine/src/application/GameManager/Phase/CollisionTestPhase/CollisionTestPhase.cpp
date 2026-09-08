@@ -25,11 +25,9 @@ void CollisionTestPhase::Initialize()
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->Load();
 
-
-    benefit_ = std::make_unique<Benefit>();
-    benefit_->Initialize();
+    benefit_ = std::make_unique<NumMeshs>();
+    benefit_->Initialize(6, {0.0f,0.0f,0.0f});
     InitGameObj();
-
 }
 
 void CollisionTestPhase::Update()

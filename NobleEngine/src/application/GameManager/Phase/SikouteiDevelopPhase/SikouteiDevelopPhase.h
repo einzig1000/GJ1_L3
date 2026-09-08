@@ -7,6 +7,76 @@ class Glass;
 class TableObject;
 class Table;
 class CollisionManager;
+class CocktailWater;
+class PredictionObj;
+class SimpleObstaclePlacementFlow;
+
+
+
+class CounterSec
+{
+private:
+	float progressSec_ = 0.0f;
+	float target_ = 0.0f;
+
+public:
+
+	void SetTargetTime(float target)
+	{
+		progressSec_ = 0.0f;
+		target_ = target;
+	}
+
+	bool CountUp(float dtMs)
+	{
+		progressSec_ += dtMs;
+		if (progressSec_ > target_)
+		{
+			return true;
+		}
+		return false;
+	}
+};
+
+class CounterF
+{
+private:
+	int32_t progressFrame_ = 0;
+	int32_t target_ = 0;
+
+public:
+
+	void SetTargetFrame(int32_t target)
+	{
+		progressFrame_ = 0;
+		target_ = target;
+	}
+
+	bool CountUp()
+	{
+		progressFrame_++;
+		if (progressFrame_ > target_)
+		{
+			return true;
+		}
+		return false;
+	}
+};
+
+
+enum class CameraPhase
+{
+	// 盤面確認中。Theta/Phiともにマウス操作可能
+	Free,
+	// 射出角度調整中。Phiロック状態。Thetaはマウス操作可能
+	ShotAngleSetup,
+	// グラススライド中。Theta/Phiともにロック状態。
+	GlassFollowing,
+	// グラスキャッチ中。Theta/Phiともにロック状態。
+	CatchFollowing,
+
+};
+
 
 class SikouteiDevelopPhase :
 	public IPhase
@@ -23,38 +93,52 @@ public:
 
 
 private:
-	int32_t c_main_ = -1;
-
-	//ゲームオブジェクト
-	int32_t deleteIndex = -1;
-	std::unique_ptr<Glass> glass_;
-	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
-	int32_t obstacleCount = 0;
-	std::unique_ptr<Table> table_;
-
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
+
+	int32_t c_main_ = -1;
+	Coordinate_spherical cameraSpherical_ = { 0.0f, 0.0f, 0.0f };
+	CameraPhase cameraPhase_ = CameraPhase::Free;
+	CounterSec cameraPhaseCounter_;
+	void ChangeCameraPhase(CameraPhase phase);
+	void UpdateCameraPhase();
 
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 	bool isDebugDraw_ = false;
 
-	Vector2 velocity_ = Vector2(0.0f, 0.0f);
-	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);
+	// グラス
+	std::unique_ptr<Glass> glass_;
+	std::unique_ptr<CocktailWater> cocktailWater_;
+	Vector2 velocity_ = Vector2(0.0f, 0.0f);		// 射出速度
+	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);	// マウスドラッグ開始位置
+	bool ableDrag_ = true;
+	float mouseInsensitivity_ = 0.2f;	// マウス感度
 
+	// 障害物
+	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
+	int32_t obstacleCount = 0;
+	int32_t deleteIndex = -1;
 
+	// テーブル
+	std::unique_ptr<Table> table_;
 
-	int32_t currentGlassUserIndex_ = 0;
-	float cameraTheta = 0.0f;
-
+	// 人間
 	std::unique_ptr<RenderObject> human_[3];
 	EulerTransforms humanTransforms_[3];
-	float humanRotate[3] = { 90.0f, 210.0f, 330.0f, };
+	float humanRotate[3] = { 90.0f, 210.0f, 330.0f, };	// 人間がテーブルから見てどの角度にいるか
+	int32_t currentGlassUserIndex_ = 0;					// 現在グラスを持っている人間のインデックス
+	float humansize_ = 30.0f;							// キャッチ出来る角度
 
+	// マーカー(デバッグ描画)
 	std::unique_ptr<RenderObject> markers_[6];
 	EulerTransforms markerTransforms_[6];
-	std::vector<float> markerAngles_;
-	float humansize_ = 30.0f;
+	std::vector<float> markerAngles_;					// マーカーがテーブルから見てどの角度にいるか
+
+	//予測オブジェ
+	std::unique_ptr<PredictionObj>prediction_ = nullptr;
+	//配置開始までのシステム
+	std::unique_ptr<SimpleObstaclePlacementFlow>simpleObstaclePlacementFlow_ = nullptr;
 };
 
 

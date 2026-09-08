@@ -33,8 +33,11 @@ public:
     void SetGlassTypeAndLoadModels(const GlassType type);
 
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
+	void AddTranslate(const Vector3& translate) { transform_.translate += translate; };
+
 	Vector3 GetTranslate() { return transform_.translate; };
 	//void SetVelocity(const Vector3& vel) { velocity_ = vel; };
+    Vector3 GetVelocity() { return velocity_; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
 
     float GetRadius() { return transform_.scale.x * 1.0f; };

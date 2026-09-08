@@ -2,6 +2,7 @@
 #include <GameManager/Phase/IPhase.h>
 #include <memory>
 
+
 class GameScenePhase :
 	public IPhase
 {

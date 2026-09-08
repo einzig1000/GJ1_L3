@@ -23,5 +23,6 @@ public:
     void SetModelId(const uint32_t number);
     void Draw();
     void DrawImGui();
+    void SetColor(const Vector4& color);
 };
 

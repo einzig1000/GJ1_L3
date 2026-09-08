@@ -7,7 +7,7 @@ class Glass;
 class Table;
 class CollisionManager;
 class HumanModel;
-class Benefit;
+class NumMeshs;
 
 class CollisionTestPhase :
 	public IPhase
@@ -41,7 +41,7 @@ private:
 	std::unique_ptr<HumanModel>humanModel_ = nullptr;
 #pragma endregion
 	//利益
-	std::unique_ptr<Benefit>benefit_ = nullptr;
+	std::unique_ptr<NumMeshs>benefit_ = nullptr;
 #pragma region
 	//コリジョン管理
 	std::unique_ptr<CollisionManager>collisionManager_ = nullptr;

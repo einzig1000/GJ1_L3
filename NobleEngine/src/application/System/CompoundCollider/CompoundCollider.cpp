@@ -1,10 +1,43 @@
 #include "CompoundCollider.h"
 #include"../Collider/Collider.h"
+#include"Utilities/Logger/Logger.h"
 
 namespace Collision {
 
+    void SettingCollider(
+        Collider* collider,
+        const int32_t modelID,
+        Matrix4x4& mat,
+        const uint32_t attribute,
+        const uint32_t mask,
+        const Collider::ColliderType colliderType
+        ) {
+
+        const ModelData* modelData = Game::Asset::Model::GetData(modelID);
+        size_t aabbCount = modelData->colliderShape.aabbs.size();
+        size_t sphereCount = modelData->colliderShape.spheres.size();
+        size_t maxCount = aabbCount + sphereCount;
+
+        //コライダーがあればここに入れる
+        collider->SetWorldMatrixAddress(mat);
+        collider->SetCollisionAttribute(attribute);
+        collider->SetCollisionMask(mask);
+
+        if (colliderType == Collider::ColliderType::kColliderType_XZ_Circle) {
+            // Circleのセット
+            collider->SetSphere(modelData->colliderShape.spheres[0],true);
+        } else if (colliderType == Collider::ColliderType::kColliderType_Sphere) {
+            //本ゲームにおいてはここは基本使用しないが サークルではない
+            collider->SetSphere(modelData->colliderShape.spheres[0], false);
+        } else if (colliderType == Collider::ColliderType::kColliderType_AABB) {
+            //本ゲームにおいてはここは基本使用しないが
+            collider->SetAABB(modelData->colliderShape.aabbs[0]);
+        }
+    }
+
+
     void CompoundCollider::CreateFromModelData(
-        const int32_t modelID, 
+        const int32_t modelID,
         Matrix4x4& mat,
         const uint32_t attribute,
         const uint32_t mask)
@@ -32,7 +65,7 @@ namespace Collision {
         }
 
         for (int j = 0; j < aabbCount; ++j) {
-            newColliders[sphereCount+j]->SetAABB(modelData->colliderShape.aabbs[j]);
+            newColliders[sphereCount + j]->SetAABB(modelData->colliderShape.aabbs[j]);
         }
 
         colliders = std::move(newColliders);

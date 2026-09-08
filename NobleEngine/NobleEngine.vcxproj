@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
+    <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
+    <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp" />
     <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp" />
     <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp" />
     <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp" />
@@ -123,10 +126,14 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
+    <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
+    <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h" />
     <ClInclude Include="src\application\GameObject\TableObject\TableObject.h" />
     <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h" />
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
     <ClInclude Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.h" />
+    <ClInclude Include="src\application\GameObject\UI\Benefit\Benefit.h" />
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
     <ClInclude Include="src\application\System\CollisionInfo.h" />
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />
