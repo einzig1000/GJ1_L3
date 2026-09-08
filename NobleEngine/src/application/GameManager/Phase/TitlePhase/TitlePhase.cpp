@@ -1516,13 +1516,14 @@ void TitlePhase::Draw_LightModels() {
 		iceModel_[i].Models_->Draw();
 	}
 
-	// 不透明モデルを描き終えた後に、カクテル上のボリューム光を重ねる
-	titleRayModel_.Models_->Draw();
-
 	// 切り替え開始から表示し、下から上昇させる
 	if (isTitleSelectTransitionStarted_ || titlePhaseSelection_ == TitlePhaseSelection::Select) {
 		for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 			titleSelectModels_[i].Models_->Draw();
 		}
 	}
+
+	// TitleRayが深度を書き込んでもTitleSelectを隠さないように、
+	// TitleSelectを含む全モデルの描画後にボリューム光を重ねる。
+	titleRayModel_.Models_->Draw();
 }
