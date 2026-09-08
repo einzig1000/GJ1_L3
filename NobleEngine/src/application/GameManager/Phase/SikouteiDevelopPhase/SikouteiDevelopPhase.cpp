@@ -269,8 +269,8 @@ void SikouteiDevelopPhase::Update()
         glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
     }
 
-    Vector3 normal = { velocity_.x, 0.0f, velocity_.y };
-    prediction_->SetNormal(normal.Normalize());
+    Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+    prediction_->SetVelocity(velocity);
     prediction_->SetTranslate(glass_->GetTranslate());
     prediction_->Update(c_main_);
 }

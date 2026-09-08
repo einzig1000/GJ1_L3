@@ -141,7 +141,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         modelPath = "assets/application/model/Cocktail/Cocktail.obj";
         texturePath = "assets/engine/texture/white1x1.png";
 		myColliderTag = CollisionTag::GetTag("Glass");
-        targetColliderTag = (CollisionTag::GetTag("Target") | CollisionTag::GetTag("Obstacles"));
+        targetColliderTag = (CollisionTag::GetTag("Target") | CollisionTag::GetTag("Obstacles")| CollisionTag::GetTag("Prediction"));
 		mass = 1.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
         break;
@@ -149,7 +149,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         modelPath = "assets/application/Alcohol/Bottle/Bottle.obj";
 		texturePath = "assets/application/Alcohol/Bottle/Bottle.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction"));
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
 		mass = 10.0f;
         //緑色
@@ -159,7 +159,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         modelPath = "assets/application/Alcohol/Champagne/Champagne.obj";
 		texturePath = "assets/application/Alcohol/Champagne/Champagne.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction") );
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         //大体同じだけれど緑色
@@ -169,7 +169,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
 		modelPath = "assets/application/Alcohol/Gin/Gin.obj";
 		texturePath = "assets/application/Alcohol/Gin/Gin.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction") );
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         particleColor = { 1.0f,1.0f,1.0f,1.0f };
@@ -178,7 +178,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
 		modelPath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.obj";
 		texturePath = "assets/application/Alcohol/JapaneseSake/JapaneseSake.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         //グレー
@@ -188,7 +188,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
 		modelPath = "assets/application/Alcohol/Plumwine/Plumwine.obj";
 		texturePath = "assets/application/Alcohol/Plumwine/Plumwine.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         //オレンジがかった黄色
@@ -198,7 +198,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         modelPath = "assets/application/Alcohol/Whiskey/Whiskey.obj";
         texturePath = "assets/application/Alcohol/Whiskey/Whiskey.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         //かなり黄色
@@ -209,7 +209,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
         modelPath = "assets/application/model/Cocktail/Cocktail.obj";
         texturePath = "assets/engine/texture/white1x1.png";
         myColliderTag = CollisionTag::GetTag("Obstacles");
-        targetColliderTag = (CollisionTag::GetTag("Glass"));
+        targetColliderTag = (CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Prediction"));
         mass = 10.0f;
         color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
         particleColor = { 1.0f,1.0f,1.0f,1.0f };
@@ -253,6 +253,10 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
                     if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table"))
                     {
                         //テーブルだったら
+                    }
+
+                    if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
+                        //予測　オブジェクト
                     }
 
                     if (isCollisionResponse)
