@@ -1158,7 +1158,7 @@ struct Material
 	Vector3 diffuseColor = { 1.0f, 1.0f, 1.0f };
 	float  shininess = 1.0f;
 	Vector3 specularColor = { 1.0f, 1.0f, 1.0f };
-	float  _pad0 = 0.0f;
+    float alpha;
 };
 
 #pragma endregion

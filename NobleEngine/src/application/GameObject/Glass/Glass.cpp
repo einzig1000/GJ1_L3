@@ -29,17 +29,16 @@ void Glass::Initialize()
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
     //シンプルモデルのシェーダー適用
-    glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
-    glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+    glassObj_->psoConfig_.vs = "assets/shaders/PunctualLight/PunctualLight.VS.hlsl";
+    glassObj_->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
     glassObj_->SetupFromShaders();
 
     glassObj_->modelID_ = modelID_;
-
     //一旦半透明にしておく
     color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
 
     comCollider_.CreateFromModelData(
-        modelID_,
+        glassObj_->modelID_,
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
 
@@ -96,21 +95,15 @@ void Glass::Update(const int32_t cameraID)
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
         velocity_ = phyB.velocity;
-        //velocity_ *= 0.99f;
-        //comCollider_.colliders.at(0)->SetVelocity(velocity_);
     }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += velocity_ * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
-    worldMatrix_ = transform_.GetWorldMatrix();
+	cameraPos_ = Game::Camera::Getter::GetWorldPosition(cameraID);
     Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-    Matrix4x4 wvp = worldMatrix_ * viewProjection;
-
-    glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-    glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
-    glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
-    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
+    worldMatrix_ = transform_.GetWorldMatrix();
+    wvpMatrix_ = worldMatrix_ * viewProjection;
 
 
     if (transform_.translate.y <= deadLine_) {
@@ -129,11 +122,20 @@ void Glass::Update(const int32_t cameraID)
         }
     }
 
+
+    material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
+    material_.alpha = color_.w;
    
 }
 
 void Glass::Draw()
 {
+    glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
+    glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
+    glassObj_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos_);
+    glassObj_->SetCBufferData(1, ShaderType::PixelShader, lightData_);
+    glassObj_->SetCBufferData(2, ShaderType::PixelShader, &material_);
+    glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
     if (isBroken_) {
         glassParticle_->Draw();
@@ -176,6 +178,8 @@ void Glass::DrawImGui()
 
             ImGui::TreePop();
         }
+
+
 
         ImGui::TreePop();
     }

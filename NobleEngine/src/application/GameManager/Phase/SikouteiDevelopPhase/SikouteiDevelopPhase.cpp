@@ -130,11 +130,14 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
     // オブジェクト実体生成
 	cocktailWater_ = std::make_unique<CocktailWater>();
     table_ = std::make_unique<Table>();
+    table_->SetLightData(&lightData_);
     glass_ = std::make_unique<Glass>();
+    glass_->SetLightData(&lightData_);
     for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
     {
         obstacles_[i] = std::make_unique<TableObject>();
         obstacles_[i]->Initialize();
+        obstacles_[i]->SetLightData(&lightData_);
     }
 
 	markerAngles_.resize(6);
@@ -149,8 +152,8 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 	for (int32_t i = 0; i < 3; i++)
 	{
 		human_[i] = std::make_unique<RenderObject>();
-		human_[i]->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
-		human_[i]->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+        human_[i]->psoConfig_.vs = "assets/shaders/PunctualLight/PunctualLight.VS.hlsl";
+        human_[i]->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
 		human_[i]->SetupFromShaders();
 		human_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
 	}
@@ -335,6 +338,7 @@ void SikouteiDevelopPhase::Draw()
 {
     const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
     const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
+	const Vector3 cameraPos = Game::Camera::Getter::GetWorldPosition(c_main_);
 
     for (int32_t i = 0; i < 3; i++)
     {
@@ -344,8 +348,10 @@ void SikouteiDevelopPhase::Draw()
 
         human_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
         human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
-        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
+        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &cameraPos);
+        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &lightData_);
+        human_[i]->SetCBufferData(2, ShaderType::PixelShader, &material_);
+        human_[i]->SetCBufferData(3, ShaderType::PixelShader, &white1x1);
         human_[i]->Draw();
     }
     for (int32_t i = 0; i < 6; i++)
@@ -542,6 +548,42 @@ void SikouteiDevelopPhase::DrawImGui()
 
         ImGui::TreePop();
     }
+
+    // ライト
+    if (ImGui::TreeNode("LightData"))
+    {
+        ImGui::DragInt("LightCount", &lightData_.LightCount, 1, 0, 4);
+        for (int i = 0; i < lightData_.LightCount; ++i)
+        {
+            ImGui::ColorEdit3("ambientColor", &lightData_.ambientColor.x);
+
+            std::string lightNodeName = "Light" + std::to_string(i);
+            if (ImGui::TreeNode(lightNodeName.c_str()))
+            {
+                ImGui::SeparatorText("Common");
+                ImGui::ColorEdit3("color", &lightData_.lights[i].color.x);
+                ImGui::DragFloat("intensity", &lightData_.lights[i].intensity, 0.01f);
+
+                ImGui::SeparatorText("type");
+                ImGui::DragInt("type", &lightData_.lights[i].type, 1, 0, 2);
+
+                ImGui::SeparatorText("Directional");
+                ImGui::DragFloat3("direction", &lightData_.lights[i].direction.x, 0.01f);
+
+                ImGui::SeparatorText("Spot");
+                ImGui::DragFloat("spotCos", &lightData_.lights[i].spotCos, 0.01f);
+
+                ImGui::SeparatorText("Point / Spot");
+                ImGui::DragFloat3("position", &lightData_.lights[i].position.x, 0.01f);
+                ImGui::DragFloat("range", &lightData_.lights[i].range, 0.01f);
+
+                ImGui::TreePop();
+            }
+        }
+
+        ImGui::TreePop();
+    }
+
 
     simpleObstaclePlacementFlow_->DrawImGui();
 

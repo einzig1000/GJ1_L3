@@ -41,7 +41,10 @@ public:
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 
+    void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+
 private:
+    LightDataForGPU* lightData_;
     
     //床との当たり判定
     bool isHitFloor_ = false;
@@ -51,12 +54,17 @@ private:
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
 
-    //テクスチャID
-    int32_t textureID_ = -1;
-
+    //インスタンス数に応じてそれぞれの構造を持たせる
     EulerTransforms transform_;
     Matrix4x4 worldMatrix_;
-    Vector4 color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+    Matrix4x4 wvpMatrix_;
+    Vector4 color_;
+    Vector3 velocity_;
+    Vector3 cameraPos_;
+    Material material_;
+    int32_t modelID_ = -1;
+    int32_t textureID_ = -1;
+
     //複合コライダー
     Collision::CompoundCollider comCollider_;
 
