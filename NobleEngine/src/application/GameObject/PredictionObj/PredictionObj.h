@@ -58,7 +58,7 @@ private:
     //テクスチャID
     int32_t textureID_ = -1;
     //インスタンス数
-    int32_t instanceCount_ = 12;
+    int32_t instanceCount_ = 6;
     
     //インスタンス数に応じてそれぞれの構造を持たせる
 

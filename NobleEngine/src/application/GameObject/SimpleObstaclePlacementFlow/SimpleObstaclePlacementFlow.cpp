@@ -155,6 +155,12 @@ void SimpleObstaclePlacementFlow::SetSpawnPoint(const EulerTransforms& spawnPoin
     spawnPoint_ = spawnPoint;
 }
 
+void SimpleObstaclePlacementFlow::SetPieceLocalPosition(int32_t index, const Vector3& position)
+{
+    pieces_[index].localPosition = position;
+    pieces_[index].transform.translate = position;
+}
+
 void SimpleObstaclePlacementFlow::Initialize()
 {
     pieces_.clear();

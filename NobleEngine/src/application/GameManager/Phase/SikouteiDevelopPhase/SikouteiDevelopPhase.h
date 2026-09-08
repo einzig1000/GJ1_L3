@@ -113,7 +113,8 @@ private:
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);		// 射出速度
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);	// マウスドラッグ開始位置
 	bool ableDrag_ = true;
-	float mouseInsensitivity_ = 0.2f;	// マウス感度
+	float mouseInsensitivity_ = 0.020f;	// マウス感度
+	bool dragging_ = false;	// ドラッグ中かどうか
 
 	// 障害物
 	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
@@ -126,7 +127,7 @@ private:
 	// 人間
 	std::unique_ptr<RenderObject> human_[3];
 	EulerTransforms humanTransforms_[3];
-	float humanRotate[3] = { 90.0f, 210.0f, 330.0f, };	// 人間がテーブルから見てどの角度にいるか
+	float humanRotateDegree[3] = { 90.0f, 210.0f, 330.0f, };	// 人間がテーブルから見てどの角度にいるか
 	int32_t currentGlassUserIndex_ = 0;					// 現在グラスを持っている人間のインデックス
 	float humansize_ = 30.0f;							// キャッチ出来る角度
 
