@@ -461,13 +461,13 @@ private:
 	static constexpr float kSelectionCameraOrbitEndDistance_ = 8.0f;
 
 	// 正面で周回を止めた後、真上へ移動しながら近づく時間（秒）
-	static constexpr float kSelectionCameraTopMoveDuration_ = 0.6f;
+	static constexpr float kSelectionCameraTopMoveDuration_ = 1.0f;
+
+	// 正面から真上へ移動する放物線の、直線軌道からの追加高度
+	static constexpr float kSelectionCameraTopArcHeight_ = 10.0f;
 
 	// カクテルへ近づいた後に停止するカメラ距離
 	static constexpr float kSelectionCameraStopDistance_ = 0.5f;
-
-	// 選択演出の最終カメラ角度（真上90度）
-	static constexpr float kSelectionCameraTopPhi_ = std::numbers::pi_v<float> / 2.0f;
 
 	Vector3 iceStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};

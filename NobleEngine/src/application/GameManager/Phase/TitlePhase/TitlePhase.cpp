@@ -1424,19 +1424,25 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		return;
 	}
 
-	// 第2段階：正面位置から真上へ弧状に移動し、下へ向きながら近づく。
+	// 第2段階：正面位置から真上へ、少し高く膨らむ放物線を描いて移動する。
 	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
 	if (topMoveT > 1.0f) {
 		topMoveT = 1.0f;
 	}
 	const float smoothTopMoveT = EaseInOut01(topMoveT);
-	const float currentPhi = startPhi * (1.0f - smoothTopMoveT) + kSelectionCameraTopPhi_ * smoothTopMoveT;
-	const float cameraDistance = kSelectionCameraOrbitEndDistance_ * (1.0f - smoothTopMoveT) + kSelectionCameraStopDistance_ * smoothTopMoveT;
 
-	Game::Camera::Setter::SetCenter(currentCocktailFocus, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetPhiTarget(currentPhi, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetThetaTarget(kCocktailFrontCameraTheta_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetDistance(cameraDistance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	const float orbitEndHorizontalDistance = kSelectionCameraOrbitEndDistance_ * std::cos(startPhi);
+	const Vector3 topMoveStartPosition(
+	    currentCocktailFocus.x + orbitEndHorizontalDistance * std::cos(kCocktailFrontCameraTheta_), currentCocktailFocus.y + kSelectionCameraOrbitEndDistance_ * std::sin(startPhi),
+	    currentCocktailFocus.z + orbitEndHorizontalDistance * std::sin(kCocktailFrontCameraTheta_));
+	const Vector3 topMoveEndPosition(currentCocktailFocus.x, currentCocktailFocus.y + kSelectionCameraStopDistance_, currentCocktailFocus.z);
+
+	Vector3 currentCameraPosition = topMoveStartPosition * (1.0f - smoothTopMoveT) + topMoveEndPosition * smoothTopMoveT;
+	const float parabolicHeight = 4.0f * kSelectionCameraTopArcHeight_ * smoothTopMoveT * (1.0f - smoothTopMoveT);
+	currentCameraPosition.y += parabolicHeight;
+
+	// 放物線上の現在位置から毎フレーム角度を求め、常にカクテルへ視線を追従させる。
+	AimCameraFromFixedPosition(currentCameraPosition, currentCocktailFocus);
 }
 
 void TitlePhase::Update_Model(Model& model) {
