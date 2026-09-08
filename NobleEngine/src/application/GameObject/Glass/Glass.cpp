@@ -96,6 +96,8 @@ void Glass::Update(const int32_t cameraID)
         auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
         float mass = phyB.mass;
         velocity_ = phyB.velocity;
+        //velocity_ *= 0.99f;
+        //comCollider_.colliders.at(0)->SetVelocity(velocity_);
     }
 
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
@@ -156,8 +158,6 @@ void Glass::DrawImGui()
                 float mass = phyB.mass;
 
                 ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-
-                collider->SetMass(phyB.mass);
 
                 collider->SetMass(phyB.mass);
 

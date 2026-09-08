@@ -35,7 +35,7 @@ namespace
     /// </summary>
     /// <param name="bigCenter">でかい円の中心</param>
     /// <param name="smallCenter">小さい円の中心</param>
-    /// <returns></returns>
+    /// <returns> 0〜360</returns>
     float GetContactAngleDeg(const Vector2& bigCenter, const Vector2& smallCenter)
     {
         Vector2 dir = smallCenter - bigCenter;
@@ -130,7 +130,10 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 
 
     prediction_ = std::make_unique<PredictionObj>();
+	prediction_->SetCollisionManager(collisionManager_.get());
+    prediction_->SetObstacleArray(obstacles_);
 
+    Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(45.0f), 0.0f, EaseType::OUT_BACK, c_main_);
 
     simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
 }
@@ -143,7 +146,7 @@ void SikouteiDevelopPhase::Initialize()
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
-	  cocktailWater_->Initialize();
+	cocktailWater_->Initialize();
     prediction_->Initialize();
 
     EulerTransforms spawnTransform;
@@ -168,6 +171,7 @@ void SikouteiDevelopPhase::Update()
         glass_->SetVelocity(Vector3{});
         ableDrag_ = true;
         LoadObstacleData(0);
+        ChangeCameraPhase(CameraPhase::Free);
     }
 
     // テーブル外判定
@@ -180,12 +184,9 @@ void SikouteiDevelopPhase::Update()
         {
             if (IsInAngleRange(angle, markerAngles_[i * 2], markerAngles_[i * 2 + 1]))
             {
-                cameraSpherical_.theta = humanRotate[i];
-                //if (currentGlassUserIndex_ > i) cameraTheta += (humanRotate[i] - humanRotate[i + 1]);
-                //else if (currentGlassUserIndex_ < i) cameraTheta += (humanRotate[i] - humanRotate[i - 1]);
                 currentGlassUserIndex_ = i;
-                Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 1.0f, EaseType::OUT_BACK, c_main_);
-                Game::Camera::Setter::SetDistanceTarget(5.0f, 0.2f, EaseType::LINEAR, c_main_);
+                cameraSpherical_.theta = humanRotate[i];
+				ChangeCameraPhase(CameraPhase::CatchFollowing);
                 Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotate[currentGlassUserIndex_]);
                 glassPos.y = 1.28f;
                 glass_->SetTranslate(glassPos);
@@ -230,78 +231,66 @@ void SikouteiDevelopPhase::Update()
     // ショット
     if (ableDrag_)
     {
-        // マウス移動量
-        const Vector2 mouseDelta = Game::IO::Mouse::Get2DPositionDelta();
-
-        if (!Game::IO::Mouse::IsHeld(0))
-        {
-            cameraSpherical_.phi += mouseDelta.y * mouseInsensitivity_;
-            constexpr float limit = 60.0f;
-            cameraSpherical_.phi = std::clamp(cameraSpherical_.phi, 0.0f, limit);
-            Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.0f, EaseType::OUT_BACK, c_main_);
-        }
-        cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
-        if (cameraSpherical_.theta > humanRotate[currentGlassUserIndex_] + 60.0f) cameraSpherical_.theta = humanRotate[currentGlassUserIndex_] + 60.0f;
-        if (cameraSpherical_.theta < humanRotate[currentGlassUserIndex_] - 60.0f) cameraSpherical_.theta = humanRotate[currentGlassUserIndex_] - 60.0f;
-        Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 0.0f, EaseType::OUT_BACK, c_main_);
-
         if (Game::IO::Mouse::IsJustPressed(0))
         {
             dragStartPos_ = Game::IO::Mouse::Get2DPosition();
             velocity_ = Vector2(0.0f, 0.0f);
+            ChangeCameraPhase(CameraPhase::ShotAngleSetup);
         }
         if (Game::IO::Mouse::IsHeld(0))
         {
             Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
-            float dragLength = dragVector.Length();
+            float dragLengthY = dragStartPos_.y - Game::IO::Mouse::Get2DPosition().y;
 
             constexpr float kPowerScale = 0.05f; // 感度。要調整
-            constexpr float kMaxSpeed = 20.0f;   // 上限。要調整
+            constexpr float kMaxSpeed = 5.0f;   // 上限。要調整
 
-            if (dragLength > 1.0f)
+            if (dragLengthY > 0.0f)
             {
-                float angle = std::atan2(dragVector.x, dragVector.y);
-
                 Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
                 cameraDir.y = 0.0f;
                 cameraDir.Normalize();
 
-                float power = std::clamp(dragLength * kPowerScale, 0.0f, kMaxSpeed);
+                float power = std::clamp(dragLengthY * kPowerScale, 0.0f, kMaxSpeed);
                 velocity_ = Vector2(cameraDir.x, cameraDir.z) * power;
             }
             else
             {
                 velocity_ = Vector2(0.0f, 0.0f);
             }
+
+            Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+            prediction_->SetObstacleCount(obstacleCount);
+            prediction_->SetVelocity(velocity);
+            prediction_->SetTranslate(glass_->GetTranslate());
         }
         if (Game::IO::Mouse::IsJustReleased(0))
         {
-            glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
-			cameraSpherical_.phi = 20.0f;
+            if (velocity_.LengthSq() > 1.0f)
+            {
+                glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
+                cameraSpherical_.phi = 20.0f;
 
-			Game::Camera::Setter::SetDistanceTarget(3.0f, 0.2f, EaseType::LINEAR, c_main_);
-            Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.2f, EaseType::LINEAR, c_main_);
-            ableDrag_ = false;
+                ableDrag_ = false;
+                prediction_->SetVelocity(Vector3{});
+
+                ChangeCameraPhase(CameraPhase::GlassFollowing);
+            }
+            else
+            {
+                ChangeCameraPhase(CameraPhase::Free);
+            }
         }
-    }
-    else
-    {
-  //      Vector3 glassVel = glass_->GetVelocity();
-		//Vector3 glassVel2dNormalized = Vector3(glassVel.x, 0.0f, glassVel.z).Normalized();
-  //      Vector3 yawPttch = Game::Math::YawPitchFromDirection(glassVel2dNormalized);
-  //      Game::Camera::Setter::SetThetaTarget(yawPttch.y, 0.0f, EaseType::OUT_BACK, c_main_);
+
+        prediction_->Update(c_main_);
     }
 
 
-    Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
-
+    UpdateCameraPhase();
     Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
     prediction_->SetVelocity(velocity);
     prediction_->SetTranslate(glass_->GetTranslate());
     prediction_->Update(c_main_);
-
-
-
 }
 
 void SikouteiDevelopPhase::Draw()
@@ -541,26 +530,28 @@ void SikouteiDevelopPhase::CheckColliders()
         collisionManager_->AddCollider(collider.get());
     }
 
-	for (int32_t i = 0; i < obstacleCount; i++)
-	{
-		for (auto& collider : obstacles_[i]->GetColliders())
-		{
-			collisionManager_->AddCollider(collider.get());
-		}
-	}
+    for (int32_t i = 0; i < obstacleCount; i++)
+    {
+        for (auto& collider : obstacles_[i]->GetColliders())
+        {
+            collisionManager_->AddCollider(collider.get());
+        }
+    }
 
     for (auto& collider : table_->GetColliders())
     {
         collisionManager_->AddCollider(collider.get());
     }
 
-    for (auto& prediction : prediction_->GetColliders()) {
-        collisionManager_->AddCollider(prediction.get());
-    }
+    //for (auto& prediction : prediction_->GetColliders())
+    //{
+    //    collisionManager_->AddCollider(prediction.get());
+    //}
 
     //コライダーをチェックする
     collisionManager_->CheckAllCollisions();
 }
+
 
 bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 {
@@ -658,4 +649,117 @@ void SikouteiDevelopPhase::SaveObstacleData(int32_t stage)
     JsonManager::AddParam(path, key, humansize_);
 
 	JsonManager::Save(path);
+}
+
+
+
+void SikouteiDevelopPhase::ChangeCameraPhase(CameraPhase phase)
+{
+    switch (phase)
+    {
+    case CameraPhase::Free:
+    {
+        Game::Camera::Setter::SetDistanceTarget(5.0f, 0.7f, EaseType::OUT_CIRC, c_main_);
+
+        break;
+    }
+    case CameraPhase::ShotAngleSetup:
+    {
+        break;
+    }
+    case CameraPhase::GlassFollowing:
+    {
+        Game::Camera::Setter::SetDistanceTarget(1.0f, 0.2f, EaseType::LINEAR, c_main_);
+        Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.2f, EaseType::LINEAR, c_main_);
+
+        break;
+    }
+    case CameraPhase::CatchFollowing:
+    {
+        Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 0.7f, EaseType::OUT_CIRC, c_main_);
+
+        Game::Camera::Setter::SetDistanceTarget(5.0f, 0.7f, EaseType::OUT_CIRC, c_main_);
+
+		cameraPhaseCounter_.SetTargetTime(0.7f);
+
+        break;
+    }
+    default:
+        break;
+    }
+    cameraPhase_ = phase;
+}
+
+void SikouteiDevelopPhase::UpdateCameraPhase()
+{
+    switch (cameraPhase_)
+    {
+    case CameraPhase::Free:
+    {
+        // マウス移動量
+        const Vector2 mouseDelta = Game::IO::Mouse::Get2DPositionDelta();
+        constexpr float limit = 60.0f;
+
+        //// phiをマウスで操作
+        //cameraSpherical_.phi += mouseDelta.y * mouseInsensitivity_;
+        //cameraSpherical_.phi = std::clamp(cameraSpherical_.phi, 0.0f, limit);
+        //Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.0f, EaseType::OUT_BACK, c_main_);
+
+		// thetaをマウスで操作
+        //cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
+        //if (cameraSpherical_.theta > humanRotate[currentGlassUserIndex_] + limit) cameraSpherical_.theta = humanRotate[currentGlassUserIndex_] + limit;
+        //if (cameraSpherical_.theta < humanRotate[currentGlassUserIndex_] - limit) cameraSpherical_.theta = humanRotate[currentGlassUserIndex_] - limit;
+        //Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 0.0f, EaseType::OUT_BACK, c_main_);
+
+        // centerをグラスで固定
+        Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
+
+        break;
+    }
+    case CameraPhase::ShotAngleSetup:
+    {
+        // マウス移動量
+        const Vector2 mouseDelta = Game::IO::Mouse::Get2DPositionDelta();
+        constexpr float limit = 60.0f;
+
+		// thetaをマウスで操作
+        cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
+        if (cameraSpherical_.theta > humanRotate[currentGlassUserIndex_] + limit) cameraSpherical_.theta = humanRotate[currentGlassUserIndex_] + limit;
+        if (cameraSpherical_.theta < humanRotate[currentGlassUserIndex_] - limit) cameraSpherical_.theta = humanRotate[currentGlassUserIndex_] - limit;
+        Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 0.0f, EaseType::OUT_BACK, c_main_);
+
+		// centerをグラスで固定
+        Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
+
+        break;
+    }
+    case CameraPhase::GlassFollowing:
+    {
+        Vector3 glassVel = glass_->GetVelocity();
+        Vector3 dir = Vector3(glassVel.x, 0.0f, glassVel.z).Normalized();
+        float theta = std::atan2(-dir.z, -dir.x); // 進行方向の逆(背後)
+
+		// thetaをグラス後方で固定
+        Game::Camera::Setter::SetThetaTarget(theta, 0.5f, EaseType::OUT_BACK, c_main_);
+
+		// centerをグラスで固定
+        Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
+
+        break;
+    }
+    case CameraPhase::CatchFollowing:
+    {
+        if (cameraPhaseCounter_.CountUp(Game::Time::GetScaledDeltaTimeMs() * 0.001f))
+        {
+            ChangeCameraPhase(CameraPhase::Free);
+        }
+
+		// centerをグラスで固定
+        Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
+
+        break;
+    }
+    default:
+        break;
+    }
 }

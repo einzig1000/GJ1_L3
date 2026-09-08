@@ -8,11 +8,11 @@ namespace Collision {
     
     void SettingCollider(
         Collider* collider,
+        const int32_t modelID,
         Matrix4x4& mat,
         const uint32_t attribute,
         const uint32_t mask,
-        const Collider::ColliderType colliderType,
-        const float scale);
+        const Collider::ColliderType colliderType);
 
     struct CompoundCollider {
         //モデルデータからコライダーを作るよ

@@ -11,12 +11,70 @@ class CocktailWater;
 class PredictionObj;
 class SimpleObstaclePlacementFlow;
 
+
+
+class CounterSec
+{
+private:
+	float progressSec_ = 0.0f;
+	float target_ = 0.0f;
+
+public:
+
+	void SetTargetTime(float target)
+	{
+		progressSec_ = 0.0f;
+		target_ = target;
+	}
+
+	bool CountUp(float dtMs)
+	{
+		progressSec_ += dtMs;
+		if (progressSec_ > target_)
+		{
+			return true;
+		}
+		return false;
+	}
+};
+
+class CounterF
+{
+private:
+	int32_t progressFrame_ = 0;
+	int32_t target_ = 0;
+
+public:
+
+	void SetTargetFrame(int32_t target)
+	{
+		progressFrame_ = 0;
+		target_ = target;
+	}
+
+	bool CountUp()
+	{
+		progressFrame_++;
+		if (progressFrame_ > target_)
+		{
+			return true;
+		}
+		return false;
+	}
+};
+
+
 enum class CameraPhase
 {
-	// Phiロック状態。Thetaはマウスで回転可能
-	PhiRock,
-	// Theta/Phiロック状態。
-	PhiThetaRock,
+	// 盤面確認中。Theta/Phiともにマウス操作可能
+	Free,
+	// 射出角度調整中。Phiロック状態。Thetaはマウス操作可能
+	ShotAngleSetup,
+	// グラススライド中。Theta/Phiともにロック状態。
+	GlassFollowing,
+	// グラスキャッチ中。Theta/Phiともにロック状態。
+	CatchFollowing,
+
 };
 
 
@@ -40,6 +98,10 @@ private:
 
 	int32_t c_main_ = -1;
 	Coordinate_spherical cameraSpherical_ = { 0.0f, 0.0f, 0.0f };
+	CameraPhase cameraPhase_ = CameraPhase::Free;
+	CounterSec cameraPhaseCounter_;
+	void ChangeCameraPhase(CameraPhase phase);
+	void UpdateCameraPhase();
 
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
