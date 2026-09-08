@@ -21,6 +21,7 @@ TitlePhase::TitlePhase() {
 	glassModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Water/Water.obj");
 	CocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
 	cocktailWaterModel_.ID = Game::Asset::Model::Load("assets/application/model/Water/CocktailWater.obj");
+	titleRayModel_.ID = Game::Asset::Model::Load("assets/application/model/Title_Select/TitleRay.obj");
 	ginModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Gin/Gin.obj");
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		const std::string titleSelectModelPath = "assets/application/model/Title_Select/Title_Select" + std::to_string(i + 1) + ".obj";
@@ -105,12 +106,28 @@ void TitlePhase::Initialize_WaterModel() {
 	cocktailWaterModel_.worldMatrices_.resize(1, Matrix4x4());
 }
 
+void TitlePhase::Initialize_TitleRayModel() {
+	titleRayModel_.Models_ = std::make_unique<RenderObject>();
+
+	// SpotLight.PS.hlslにはVSMainとPSMainの両方が入っているため、
+	// Vertex ShaderとPixel Shaderで同じファイルを指定する
+	titleRayModel_.Models_->psoConfig_.vs = "assets/shaders/SpotLightRay/SpotLightRay.VS.hlsl";
+	titleRayModel_.Models_->psoConfig_.ps = "assets/shaders/SpotLightRay/SpotLightRay.PS.hlsl";
+	titleRayModel_.Models_->SetupFromShaders();
+
+	titleRayModel_.Models_->modelID_ = titleRayModel_.ID;
+	titleRayModel_.Models_->instanceNum_ = 1;
+	titleRayModel_.transforms_.resize(1, EulerTransforms());
+	titleRayModel_.worldMatrices_.resize(1, Matrix4x4());
+}
+
 void TitlePhase::Initialize_LightModels() {
 
 	Initialize_Models(barModel_);
 	Initialize_Models(glassModel_);
 	Initialize_Models(CocktailModel_);
 	Initialize_WaterModel();
+	Initialize_TitleRayModel();
 	Initialize_Models(ginModel_);
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		Initialize_Models(titleSelectModels_[i]);
@@ -122,7 +139,23 @@ void TitlePhase::Initialize_LightModels() {
 	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -60.0f));
 	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
 	cocktailWaterModel_.transforms_[0] = EulerTransforms(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
+	titleRayModel_.transforms_[0] = EulerTransforms(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(kTitleRayPositionX_, kTitleRayPositionY_, kTitleRayPositionZ_));
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -50.0f));
+
+	// GIFのマゼンタ色の光を基準にしたTitleRay設定
+	titleRayMaterialBuffer_.color = Vector4(0.6f, 0.02f, 0.35f, 0.20f);
+	titleRayMaterialBuffer_.intensity = 2.5f;
+	titleRayMaterialBuffer_.tipRadius = 0.4f;
+	titleRayMaterialBuffer_.endRadius = 5.0f;
+	titleRayMaterialBuffer_.coneLength = 12.0f;
+	titleRayMaterialBuffer_.reveal = 0.0f;
+	titleRayMaterialBuffer_.revealSoftness = 0.08f;
+	titleRayMaterialBuffer_.density = 1.0f;
+	titleRayMaterialBuffer_.centerBrightness = 1.5f;
+	titleRayMaterialBuffer_.edgeSoftness = 0.25f;
+	titleRayMaterialBuffer_.distanceFade = 0.35f;
+	titleRayMaterialBuffer_.stepCount = 48;
+	titleRayMaterialBuffer_.padding = 0.0f;
 
 	waterWaveBuffer_.relativeScale = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
 	waterWaveBuffer_.waveAxisXWS = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
@@ -314,6 +347,9 @@ void TitlePhase::Initialize_IceTransforms() {
 
 	entranceElapsedTime_ = 0.0f;
 	isEntranceFinished_ = false;
+	titleRayRevealElapsedTime_ = 0.0f;
+	isTitleRayRevealFinished_ = false;
+	titleRayMaterialBuffer_.reveal = 0.0f;
 	preLiftElapsedTime_ = 0.0f;
 	isPreLiftFinished_ = false;
 	glassTiltElapsedTime_ = 0.0f;
@@ -331,6 +367,7 @@ void TitlePhase::Initialize_IceTransforms() {
 	postGinWaitElapsedTime_ = 0.0f;
 	postGinCameraElapsedTime_ = 0.0f;
 	isPostGinOverheadCameraStarted_ = false;
+	titleSelectCameraElapsedTime_ = 0.0f;
 	titleSelectTransitionElapsedTime_ = 0.0f;
 	isTitleSelectTransitionStarted_ = false;
 	isTitleSelectInputEnabled_ = false;
@@ -418,6 +455,24 @@ void TitlePhase::Update_Animation() {
 
 	// ジンのアニメーションまで完了した後は、水面時間だけ更新して終了
 	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
+		return;
+	}
+
+	// ========================================
+	// TitleRay Reveal Animation
+	// ========================================
+
+	if (!isTitleRayRevealFinished_) {
+		titleRayRevealElapsedTime_ += deltaTime;
+
+		float revealT = titleRayRevealElapsedTime_ / kTitleRayRevealDuration_;
+		if (revealT >= 1.0f) {
+			revealT = 1.0f;
+			isTitleRayRevealFinished_ = true;
+		}
+
+		// 上から下へ光が滑らかに伸び切ってから、左右の登場を始める
+		titleRayMaterialBuffer_.reveal = revealT * revealT * (3.0f - 2.0f * revealT);
 		return;
 	}
 
@@ -711,13 +766,21 @@ void TitlePhase::Update_Animation() {
 		}
 
 		isTitleSelectTransitionStarted_ = true;
+		titleSelectCameraElapsedTime_ = 0.0f;
 		titleSelectTransitionElapsedTime_ = 0.0f;
 
-		// TitleSelectの登場と同時に、カメラを最初の状態へ戻す
+		// 先にカメラだけを最初の状態へ戻す
 		Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
 		Game::Camera::Setter::SetPhiTarget(kInitialCameraPhi_, kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
 		Game::Camera::Setter::SetThetaTarget(0.0f, kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
 		Game::Camera::Setter::SetDistance(20.0f, kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
+	}
+
+	// カメラが最初の視点へ戻り切るまでは、
+	// TitleSelectを下の待機位置から動かさない
+	titleSelectCameraElapsedTime_ += deltaTime;
+	if (titleSelectCameraElapsedTime_ < kTitleSelectTransitionDuration_) {
+		return;
 	}
 
 	// ========================================
@@ -777,6 +840,7 @@ void TitlePhase::Update_LightModels() {
 	Update_Model(glassModel_);
 	Update_Model(CocktailModel_);
 	Update_WaterModel();
+	Update_TitleRayModel();
 	Update_Model(ginModel_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		Update_Model(iceModel_[i]);
@@ -951,6 +1015,29 @@ void TitlePhase::Update_WaterModel() {
 	cocktailWaterModel_.Models_->SetCBufferData(2, ShaderType::PixelShader, &waterLightingBuffer_);
 }
 
+void TitlePhase::Update_TitleRayModel() {
+	titleRayModel_.worldMatrices_[0] = titleRayModel_.transforms_[0].GetWorldMatrix();
+
+	titleRayCameraBuffer_.viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
+	titleRayCameraBuffer_.cameraPositionWS = Game::Camera::Getter::GetWorldPosition(c_main_);
+	titleRayCameraBuffer_.padding = 0.0f;
+
+	titleRayObjectBuffer_.world = titleRayModel_.worldMatrices_[0];
+
+	// TitleRayは回転なし・等倍で固定しているため、逆行列は平行移動の符号反転で求められる
+	const EulerTransforms inverseTitleRayTransform(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-kTitleRayPositionX_, -kTitleRayPositionY_, -kTitleRayPositionZ_));
+	titleRayObjectBuffer_.worldToObject = inverseTitleRayTransform.GetWorldMatrix();
+
+	// SpotLight.PS.hlsl : CameraCB b0 / ObjectCB b1 / MaterialCB b2
+	titleRayModel_.Models_->SetCBufferData(0, ShaderType::VertexShader, &titleRayCameraBuffer_);
+	titleRayModel_.Models_->SetCBufferData(1, ShaderType::VertexShader, &titleRayObjectBuffer_);
+	titleRayModel_.Models_->SetCBufferData(2, ShaderType::VertexShader, &titleRayMaterialBuffer_);
+
+	titleRayModel_.Models_->SetCBufferData(0, ShaderType::PixelShader, &titleRayCameraBuffer_);
+	titleRayModel_.Models_->SetCBufferData(1, ShaderType::PixelShader, &titleRayObjectBuffer_);
+	titleRayModel_.Models_->SetCBufferData(2, ShaderType::PixelShader, &titleRayMaterialBuffer_);
+}
+
 void TitlePhase::Draw_LightModels() {
 	barModel_.Models_->Draw();
 	glassModel_.Models_->Draw();
@@ -960,6 +1047,9 @@ void TitlePhase::Draw_LightModels() {
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
 		iceModel_[i].Models_->Draw();
 	}
+
+	// 不透明モデルを描き終えた後に、カクテル上のボリューム光を重ねる
+	titleRayModel_.Models_->Draw();
 
 	// 切り替え開始から表示し、下から上昇させる
 	if (isTitleSelectTransitionStarted_ || titlePhaseSelection_ == TitlePhaseSelection::Select) {

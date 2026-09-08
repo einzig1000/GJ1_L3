@@ -168,6 +168,33 @@ private:
 		Vector4 ambientGround;
 	};
 
+	struct alignas(16) TitleRayCameraBuffer {
+		Matrix4x4 viewProjection;
+		Vector3 cameraPositionWS;
+		float padding;
+	};
+
+	struct alignas(16) TitleRayObjectBuffer {
+		Matrix4x4 world;
+		Matrix4x4 worldToObject;
+	};
+
+	struct alignas(16) TitleRayMaterialBuffer {
+		Vector4 color;
+		float intensity;
+		float tipRadius;
+		float endRadius;
+		float coneLength;
+		float reveal;
+		float revealSoftness;
+		float density;
+		float centerBrightness;
+		float edgeSoftness;
+		float distanceFade;
+		int32_t stepCount;
+		float padding;
+	};
+
 	enum class TitlePhaseSelection {
 		Start,
 		Select,
@@ -217,6 +244,14 @@ private:
 
 	// 最初にグラス・氷・ジンが定位置へ滑り込む時間（秒）
 	static constexpr float kEntranceDuration_ = 1.0f;
+
+	// グラス・氷・ジンが寄る前にTitleRayを伸ばす時間（秒）
+	static constexpr float kTitleRayRevealDuration_ = 1.0f;
+
+	// カクテルグラスの真上に置くTitleRayの先端位置
+	static constexpr float kTitleRayPositionX_ = -60.0f;
+	static constexpr float kTitleRayPositionY_ = 19.0f;
+	static constexpr float kTitleRayPositionZ_ = -55.0f;
 
 	// 定位置からZ方向へ離しておく距離
 	static constexpr float kEntranceZDistance_ = 15.0f;
@@ -303,6 +338,9 @@ private:
 	Vector3 iceTiltedStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};
 
+	float titleRayRevealElapsedTime_ = 0.0f;
+	bool isTitleRayRevealFinished_ = false;
+
 	float entranceElapsedTime_ = 0.0f;
 	bool isEntranceFinished_ = false;
 
@@ -328,6 +366,7 @@ private:
 	float postGinWaitElapsedTime_ = 0.0f;
 	float postGinCameraElapsedTime_ = 0.0f;
 	bool isPostGinOverheadCameraStarted_ = false;
+	float titleSelectCameraElapsedTime_ = 0.0f;
 	float titleSelectTransitionElapsedTime_ = 0.0f;
 	bool isTitleSelectTransitionStarted_ = false;
 	bool isTitleSelectInputEnabled_ = false;
@@ -353,6 +392,7 @@ private:
 	Model iceModel_[kMaxIceCount_];
 	Model CocktailModel_;
 	Model cocktailWaterModel_;
+	Model titleRayModel_;
 	Model ginModel_;
 	Model titleSelectModels_[kTitleSelectCount_];
 
@@ -365,15 +405,20 @@ private:
 	WaterCameraBuffer waterCameraBuffer_{};
 	WaterColorBuffer waterColorBuffer_{};
 	WaterLightingBuffer waterLightingBuffer_{};
+	TitleRayCameraBuffer titleRayCameraBuffer_{};
+	TitleRayObjectBuffer titleRayObjectBuffer_{};
+	TitleRayMaterialBuffer titleRayMaterialBuffer_{};
 
 	void Initialize_Models(Model& model);
 	void Initialize_WaterModel();
+	void Initialize_TitleRayModel();
 	void Initialize_IceTransforms();
 	void Update_TitleSelect();
 	void Start_SelectedCocktailAnimation();
 	void Update_SelectedCocktailAnimation();
 	void Update_Model(Model& model);
 	void Update_WaterModel();
+	void Update_TitleRayModel();
 	void Update_Animation();
 	void AimCameraFromFixedPosition(const Vector3& cameraPosition, const Vector3& target);
 	void Start_CocktailCameraAnimation();

@@ -13,7 +13,6 @@
   <ItemGroup>
     <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp" />
     <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp" />
-
     <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.cpp" />
     <ClCompile Include="src\application\GameObject\Effect\Particle\Particle.cpp" />
@@ -124,7 +123,6 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
   </ItemGroup>
   <ItemGroup>
-
     <ClInclude Include="src\application\GameObject\TableObject\TableObject.h" />
     <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h" />
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
@@ -394,6 +392,20 @@
       <SubType>
       </SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="assets\shaders\SpotLightRay\SpotLightRay.PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\SpotLightRay\SpotLightRay.VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
