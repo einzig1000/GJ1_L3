@@ -71,7 +71,6 @@ private:
 	std::unique_ptr<RenderObject> markers_[6];
 	EulerTransforms markerTransforms_[6];
 	std::vector<float> markerAngles_;					// マーカーがテーブルから見てどの角度にいるか
-	float humansize_ = 30.0f;
 
 	//予測オブジェ
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;

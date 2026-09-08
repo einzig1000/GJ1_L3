@@ -272,15 +272,20 @@ void SikouteiDevelopPhase::Update()
 
 
     Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
+
+    Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+    prediction_->SetVelocity(velocity);
+    prediction_->SetTranslate(glass_->GetTranslate());
+    prediction_->Update(c_main_);
 }
 
 void SikouteiDevelopPhase::Draw()
 {
-	const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
+    const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
     const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
 
-	for (int32_t i = 0; i < 3; i++)
-	{
+    for (int32_t i = 0; i < 3; i++)
+    {
         Matrix4x4 world = humanTransforms_[i].GetWorldMatrix();
         Matrix4x4 wvp = world * viewPro;
         Vector4 color = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -289,8 +294,8 @@ void SikouteiDevelopPhase::Draw()
         human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
         human_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
         human_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-		human_[i]->Draw();
-	}
+        human_[i]->Draw();
+    }
     for (int32_t i = 0; i < 6; i++)
     {
         Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
@@ -301,64 +306,9 @@ void SikouteiDevelopPhase::Draw()
         markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
         markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
         markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-	}
-
-    // ショットテスト
-    if (Game::IO::Mouse::IsJustPressed(0))
-    {
-        dragStartPos_ = Game::IO::Mouse::Get2DPosition();
-        velocity_ = Vector2(0.0f, 0.0f);
-    }
-    if (Game::IO::Mouse::IsHeld(0))
-    {
-        Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
-        float dragLength = dragVector.Length();
-
-        constexpr float kPowerScale = 0.05f; // 感度。要調整
-        constexpr float kMaxSpeed = 20.0f;   // 上限。要調整
-
-        if (dragLength > 1.0f)
-        {
-            float angle = std::atan2(-dragVector.x, -dragVector.y);
-
-            Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
-            cameraDir.y = 0.0f;
-            cameraDir.Normalize();
-
-            float cosA = std::cos(angle);
-            float sinA = std::sin(angle);
-
-            Vector3 shotDir = Vector3(
-                cameraDir.x * cosA - cameraDir.z * sinA,
-                0.0f,
-                cameraDir.x * sinA + cameraDir.z * cosA
-            );
-
-            float power = std::clamp(dragLength * kPowerScale, 0.0f, kMaxSpeed);
-            velocity_ = Vector2(shotDir.x, shotDir.z) * power;
-        }
-        else
-        {
-            velocity_ = Vector2(0.0f, 0.0f);
-        }
-    }
-    if (!Game::IO::Key::IsHeld(VK_LSHIFT) && Game::IO::Mouse::IsJustReleased(0))
-    {
-        glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
+        markers_[i]->Draw();
     }
 
-    Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-    prediction_->SetVelocity(velocity);
-    prediction_->SetTranslate(glass_->GetTranslate());
-    prediction_->Update(c_main_);
-}
-
-void SikouteiDevelopPhase::Draw()
-{
-    for (int32_t i = 0; i < 6; i++)
-    {
-		markers_[i]->Draw();
-    }
 
     //テーブルの描画
     table_->Draw();
