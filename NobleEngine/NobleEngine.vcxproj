@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
     <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
     <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
     <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp" />
@@ -126,6 +127,7 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
     <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
     <ClInclude Include="src\application\GameObject\PredictionObj\PredictionObj.h" />

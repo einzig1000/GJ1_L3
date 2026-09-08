@@ -18,6 +18,7 @@ enum class Phase
 	Phase_SikouteiDevelop,
 	//仮に衝突テストフェーズを作成する
 	Phase_CollisionTest,
+    Phase_Result,
 };
 
 
