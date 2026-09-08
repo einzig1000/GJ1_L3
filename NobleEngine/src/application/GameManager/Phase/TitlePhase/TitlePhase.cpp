@@ -143,11 +143,11 @@ void TitlePhase::Initialize_LightModels() {
 	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -50.0f));
 
 	// GIFのマゼンタ色の光を基準にしたTitleRay設定
-	titleRayMaterialBuffer_.color = Vector4(0.6f, 0.02f, 0.35f, 0.20f);
+	titleRayMaterialBuffer_.color = Vector4(0.74f, 0.28f, 0.39f, 0.20f);
 	titleRayMaterialBuffer_.intensity = 2.5f;
 	titleRayMaterialBuffer_.tipRadius = 0.4f;
 	titleRayMaterialBuffer_.endRadius = 5.0f;
-	titleRayMaterialBuffer_.coneLength = 12.0f;
+	titleRayMaterialBuffer_.coneLength = 16.0f;
 	titleRayMaterialBuffer_.reveal = 0.0f;
 	titleRayMaterialBuffer_.revealSoftness = 0.08f;
 	titleRayMaterialBuffer_.density = 1.0f;

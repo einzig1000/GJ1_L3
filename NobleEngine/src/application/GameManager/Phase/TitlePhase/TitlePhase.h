@@ -179,19 +179,59 @@ private:
 		Matrix4x4 worldToObject;
 	};
 
-	struct alignas(16) TitleRayMaterialBuffer {
+struct alignas(16) TitleRayMaterialBuffer {
+		// TitleRayの光の色
+		// RGB：光の色
+		// A：通常の透明度ではなく、最終的な光量へ掛ける強度倍率
 		Vector4 color;
+
+		// ボリュームライト全体の明るさ
+		// 大きくするほど光が強く表示される
 		float intensity;
+
+		// 円錐の先端側の太さ
+		// シェーダー内で0.5倍されるため、実質的には直径として扱われる
 		float tipRadius;
+
+		// 円錐の末端側の太さ
+		// シェーダー内で0.5倍されるため、実質的には直径として扱われる
 		float endRadius;
+
+		// 円錐状の光が伸びる長さ
+		// TitleRayのローカル座標における-Y方向へ伸びる
 		float coneLength;
+
+		// 光を先端からどこまで表示するか
+		// 0.0f：完全に非表示
+		// 1.0f：末端まで完全に表示
 		float reveal;
+
+		// revealによる表示境界のぼかし幅
+		// 小さいほど境界がくっきりし、大きいほど滑らかに消える
 		float revealSoftness;
+
+		// 円錐内部の光の密度
+		// 大きくするほど光が濃く、不透明に近い見た目になる
 		float density;
+
+		// 円錐の中心部分の明るさ倍率
+		// 外周よりも中心を明るく見せるために使用する
 		float centerBrightness;
+
+		// 円錐外周のぼかし幅
+		// 小さいほど輪郭がくっきりし、大きいほど外周が滑らかに消える
 		float edgeSoftness;
+
+		// 円錐の先端から離れるほど暗くする強さ
+		// 大きくするほど末端側が暗くなる
 		float distanceFade;
+
+		// レイマーチングで光の密度を調べる回数
+		// 大きいほど滑らかになるが、描画負荷も高くなる
+		// シェーダー内部では8～96の範囲に制限される
 		int32_t stepCount;
+
+		// 定数バッファを16バイト境界に合わせるための未使用領域
 		float padding;
 	};
 
@@ -272,7 +312,7 @@ private:
 	static constexpr float kGlassTiltHoldDuration_ = 0.5f;
 
 	// カクテル側へ傾ける角度（+30度）
-	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> / 6.0f;
+	static constexpr float kGlassTiltAngle_ = std::numbers::pi_v<float> / 3.0f;
 
 	// 氷を入れ終わった後、グラスが元の位置へ戻る時間（秒）
 	static constexpr float kGlassReturnDuration_ = 0.75f;
