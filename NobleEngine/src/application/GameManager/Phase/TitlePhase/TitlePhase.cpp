@@ -10,7 +10,11 @@ TitlePhase::TitlePhase() {
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetPhiTarget(kInitialCameraPhi_, 0.0f, EaseType::IN_BACK, c_main_);
 	Game::Camera::Setter::SetThetaTarget(0.0f, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetDistance(20.0f, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetFovTarget(0.65f, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetEnableControl(false, c_main_);
 
 	// モデル
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
@@ -133,9 +137,9 @@ void TitlePhase::Initialize_LightModels() {
 	waterWaveBuffer_.motionHeightBoost = 0.35f;
 	waterWaveBuffer_.motionIntensity = 0.0f;
 
-	waterColorBuffer_.colorA = Vector4(0.08f, 0.32f, 0.55f, 1.0f);
-	waterColorBuffer_.colorB = Vector4(0.10f, 0.55f, 0.75f, 1.0f);
-	waterColorBuffer_.baseColor = Vector4(1.0f, 1.0f, 1.0f, 0.75f);
+	waterColorBuffer_.colorA = Vector4(1.00f, 0.32f, 0.55f, 1.0f);
+	waterColorBuffer_.colorB = Vector4(0.10f, 0.55f, 1.00f, 1.0f);
+	waterColorBuffer_.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	waterColorBuffer_.colorBalance = 0.5f;
 	waterColorBuffer_.colorBlendWidth = 0.25f;
 	waterColorBuffer_.colorDistortion = 0.3f;
@@ -155,9 +159,9 @@ void TitlePhase::Initialize_LightModels() {
 
 	// Selectになるまでは描画しないが、2つの選択モデルを先に初期化しておく
 	titleSelectModels_[0].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, -60.0f));
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, -60.0f));
 	titleSelectModels_[1].transforms_[0] =
-	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, -50.0f));
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, -50.0f));
 
 	Initialize_IceTransforms();
 
@@ -308,6 +312,8 @@ void TitlePhase::Initialize_IceTransforms() {
 		iceTargetPositions_[frontStartIndex + i] = rotateTargetPosition(x, frontZ);
 	}
 
+	entranceElapsedTime_ = 0.0f;
+	isEntranceFinished_ = false;
 	preLiftElapsedTime_ = 0.0f;
 	isPreLiftFinished_ = false;
 	glassTiltElapsedTime_ = 0.0f;
@@ -316,15 +322,81 @@ void TitlePhase::Initialize_IceTransforms() {
 	isGlassTiltHoldFinished_ = false;
 	iceAnimationElapsedTime_ = 0.0f;
 	isIceAnimationFinished_ = false;
+	isCocktailCameraStarted_ = false;
+	isSideCameraReturned_ = false;
 	glassReturnElapsedTime_ = 0.0f;
 	isGlassReturnFinished_ = false;
 	ginAnimationElapsedTime_ = 0.0f;
+	isGinCameraStarted_ = false;
+	postGinWaitElapsedTime_ = 0.0f;
+	postGinCameraElapsedTime_ = 0.0f;
+	isPostGinOverheadCameraStarted_ = false;
+	titleSelectTransitionElapsedTime_ = 0.0f;
+	isTitleSelectTransitionStarted_ = false;
+	isTitleSelectInputEnabled_ = false;
 	cocktailWaterScaleElapsedTime_ = 0.0f;
 	cocktailWaterAnimationTime_ = 0.0f;
 	isCocktailWaterAppearing_ = false;
 	titlePhaseSelection_ = TitlePhaseSelection::Start;
 	selectedTitleIndex_ = 0;
+	isSelectionConfirmed_ = false;
+	selectionConfirmElapsedTime_ = 0.0f;
+	selectionCameraElapsedTime_ = 0.0f;
+	selectionCameraTheta_ = 0.0f;
+	selectedCocktailTargetZ_ = kIceTargetCenterZ_;
+	presentationCameraPosition_ = Vector3(0.0f, 0.0f, 0.0f);
+	isPresentationCameraPositionFixed_ = false;
+	glassCameraStartFocus_ = Vector3(0.0f, 0.0f, 0.0f);
+	ginCameraStartFocus_ = Vector3(0.0f, 0.0f, 0.0f);
+
+	// 最初は、グラスと氷を-Z側、ジンを+Z側へ離しておく
+	const Vector3 glassEntrancePosition(-60.0f, 7.0f, -60.0f - kEntranceZDistance_);
+	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), glassEntrancePosition);
+
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		const Vector3 iceEntrancePosition = iceStartPositions_[i] + Vector3(0.0f, 0.0f, -kEntranceZDistance_);
+		iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, 0.0f, 0.0f), iceEntrancePosition);
+	}
+
+	const Vector3 ginEntrancePosition(-60.0f, 7.0f, -50.0f + kEntranceZDistance_);
+	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), ginEntrancePosition);
+
+	// TitleSelectは切り替え演出が始まるまで完成位置の下で待機させる
+	titleSelectModels_[0].transforms_[0] = EulerTransforms(
+	    Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f - kTitleSelectRiseDistance_, -60.0f));
+	titleSelectModels_[1].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f - kTitleSelectRiseDistance_, -50.0f));
+
 	previousAnimationTime_ = std::chrono::steady_clock::now();
+	previousSelectionAnimationTime_ = previousAnimationTime_;
+}
+
+void TitlePhase::AimCameraFromFixedPosition(const Vector3& cameraPosition, const Vector3& target) {
+	const float directionX = target.x - cameraPosition.x;
+	const float directionY = target.y - cameraPosition.y;
+	const float directionZ = target.z - cameraPosition.z;
+	const float distance = std::sqrt(directionX * directionX + directionY * directionY + directionZ * directionZ);
+
+	if (distance <= 0.0001f) {
+		return;
+	}
+
+	// Orbitカメラの角度規則へ合わせ、固定位置から対象を見るPhi・Thetaを求める
+	float normalizedY = directionY / distance;
+	if (normalizedY < -1.0f) {
+		normalizedY = -1.0f;
+	} else if (normalizedY > 1.0f) {
+		normalizedY = 1.0f;
+	}
+
+	const float phi = std::asin(-normalizedY);
+	const float theta = std::atan2(-directionZ, -directionX);
+
+	// Center変更による位置変化を、同時に設定する角度と距離で打ち消す
+	Game::Camera::Setter::SetCenter(target, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetPhiTarget(phi, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetThetaTarget(theta, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetDistance(distance, 0.0f, EaseType::IN_BACK, c_main_);
 }
 
 void TitlePhase::Update_Animation() {
@@ -350,10 +422,49 @@ void TitlePhase::Update_Animation() {
 	}
 
 	// ========================================
+	// Glass, Ice And Gin Entrance Animation
+	// ========================================
+
+	if (!isEntranceFinished_) {
+		entranceElapsedTime_ += deltaTime;
+
+		float entranceT = entranceElapsedTime_ / kEntranceDuration_;
+		if (entranceT >= 1.0f) {
+			entranceT = 1.0f;
+			isEntranceFinished_ = true;
+		}
+
+		// 始点と終点で速度が0になる滑らかな補間
+		const float smoothEntranceT = entranceT * entranceT * (3.0f - 2.0f * entranceT);
+
+		const float glassZ = (-60.0f - kEntranceZDistance_) * (1.0f - smoothEntranceT) + (-60.0f) * smoothEntranceT;
+		glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, glassZ));
+
+		for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+			const Vector3 entranceStart = iceStartPositions_[i] + Vector3(0.0f, 0.0f, -kEntranceZDistance_);
+			const Vector3 icePosition = entranceStart * (1.0f - smoothEntranceT) + iceStartPositions_[i] * smoothEntranceT;
+
+			iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, 0.0f, 0.0f), icePosition);
+		}
+
+		const float ginZ = (-50.0f + kEntranceZDistance_) * (1.0f - smoothEntranceT) + (-50.0f) * smoothEntranceT;
+		ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, ginZ));
+
+		// 全員が定位置へ到着してから持ち上げ演出へ進む
+		return;
+	}
+
+	// ========================================
 	// Glass And Ice Pre-Lift Animation
 	// ========================================
 
 	if (!isPreLiftFinished_) {
+		if (!isPresentationCameraPositionFixed_) {
+			isPresentationCameraPositionFixed_ = true;
+			presentationCameraPosition_ = Game::Camera::Getter::GetWorldPosition(c_main_);
+			glassCameraStartFocus_ = Game::Camera::Getter::GetCenter(c_main_);
+		}
+
 		preLiftElapsedTime_ += deltaTime;
 
 		float liftT = preLiftElapsedTime_ / kPreLiftDuration_;
@@ -377,71 +488,26 @@ void TitlePhase::Update_Animation() {
 		const Vector3 glassPosition(-60.0f, 7.0f + liftOffsetY, -60.0f);
 		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
 
+		// 現在の向きから氷用グラスへ、カメラ位置を固定したまま滑らかに向きを変える
+		float glassCameraT = preLiftElapsedTime_ / kGlassCameraLookDuration_;
+		if (glassCameraT > 1.0f) {
+			glassCameraT = 1.0f;
+		}
+		const float smoothGlassCameraT = glassCameraT * glassCameraT * (3.0f - 2.0f * glassCameraT);
+		const Vector3 glassCameraFocus = glassCameraStartFocus_ * (1.0f - smoothGlassCameraT) + glassPosition * smoothGlassCameraT;
+		AimCameraFromFixedPosition(presentationCameraPosition_, glassCameraFocus);
+
 		// 持ち上げが終わってから氷の移動を開始する
 		return;
 	}
 
 	// ========================================
-	// Glass And Ice Tilt Animation
+	// Glass Tilt And Ice Move Animation
 	// ========================================
-
-	if (!isGlassTiltFinished_) {
-		glassTiltElapsedTime_ += deltaTime;
-
-		float tiltT = glassTiltElapsedTime_ / kGlassTiltDuration_;
-		if (tiltT >= 1.0f) {
-			tiltT = 1.0f;
-			isGlassTiltFinished_ = true;
-		}
-
-		const float currentTiltAngle = kGlassTiltAngle_ * tiltT;
-		const float tiltCos = std::cos(currentTiltAngle);
-		const float tiltSin = std::sin(currentTiltAngle);
-		const float glassPivotY = 7.0f + kGlassLiftHeight_;
-		const float glassPivotZ = kIceStartZ_;
-
-		const Vector3 iceScale(0.2f, 0.2f, 0.2f);
-		const Vector3 iceRotate(currentTiltAngle, 0.0f, 0.0f);
-
-		for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-			const float liftedIceY = kIceStartBottomY_ + static_cast<float>(i) * kIceVerticalSpacing_ + kGlassLiftHeight_;
-			const float relativeY = liftedIceY - glassPivotY;
-
-			// グラスの基準位置を中心として、氷の位置もグラスと同じ角度だけ回転する
-			const float tiltedY = glassPivotY + relativeY * tiltCos;
-			const float tiltedZ = glassPivotZ + relativeY * tiltSin;
-			const Vector3 tiltedPosition(kIceStartX_, tiltedY, tiltedZ);
-
-			iceTiltedStartPositions_[i] = tiltedPosition;
-			iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, tiltedPosition);
-		}
-
-		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
-		const Vector3 glassRotate(currentTiltAngle, 0.0f, 0.0f);
-		const Vector3 glassPosition(-60.0f, glassPivotY, -60.0f);
-		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
-
-		return;
-	}
-
-	// ========================================
-	// Tilt Hold
-	// ========================================
-
-	if (!isGlassTiltHoldFinished_) {
-		glassTiltHoldElapsedTime_ += deltaTime;
-
-		if (glassTiltHoldElapsedTime_ >= kGlassTiltHoldDuration_) {
-			glassTiltHoldElapsedTime_ = kGlassTiltHoldDuration_;
-			isGlassTiltHoldFinished_ = true;
-		}
-
-		// 傾いた状態を維持してから、氷の移動へ進む
-		return;
-	}
 
 	if (!isIceAnimationFinished_) {
 		iceAnimationElapsedTime_ += deltaTime;
+		glassTiltElapsedTime_ += deltaTime;
 
 		float iceT = iceAnimationElapsedTime_ / kIceMoveDuration_;
 		if (iceT >= 1.0f) {
@@ -449,15 +515,35 @@ void TitlePhase::Update_Animation() {
 			isIceAnimationFinished_ = true;
 		}
 
+		float tiltT = glassTiltElapsedTime_ / kGlassTiltDuration_;
+		if (tiltT >= 1.0f) {
+			tiltT = 1.0f;
+			isGlassTiltFinished_ = true;
+		}
+		const float smoothTiltT = tiltT * tiltT * (3.0f - 2.0f * tiltT);
+		const float smoothIceT = iceT * iceT * (3.0f - 2.0f * iceT);
+		const float currentTiltAngle = kGlassTiltAngle_ * smoothTiltT;
+		const float tiltCos = std::cos(currentTiltAngle);
+		const float tiltSin = std::sin(currentTiltAngle);
+		const float glassPivotY = 7.0f + kGlassLiftHeight_;
+		const float glassPivotZ = kIceStartZ_;
+
 		const Vector3 iceScale(0.2f, 0.2f, 0.2f);
 
-		// カクテルへ到着した時点で、氷本体も反時計回りへ90度になる
 		const float targetIceRotationY = -std::numbers::pi_v<float> * 0.5f;
-		const Vector3 iceRotate(kGlassTiltAngle_ * (1.0f - iceT), targetIceRotationY * iceT, 0.0f);
+		const Vector3 iceRotate(currentTiltAngle * (1.0f - smoothIceT), targetIceRotationY * smoothIceT, 0.0f);
 
 		for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-			// グラスと一緒に傾いた位置から、それぞれの完成位置へ向かう
-			const Vector3 linearPosition = iceTiltedStartPositions_[i] * (1.0f - iceT) + iceTargetPositions_[i] * iceT;
+			const float liftedIceY = kIceStartBottomY_ + static_cast<float>(i) * kIceVerticalSpacing_ + kGlassLiftHeight_;
+			const float relativeY = liftedIceY - glassPivotY;
+			const float tiltedY = glassPivotY + relativeY * tiltCos;
+			const float tiltedZ = glassPivotZ + relativeY * tiltSin;
+			const Vector3 currentTiltedPosition(kIceStartX_, tiltedY, tiltedZ);
+
+			iceTiltedStartPositions_[i] = currentTiltedPosition;
+
+			// グラスの傾斜と同時に、現在の傾斜位置からカクテルへ移動する
+			const Vector3 linearPosition = currentTiltedPosition * (1.0f - smoothIceT) + iceTargetPositions_[i] * smoothIceT;
 
 			// t=0とt=1では高さ0、中央のt=0.5で最大になる放物線
 			const float arcOffsetY = 4.0f * kIceArcHeight_ * iceT * (1.0f - iceT);
@@ -466,17 +552,24 @@ void TitlePhase::Update_Animation() {
 			iceModel_[i].transforms_[0] = EulerTransforms(iceScale, iceRotate, position);
 		}
 
-		// 氷が移動している間も、グラスは持ち上げて傾けた状態を維持する
 		const Vector3 glassScale(10.0f, 10.0f, 10.0f);
-		const Vector3 glassRotate(kGlassTiltAngle_, 0.0f, 0.0f);
+		const Vector3 glassRotate(currentTiltAngle, 0.0f, 0.0f);
 		const Vector3 glassPosition(-60.0f, 7.0f + kGlassLiftHeight_, -60.0f);
 
 		glassModel_.transforms_[0] = EulerTransforms(glassScale, glassRotate, glassPosition);
 
-		// 氷が移動中なら、まだジンのアニメーションへ進まない
+		// 注視点を氷用グラスからカクテルグラスへ、氷の移動率に合わせて動かす
+		const Vector3 sourceGlassFocus(-60.0f, 7.0f + kGlassLiftHeight_, -60.0f);
+		const Vector3 cocktailFocus(kIceTargetCenterX_, 7.0f, kIceTargetCenterZ_);
+		const Vector3 cameraFocus = sourceGlassFocus * (1.0f - smoothIceT) + cocktailFocus * smoothIceT;
+		AimCameraFromFixedPosition(presentationCameraPosition_, cameraFocus);
+
 		if (!isIceAnimationFinished_) {
 			return;
 		}
+
+		isCocktailCameraStarted_ = true;
+		isGlassTiltHoldFinished_ = true;
 	}
 
 	// ========================================
@@ -512,23 +605,70 @@ void TitlePhase::Update_Animation() {
 	// Gin Animation
 	// ========================================
 
-	ginAnimationElapsedTime_ += deltaTime;
+	const Vector3 ginScale(10.0f, 10.0f, 10.0f);
+	const Vector3 ginPosition(-60.0f, 7.0f, -50.0f);
+	const Vector3 cocktailFocus(kIceTargetCenterX_, 1.5f, kIceTargetCenterZ_);
 
-	float ginT = ginAnimationElapsedTime_ / kGinTiltDuration_;
-	if (ginT >= 1.0f) {
-		ginT = 1.0f;
+	// ジンが傾き始めると同時に、カメラをジンへ向ける
+	if (!isGinCameraStarted_) {
+		isGinCameraStarted_ = true;
+		ginCameraStartFocus_ = Game::Camera::Getter::GetCenter(c_main_);
 	}
 
-	const float ginTiltAmount = std::sin(std::numbers::pi_v<float> * ginT);
+	ginAnimationElapsedTime_ += deltaTime;
 
-	const Vector3 ginScale(10.0f, 10.0f, 10.0f);
+	const float ginHoldEndTime = kGinTiltDuration_ + kGinTiltHoldDuration_;
+	const float ginAnimationEndTime = ginHoldEndTime + kGinReturnDuration_;
+	float ginTiltAmount = 0.0f;
+
+	if (ginAnimationElapsedTime_ < kGinTiltDuration_) {
+		// 元の姿勢から最大角度まで滑らかに傾ける
+		float tiltT = ginAnimationElapsedTime_ / kGinTiltDuration_;
+		if (tiltT > 1.0f) {
+			tiltT = 1.0f;
+		}
+		ginTiltAmount = tiltT * tiltT * (3.0f - 2.0f * tiltT);
+
+		// ジンの傾斜とは別の時間で、直前の向きからジンへ滑らかに向きを変える
+		float ginCameraT = ginAnimationElapsedTime_ / kGinCameraMoveDuration_;
+		if (ginCameraT > 1.0f) {
+			ginCameraT = 1.0f;
+		}
+		const float smoothGinCameraT = ginCameraT * ginCameraT * (3.0f - 2.0f * ginCameraT);
+		const Vector3 cameraFocus = ginCameraStartFocus_ * (1.0f - smoothGinCameraT) + ginPosition * smoothGinCameraT;
+		AimCameraFromFixedPosition(presentationCameraPosition_, cameraFocus);
+	} else if (ginAnimationElapsedTime_ < ginHoldEndTime) {
+		// 最大まで傾いた姿勢を1秒間維持する
+		ginTiltAmount = 1.0f;
+
+		float holdT = (ginAnimationElapsedTime_ - kGinTiltDuration_) / kGinTiltHoldDuration_;
+		if (holdT > 1.0f) {
+			holdT = 1.0f;
+		}
+		const float smoothHoldT = holdT * holdT * (3.0f - 2.0f * holdT);
+
+		// ジンが停止している1秒の間に、注視点をカクテルグラスへ移す
+		const Vector3 cameraFocus = ginPosition * (1.0f - smoothHoldT) + cocktailFocus * smoothHoldT;
+		AimCameraFromFixedPosition(presentationCameraPosition_, cameraFocus);
+	} else if (ginAnimationElapsedTime_ < ginAnimationEndTime) {
+		// 1秒停止した後、元の姿勢へ滑らかに戻す
+		float returnT = (ginAnimationElapsedTime_ - ginHoldEndTime) / kGinReturnDuration_;
+		if (returnT > 1.0f) {
+			returnT = 1.0f;
+		}
+		const float smoothReturnT = returnT * returnT * (3.0f - 2.0f * returnT);
+		ginTiltAmount = 1.0f - smoothReturnT;
+
+		// 復帰中もカメラはカクテルグラスへ向けたままにする
+		AimCameraFromFixedPosition(presentationCameraPosition_, cocktailFocus);
+	}
+
 	const Vector3 ginRotate(-std::numbers::pi_v<float> / 3.0f * ginTiltAmount, 0.0f, 0.0f);
-	const Vector3 ginPosition(-60.0f, 7.0f, -50.0f);
 
 	ginModel_.transforms_[0] = EulerTransforms(ginScale, ginRotate, ginPosition);
 
-	// ジンが最大まで傾いた後、液体を0からカクテルと同じスケールまで拡大する
-	if (ginT >= 0.5f) {
+	// ジンが最大まで傾いた時点から液体を表示する
+	if (ginAnimationElapsedTime_ >= kGinTiltDuration_) {
 		isCocktailWaterAppearing_ = true;
 		cocktailWaterScaleElapsedTime_ += deltaTime;
 
@@ -543,10 +683,93 @@ void TitlePhase::Update_Animation() {
 		cocktailWaterModel_.transforms_[0] = EulerTransforms(Vector3(waterScale, waterScale, waterScale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, -55.0f));
 	}
 
-	// ジンが元の姿勢へ戻ったらタイトル選択状態をSelectへ変更
-	if (ginT >= 1.0f) {
-		titlePhaseSelection_ = TitlePhaseSelection::Select;
+	// 傾斜、1秒停止、復帰がすべて終わるまで次の演出へ進まない
+	if (ginAnimationElapsedTime_ < ginAnimationEndTime) {
+		return;
 	}
+
+	// ジンの傾斜演出がすべて終わったら、カクテルグラスの真上へ移動する
+	if (!isPostGinOverheadCameraStarted_) {
+		isPostGinOverheadCameraStarted_ = true;
+		postGinCameraElapsedTime_ = 0.0f;
+
+		Game::Camera::Setter::SetCenter(cocktailFocus, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetPhiTarget(std::numbers::pi_v<float> / 2.0f, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetThetaTarget(0.0f, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetDistance(kPostGinOverheadDistance_, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+	}
+
+	postGinCameraElapsedTime_ += deltaTime;
+	if (postGinCameraElapsedTime_ < kCameraMoveDuration_) {
+		return;
+	}
+
+	// 真上へ移動した後は、Spaceキーが押されるまで次の状態へ進まない
+	if (!isTitleSelectTransitionStarted_) {
+		if (!Game::IO::Key::IsJustPressed(0x20)) {
+			return;
+		}
+
+		isTitleSelectTransitionStarted_ = true;
+		titleSelectTransitionElapsedTime_ = 0.0f;
+
+		// TitleSelectの登場と同時に、カメラを最初の状態へ戻す
+		Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetPhiTarget(kInitialCameraPhi_, kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetThetaTarget(0.0f, kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetDistance(20.0f, kTitleSelectTransitionDuration_, EaseType::IN_BACK, c_main_);
+	}
+
+	// ========================================
+	// Glass And Gin Exit / TitleSelect Entrance
+	// ========================================
+
+	titleSelectTransitionElapsedTime_ += deltaTime;
+
+	float transitionT = titleSelectTransitionElapsedTime_ / kTitleSelectTransitionDuration_;
+	if (transitionT > 1.0f) {
+		transitionT = 1.0f;
+	}
+
+	const float smoothTransitionT = transitionT * transitionT * (3.0f - 2.0f * transitionT);
+
+	// ジンは+Z側、氷を入れていたグラスは-Z側へ同時に退場する
+	const float exitGinZ = -50.0f + kExitZDistance_ * smoothTransitionT;
+	ginModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, exitGinZ));
+
+	const float exitGlassZ = -60.0f - kExitZDistance_ * smoothTransitionT;
+	glassModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 7.0f, exitGlassZ));
+
+	// TitleSelectはX・Zとスケールを保ち、下から現在のY位置へ上昇する
+	const float titleSelectY = (8.0f - kTitleSelectRiseDistance_) * (1.0f - smoothTransitionT) + 8.0f * smoothTransitionT;
+
+	titleSelectModels_[0].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectSelectedScale_, kTitleSelectSelectedScale_, kTitleSelectSelectedScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, titleSelectY, -60.0f));
+	titleSelectModels_[1].transforms_[0] =
+	    EulerTransforms(Vector3(kTitleSelectNormalScale_, kTitleSelectNormalScale_, kTitleSelectNormalScale_), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, titleSelectY, -50.0f));
+
+	// 退場と登場が両方終わってから選択入力を有効にする
+	if (transitionT >= 1.0f) {
+		titlePhaseSelection_ = TitlePhaseSelection::Select;
+		isTitleSelectInputEnabled_ = true;
+	}
+}
+
+void TitlePhase::Start_CocktailCameraAnimation() {
+	// 氷がカクテルへ入った後に使用する、現在の上側視点
+	Game::Camera::Setter::SetCenter(Vector3(-62.0f, 6.0f, -55.0f), kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+
+	// 上下方向はPhiで回転させる。Thetaは横方向なので0のまま固定する
+	Game::Camera::Setter::SetPhiTarget(std::numbers::pi_v<float> / 2.0f, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetThetaTarget(0.0f, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+}
+
+void TitlePhase::Start_SideCameraAnimation() {
+	// 最初と同じ、少し上から斜め下を見る視点へ戻す
+	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+
+	Game::Camera::Setter::SetPhiTarget(kInitialCameraPhi_, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetThetaTarget(0.0f, kCameraMoveDuration_, EaseType::IN_BACK, c_main_);
 }
 
 void TitlePhase::Update_LightModels() {
@@ -564,26 +787,108 @@ void TitlePhase::Update_LightModels() {
 }
 
 void TitlePhase::Update_TitleSelect() {
-	if (titlePhaseSelection_ != TitlePhaseSelection::Select) {
+	// TitleSelectが下から上がり切るまでは、選択・確定入力を受け付けない
+	if (titlePhaseSelection_ != TitlePhaseSelection::Select || !isTitleSelectInputEnabled_) {
 		return;
 	}
 
-	// Aキーまたは左矢印キーでZ=-60側を選択
-	if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
-		selectedTitleIndex_ = 0;
-	}
+	if (!isSelectionConfirmed_) {
+		// Aキーまたは左矢印キーでZ=-60側を選択
+		if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
+			selectedTitleIndex_ = 0;
+		}
 
-	// Dキーまたは右矢印キーでZ=-50側を選択
-	if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
-		selectedTitleIndex_ = 1;
+		// Dキーまたは右矢印キーでZ=-50側を選択
+		if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
+			selectedTitleIndex_ = 1;
+		}
+
+		// Spaceキーで現在の選択を確定する
+		if (Game::IO::Key::IsJustPressed(0x20)) {
+			Start_SelectedCocktailAnimation();
+		}
 	}
 
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		const float scale = i == selectedTitleIndex_ ? kTitleSelectSelectedScale_ : kTitleSelectNormalScale_;
 		const float z = i == 0 ? -60.0f : -50.0f;
 
-		titleSelectModels_[i].transforms_[0] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-60.0f, 15.0f, z));
+		titleSelectModels_[i].transforms_[0] = EulerTransforms(Vector3(scale, scale, scale), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, 8.0f, z));
 	}
+
+	if (isSelectionConfirmed_) {
+		Update_SelectedCocktailAnimation();
+	}
+}
+
+void TitlePhase::Start_SelectedCocktailAnimation() {
+	isSelectionConfirmed_ = true;
+	selectionConfirmElapsedTime_ = 0.0f;
+	selectionCameraElapsedTime_ = 0.0f;
+	selectionCameraTheta_ = 0.0f;
+	selectedCocktailTargetZ_ = selectedTitleIndex_ == 0 ? -60.0f : -50.0f;
+	previousSelectionAnimationTime_ = std::chrono::steady_clock::now();
+
+	// 必ず横視点から開始し、Update側で周回しながら真上へ補間する
+	Game::Camera::Setter::SetPhiTarget(0.0f, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetThetaTarget(0.0f, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetDistance(kSelectionCameraStartDistance_, 0.0f, EaseType::IN_BACK, c_main_);
+}
+
+void TitlePhase::Update_SelectedCocktailAnimation() {
+	const std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
+	float deltaTime = std::chrono::duration<float>(currentTime - previousSelectionAnimationTime_).count();
+	previousSelectionAnimationTime_ = currentTime;
+
+	if (deltaTime > 0.1f) {
+		deltaTime = 0.1f;
+	}
+
+	selectionConfirmElapsedTime_ += deltaTime;
+	selectionCameraElapsedTime_ += deltaTime;
+	float moveT = selectionConfirmElapsedTime_ / kSelectionConfirmMoveDuration_;
+	if (moveT > 1.0f) {
+		moveT = 1.0f;
+	}
+	const float smoothMoveT = moveT * moveT * (3.0f - 2.0f * moveT);
+	const float currentCocktailZ = kIceTargetCenterZ_ * (1.0f - smoothMoveT) + selectedCocktailTargetZ_ * smoothMoveT;
+	const float zOffset = currentCocktailZ - kIceTargetCenterZ_;
+
+	// カクテルグラス・液体・全ての氷を、配置を崩さず選択中のZへ移動する
+	CocktailModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(kIceTargetCenterX_, 7.0f, currentCocktailZ));
+	cocktailWaterModel_.transforms_[0] = EulerTransforms(Vector3(10.0f, 10.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(kIceTargetCenterX_, 7.0f, currentCocktailZ));
+
+	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
+		const Vector3 icePosition = iceTargetPositions_[i] + Vector3(0.0f, 0.0f, zOffset);
+		iceModel_[i].transforms_[0] = EulerTransforms(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.0f, -std::numbers::pi_v<float> / 2.0f, 0.0f), icePosition);
+	}
+
+	// カメラの注視点は、選択位置へ移動中のカクテルを追従する
+	Game::Camera::Setter::SetCenter(Vector3(kIceTargetCenterX_, 7.0f, currentCocktailZ), 0.0f, EaseType::IN_BACK, c_main_);
+
+	if (selectionCameraElapsedTime_ < kSelectionCameraRiseDuration_) {
+		// 横向きから真上へ滑らかに上がりながら、カクテルの周囲を2周する
+		const float riseT = selectionCameraElapsedTime_ / kSelectionCameraRiseDuration_;
+		const float smoothRiseT = riseT * riseT * (3.0f - 2.0f * riseT);
+		selectionCameraTheta_ = kSelectionCameraOrbitAngle_ * smoothRiseT;
+
+		Game::Camera::Setter::SetPhiTarget(kSelectionCameraTopPhi_ * smoothRiseT, 0.0f, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetThetaTarget(selectionCameraTheta_, 0.0f, EaseType::IN_BACK, c_main_);
+		Game::Camera::Setter::SetDistance(kSelectionCameraStartDistance_, 0.0f, EaseType::IN_BACK, c_main_);
+		return;
+	}
+
+	// 真上へ到達した後は回転角を固定し、カクテルへ近づく
+	float approachT = (selectionCameraElapsedTime_ - kSelectionCameraRiseDuration_) / kSelectionCameraApproachDuration_;
+	if (approachT > 1.0f) {
+		approachT = 1.0f;
+	}
+	const float smoothApproachT = approachT * approachT * (3.0f - 2.0f * approachT);
+	const float cameraDistance = kSelectionCameraStartDistance_ * (1.0f - smoothApproachT) + kSelectionCameraStopDistance_ * smoothApproachT;
+
+	Game::Camera::Setter::SetPhiTarget(kSelectionCameraTopPhi_, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetThetaTarget(kSelectionCameraOrbitAngle_, 0.0f, EaseType::IN_BACK, c_main_);
+	Game::Camera::Setter::SetDistance(cameraDistance, 0.0f, EaseType::IN_BACK, c_main_);
 }
 
 void TitlePhase::Update_Model(Model& model) {
@@ -633,8 +938,8 @@ void TitlePhase::Update_WaterModel() {
 	waterWaveBuffer_.motionWaveTime = cocktailWaterAnimationTime_;
 	waterColorBuffer_.motionWaveTime = cocktailWaterAnimationTime_;
 
-	// 現在のタイトルカメラ側から見たスペキュラとフレネルに使用する位置
-	waterCameraBuffer_.cameraPositionWS = Vector3(-80.0f, 30.0f, -55.0f);
+	// 現在のカメラの実ワールド座標をスペキュラとフレネルへ渡す
+	waterCameraBuffer_.cameraPositionWS = Game::Camera::Getter::GetWorldPosition(c_main_);
 
 	// WaterSurface.VS.hlsl
 	cocktailWaterModel_.Models_->SetCBufferData(0, ShaderType::VertexShader, &transformBuffer);
@@ -656,8 +961,8 @@ void TitlePhase::Draw_LightModels() {
 		iceModel_[i].Models_->Draw();
 	}
 
-	// 2つの選択モデルはSelect中だけ表示する
-	if (titlePhaseSelection_ == TitlePhaseSelection::Select) {
+	// 切り替え開始から表示し、下から上昇させる
+	if (isTitleSelectTransitionStarted_ || titlePhaseSelection_ == TitlePhaseSelection::Select) {
 		for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 			titleSelectModels_[i].Models_->Draw();
 		}

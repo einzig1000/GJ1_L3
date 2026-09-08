@@ -215,6 +215,12 @@ private:
 	// 傾いたグラスからカクテルへ飛ぶときの放物線の高さ
 	static constexpr float kIceArcHeight_ = 3.0f;
 
+	// 最初にグラス・氷・ジンが定位置へ滑り込む時間（秒）
+	static constexpr float kEntranceDuration_ = 1.0f;
+
+	// 定位置からZ方向へ離しておく距離
+	static constexpr float kEntranceZDistance_ = 15.0f;
+
 	// 氷の移動前にグラスと氷を持ち上げる時間（秒）
 	static constexpr float kPreLiftDuration_ = 1.0f;
 
@@ -223,6 +229,9 @@ private:
 
 	// 持ち上げ後、グラスと氷を一緒に傾ける時間（秒）
 	static constexpr float kGlassTiltDuration_ = 0.75f;
+
+	// カメラが氷用グラスへ向きを変える時間（秒）
+	static constexpr float kGlassCameraLookDuration_ = 0.5f;
 
 	// グラスと氷を傾けたまま停止する時間（秒）
 	static constexpr float kGlassTiltHoldDuration_ = 0.5f;
@@ -233,15 +242,69 @@ private:
 	// 氷を入れ終わった後、グラスが元の位置へ戻る時間（秒）
 	static constexpr float kGlassReturnDuration_ = 0.75f;
 
-	// 氷の移動完了後、ジンが傾いて元へ戻るまでの時間（秒）
-	static constexpr float kGinTiltDuration_ = 1.0f;
+	// ジンが最大角度まで傾く時間（秒）
+	static constexpr float kGinTiltDuration_ = 0.5f;
+
+	// ジンが最大まで傾いた姿勢で停止する時間（秒）
+	static constexpr float kGinTiltHoldDuration_ = 1.0f;
+
+	// ジンが最大角度から元の姿勢へ戻る時間（秒）
+	static constexpr float kGinReturnDuration_ = 0.5f;
+
+	// カメラをジンへ向ける時間（秒）
+	static constexpr float kGinCameraMoveDuration_ = 0.35f;
 
 	// ジンが最大まで傾いた後、液体が現れるまでの時間（秒）
 	static constexpr float kCocktailWaterScaleDuration_ = 0.5f;
 
+	// ジンが元の姿勢へ戻ってから退場を始めるまでの待機時間（秒）
+	static constexpr float kPostGinWaitDuration_ = 5.0f;
+
+	// グラス・ジンの退場とTitleSelectの登場に掛ける時間（秒）
+	static constexpr float kTitleSelectTransitionDuration_ = 1.0f;
+
+	// グラスとジンをZ方向へ退場させる距離
+	static constexpr float kExitZDistance_ = 15.0f;
+
+	// TitleSelectを完成位置より下へ離しておく距離
+	static constexpr float kTitleSelectRiseDistance_ = 20.0f;
+
+	// 横視点と上側視点を切り替える時間（秒）
+	static constexpr float kCameraMoveDuration_ = 1.0f;
+
+	// 最初の少し上から斜め下へ見るカメラ角度（15度）
+	static constexpr float kInitialCameraPhi_ = std::numbers::pi_v<float> / 12.0f;
+
+	// ジン演出後、カクテルグラスを真上から見るカメラ距離
+	static constexpr float kPostGinOverheadDistance_ = 12.0f;
+
+	// 選択確定後、カクテルと氷を選択位置へ移動する時間（秒）
+	static constexpr float kSelectionConfirmMoveDuration_ = 1.0f;
+
+	// 横視点から真上へ上がりながら周回する時間（秒）
+	static constexpr float kSelectionCameraRiseDuration_ = 4.0f;
+
+	// 選択確定後にカクテルの周囲を2周する角度
+	static constexpr float kSelectionCameraOrbitAngle_ = std::numbers::pi_v<float> * 4.0f;
+
+	// 真上へ到達した後、カクテルへ近づく時間（秒）
+	static constexpr float kSelectionCameraApproachDuration_ = 1.25f;
+
+	// 選択演出開始時のカメラ距離
+	static constexpr float kSelectionCameraStartDistance_ = 20.0f;
+
+	// カクテルへ近づいた後に停止するカメラ距離
+	static constexpr float kSelectionCameraStopDistance_ = 0.5f;
+
+	// 選択演出の最終カメラ角度（真上90度）
+	static constexpr float kSelectionCameraTopPhi_ = std::numbers::pi_v<float> / 2.0f;
+
 	Vector3 iceStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTiltedStartPositions_[kMaxIceCount_]{};
 	Vector3 iceTargetPositions_[kMaxIceCount_]{};
+
+	float entranceElapsedTime_ = 0.0f;
+	bool isEntranceFinished_ = false;
 
 	float preLiftElapsedTime_ = 0.0f;
 	bool isPreLiftFinished_ = false;
@@ -254,17 +317,36 @@ private:
 
 	float iceAnimationElapsedTime_ = 0.0f;
 	bool isIceAnimationFinished_ = false;
+	bool isCocktailCameraStarted_ = false;
+	bool isSideCameraReturned_ = false;
 
 	float glassReturnElapsedTime_ = 0.0f;
 	bool isGlassReturnFinished_ = false;
 
 	float ginAnimationElapsedTime_ = 0.0f;
+	bool isGinCameraStarted_ = false;
+	float postGinWaitElapsedTime_ = 0.0f;
+	float postGinCameraElapsedTime_ = 0.0f;
+	bool isPostGinOverheadCameraStarted_ = false;
+	float titleSelectTransitionElapsedTime_ = 0.0f;
+	bool isTitleSelectTransitionStarted_ = false;
+	bool isTitleSelectInputEnabled_ = false;
 	float cocktailWaterScaleElapsedTime_ = 0.0f;
 	float cocktailWaterAnimationTime_ = 0.0f;
 	bool isCocktailWaterAppearing_ = false;
 	TitlePhaseSelection titlePhaseSelection_ = TitlePhaseSelection::Start;
+	bool isSelectionConfirmed_ = false;
+	float selectionConfirmElapsedTime_ = 0.0f;
+	float selectionCameraElapsedTime_ = 0.0f;
+	float selectionCameraTheta_ = 0.0f;
+	float selectedCocktailTargetZ_ = kIceTargetCenterZ_;
+	Vector3 presentationCameraPosition_{};
+	bool isPresentationCameraPositionFixed_ = false;
+	Vector3 glassCameraStartFocus_{};
+	Vector3 ginCameraStartFocus_{};
 
 	std::chrono::steady_clock::time_point previousAnimationTime_{};
+	std::chrono::steady_clock::time_point previousSelectionAnimationTime_{};
 
 	Model barModel_;
 	Model glassModel_;
@@ -288,9 +370,14 @@ private:
 	void Initialize_WaterModel();
 	void Initialize_IceTransforms();
 	void Update_TitleSelect();
+	void Start_SelectedCocktailAnimation();
+	void Update_SelectedCocktailAnimation();
 	void Update_Model(Model& model);
 	void Update_WaterModel();
 	void Update_Animation();
+	void AimCameraFromFixedPosition(const Vector3& cameraPosition, const Vector3& target);
+	void Start_CocktailCameraAnimation();
+	void Start_SideCameraAnimation();
 	void Initialize_LightModels();
 	void Update_LightModels();
 	void Draw_LightModels();
