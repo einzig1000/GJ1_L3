@@ -532,7 +532,7 @@ namespace Game
 			/// <param name="duration">変更にかけるフレーム数(0で即時変更)</param>
 			/// <param name="easeType">変更補完イージングタイプ</param>
 			/// </param name="cameraID">カメラID</param>
-			void SetDistance(float target, float durationSec, EaseType easetype, int32_t cameraID);
+			void SetDistanceTarget(float target, float durationSec, EaseType easetype, int32_t cameraID);
 
 			/// <summary>
 			/// カメラのスクリーンサイズ変更
@@ -541,7 +541,7 @@ namespace Game
 			/// <param name="spendFrame">変更にかけるフレーム数(0で即時変更)</param>
 			/// <param name="easetype">変更補完イージングタイプ</param>
 			/// <param name="cameraID">カメラID</param>
-			void SetScreenSize(Vector2 target, float durationSec, EaseType easetype, int32_t cameraID);
+			void SetScreenSizeTarget(Vector2 target, float durationSec, EaseType easetype, int32_t cameraID);
 
 			/// <summary>
 			/// カメラのfovY変更

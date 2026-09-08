@@ -402,12 +402,12 @@ namespace Game
 				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetThetaTarget(target, durationSec, easetype);
 			}
 
-			void SetDistance(float target, float durationSec, EaseType easetype, int32_t cameraID)
+			void SetDistanceTarget(float target, float durationSec, EaseType easetype, int32_t cameraID)
 			{
 				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetDistanceTarget(target, durationSec, easetype);
 			}
 
-			void SetScreenSize(Vector2 target, float durationSec, EaseType easetype, int32_t cameraID)
+			void SetScreenSizeTarget(Vector2 target, float durationSec, EaseType easetype, int32_t cameraID)
 			{
 				Engine::Instance().GetCameraManager()->GetCamera(cameraID)->SetScreenSizeTarget(target, durationSec, easetype);
 			}

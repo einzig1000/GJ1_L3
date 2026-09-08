@@ -9,6 +9,14 @@ class Table;
 class CollisionManager;
 class CocktailWater;
 
+enum class CameraPhase
+{
+	// Phiロック状態。Thetaはマウスで回転可能
+	PhiRock,
+	// Theta/Phiロック状態。
+	PhiThetaRock,
+};
+
 class SikouteiDevelopPhase :
 	public IPhase
 {
@@ -28,7 +36,7 @@ private:
 	void SaveObstacleData(int32_t stage);
 
 	int32_t c_main_ = -1;
-	float cameraTheta = 0.0f;
+	Coordinate_spherical cameraSpherical_ = { 0.0f, 0.0f, 0.0f };
 
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
@@ -39,6 +47,8 @@ private:
 	std::unique_ptr<CocktailWater> cocktailWater_;
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);		// 射出速度
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);	// マウスドラッグ開始位置
+	bool ableDrag_ = true;
+	float mouseInsensitivity_ = 0.2f;	// マウス感度
 
 	// 障害物
 	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
