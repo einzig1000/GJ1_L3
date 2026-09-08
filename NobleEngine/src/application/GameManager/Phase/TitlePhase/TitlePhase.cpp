@@ -13,7 +13,7 @@ TitlePhase::TitlePhase() {
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetPhiTarget(kInitialCameraPhi_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetThetaTarget(0.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetDistance(20.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	Game::Camera::Setter::SetDistanceTarget(20.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetFovTarget(0.65f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetEnableControl(false, c_main_);
 
@@ -788,7 +788,7 @@ void TitlePhase::AimCameraFromFixedPosition(const Vector3& cameraPosition, const
 	Game::Camera::Setter::SetCenter(target, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetPhiTarget(phi, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetThetaTarget(theta, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-	Game::Camera::Setter::SetDistance(distance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	Game::Camera::Setter::SetDistanceTarget(distance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 }
 
 void TitlePhase::Update_Animation() {
@@ -1255,7 +1255,7 @@ void TitlePhase::Update_Animation() {
 		Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), kTitleSelectTransitionDuration_, EaseType::IN_OUT_SINE, c_main_);
 		Game::Camera::Setter::SetPhiTarget(kInitialCameraPhi_, kTitleSelectTransitionDuration_, EaseType::IN_OUT_SINE, c_main_);
 		Game::Camera::Setter::SetThetaTarget(0.0f, kTitleSelectTransitionDuration_, EaseType::IN_OUT_SINE, c_main_);
-		Game::Camera::Setter::SetDistance(20.0f, kTitleSelectTransitionDuration_, EaseType::IN_OUT_SINE, c_main_);
+		Game::Camera::Setter::SetDistanceTarget(20.0f, kTitleSelectTransitionDuration_, EaseType::IN_OUT_SINE, c_main_);
 	}
 
 	// カメラが最初の視点へ戻り切るまでは、
@@ -1328,7 +1328,7 @@ void TitlePhase::Start_CocktailViewCameraAnimation() {
 void TitlePhase::Start_CocktailPeekCameraAnimation() {
 	// 注視点と角度は既にカクテル用へ補間済みなので、
 	// ここではその角度を維持し、Distanceだけを補間する。
-	Game::Camera::Setter::SetDistance(kCocktailPeekCameraDistance_, kCocktailApproachCameraDuration_, EaseType::IN_OUT_SINE, c_main_);
+	Game::Camera::Setter::SetDistanceTarget(kCocktailPeekCameraDistance_, kCocktailApproachCameraDuration_, EaseType::IN_OUT_SINE, c_main_);
 }
 
 void TitlePhase::Start_SideCameraAnimation() {
@@ -1486,7 +1486,7 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		Game::Camera::Setter::SetCenter(currentCocktailFocus, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 		Game::Camera::Setter::SetPhiTarget(startPhi, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 		Game::Camera::Setter::SetThetaTarget(selectionCameraTheta_, 0.0f, EaseType::IN_OUT_SINE, c_main_);
-		Game::Camera::Setter::SetDistance(orbitDistance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
+		Game::Camera::Setter::SetDistanceTarget(orbitDistance, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 		return;
 	}
 
