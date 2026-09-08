@@ -1,10 +1,40 @@
 #include "CompoundCollider.h"
 #include"../Collider/Collider.h"
+#include"Utilities/Logger/Logger.h"
 
 namespace Collision {
 
+    void SettingCollider(
+        Collider* collider,
+
+        Matrix4x4& mat,
+        const uint32_t attribute,
+        const uint32_t mask,
+        const Collider::ColliderType colliderType) {
+
+        //コライダーがあればここに入れる
+        collider->SetWorldMatrixAddress(mat);
+        collider->SetCollisionAttribute(attribute);
+        collider->SetCollisionMask(mask);
+
+        Sphere sphere = { .center = {0.0f,0.0f,0.0f},.radius ={0.5f} };
+
+        if (colliderType == Collider::ColliderType::kColliderType_XZ_Circle) {
+            // Circleのセット
+            collider->SetSphere(sphere,true);
+        } else if (colliderType == Collider::ColliderType::kColliderType_Sphere) {
+            //本ゲームにおいてはここは基本使用しないが サークルではない
+            collider->SetSphere(sphere, false);
+        } else if (colliderType == Collider::ColliderType::kColliderType_AABB) {
+            //本ゲームにおいてはここは基本使用しないが
+            AABB aabb = { .min = {-0.5f,-0.5f,-0.5f},.max = {0.5f,0.5f,0.5f} };
+            collider->SetAABB(aabb);
+        }
+    }
+
+
     void CompoundCollider::CreateFromModelData(
-        const int32_t modelID, 
+        const int32_t modelID,
         Matrix4x4& mat,
         const uint32_t attribute,
         const uint32_t mask)
@@ -32,7 +62,7 @@ namespace Collision {
         }
 
         for (int j = 0; j < aabbCount; ++j) {
-            newColliders[sphereCount+j]->SetAABB(modelData->colliderShape.aabbs[j]);
+            newColliders[sphereCount + j]->SetAABB(modelData->colliderShape.aabbs[j]);
         }
 
         colliders = std::move(newColliders);
