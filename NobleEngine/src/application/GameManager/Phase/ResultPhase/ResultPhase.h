@@ -257,7 +257,7 @@ private:
 	void Update_ResultRayModel();
 	void Draw_ResultRayModel();
 
-	bool isWin_ = true;
+	bool isWin_ = false;
 
 	// カメラID
 	int32_t c_main_ = -1;

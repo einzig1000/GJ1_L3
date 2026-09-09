@@ -204,8 +204,11 @@ void ResultPhase::Update_CocktailWaterModel(float deltaTime) {
 }
 
 void ResultPhase::Update_ResultRayAnimation(float deltaTime) {
-	// Goodで手を上げた時刻に合わせ、看板前のResultRayを点灯する。
-	if (!isResultRayTurnedOn_ && ((manWinState_ == ManWinState::PlayingGood && manAnimationTime_ >= kResultRayTurnOnGoodTime_) || manWinState_ == ManWinState::HoldingGood)) {
+	// WinはGoodで手を上げた時刻、LoseはBadへ入った時点でResultRayを点灯する。
+	const bool shouldTurnOnWinRay = isWin_ && ((manWinState_ == ManWinState::PlayingGood && manAnimationTime_ >= kResultRayTurnOnGoodTime_) || manWinState_ == ManWinState::HoldingGood);
+	const bool shouldTurnOnLoseRay = !isWin_ && manLoseState_ != ManLoseState::Walking;
+
+	if (!isResultRayTurnedOn_ && (shouldTurnOnWinRay || shouldTurnOnLoseRay)) {
 		isResultRayTurnedOn_ = true;
 		resultRayRevealElapsedTime_ = 0.0f;
 	}
@@ -763,6 +766,11 @@ void ResultPhase::InitializeCommon() {
 }
 
 void ResultPhase::InitializeWin() {
+	// Winは現在の暗いピンク色を維持する
+	lightBuffer_.lights[0].color = Vector4(0.45f, 0.12f, 0.22f, 1.0f);
+	lightBuffer_.lights[0].intensity = 0.18f;
+	resultRayMaterialBuffer_.color = Vector4(0.74f, 0.28f, 0.39f, 0.10f);
+
 	manTransform_.translate.z = kManStartZ_;
 	manTransform_.rotate.y = std::numbers::pi_v<float>;
 	manAnimationTime_ = 0.0f;
@@ -778,6 +786,11 @@ void ResultPhase::InitializeWin() {
 }
 
 void ResultPhase::InitializeLose() {
+	// Loseはシーン全体のDirectional LightとResultRayを赤系へ切り替える
+	lightBuffer_.lights[0].color = Vector4(0.55f, 0.03f, 0.03f, 1.0f);
+	lightBuffer_.lights[0].intensity = 0.22f;
+	resultRayMaterialBuffer_.color = Vector4(1.0f, 0.04f, 0.04f, 0.10f);
+
 	// Loseでは画面左側からWalkで登場させる
 	manTransform_.translate = Vector3(-70.0f, -12.0f, kManStartZ_);
 	manTransform_.rotate.y = std::numbers::pi_v<float>;
@@ -818,7 +831,9 @@ void ResultPhase::UpdateWin() {
 }
 
 void ResultPhase::UpdateLose() {
+	const float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 	Update_LoseMan();
+	Update_ResultRayAnimation(deltaTime);
 	Update_ResultRayModel();
 }
 
