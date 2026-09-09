@@ -5,13 +5,13 @@ class UIModel;
 class NumMeshs;
 class BreakEvaluation;
 
-class UIManager
-{
     struct modelIDs {
         int32_t model_ = -1;
         int32_t texture_ = -1;
     };
 
+class UIManager
+{
 
 
 public:
@@ -31,10 +31,6 @@ public:
     int32_t GetScore() const;
 
 private:
-    struct modelIDs {
-        int32_t model_ = -1;
-        int32_t texture_ = -1;
-    };
 
     float gameTimer_ = 0.0f;
 
