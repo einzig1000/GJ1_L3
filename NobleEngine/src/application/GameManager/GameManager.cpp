@@ -6,6 +6,9 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
+#include <GameManager/Phase/ResultPhase/ResultPhase.h>
+
+//衝突判定テスト用フェーズ
 #include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
 
 GameManager::GameManager() 
@@ -23,6 +26,7 @@ GameManager::GameManager()
 	phaseMap_[Phase::Phase_SikouteiDevelop]->SetContext(&phaseContext_);
 	phaseMap_[Phase::Phase_CollisionTest] = std::make_unique<CollisionTestPhase>();
 	phaseMap_[Phase::Phase_CollisionTest]->SetContext(&phaseContext_);
+  
 
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 
