@@ -311,8 +311,8 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
                 transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
                 //パーティクルを出現させる 反発方向にセットする
                 glassParticle_->Emit(transform_.translate, comCollider_.colliders.at(0)->GetPhysicsBody().velocity);
-                // 死亡まで残り５秒
-				deathCounter_.Initialize(5.0f);
+                // 死亡まで残り1秒
+				deathCounter_.Initialize(1.0f);
             }
             });
     }

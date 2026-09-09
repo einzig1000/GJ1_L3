@@ -41,4 +41,5 @@ private:
 	// 起動後経過時間
 	uint32_t elapsedFrameTime_ = 0;
 	float elapsedSecTime_ = 0.0f;
+	static constexpr float kMaxDeltaMs = 100.0f;
 };

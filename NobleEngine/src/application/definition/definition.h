@@ -8,6 +8,19 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 
 
+enum class CameraPhase
+{
+	// 盤面確認中。Theta/Phiともにマウス操作可能
+	Free,
+	// 射出角度調整中。Phiロック状態。Thetaはマウス操作可能
+	ShotAngleSetup,
+	// グラススライド中。Theta/Phiともにロック状態。
+	GlassFollowing,
+	// グラスキャッチ中。Theta/Phiともにロック状態。
+	CatchFollowing,
+
+};
+
 // ゲームのフェーズ
 enum class Phase
 {
@@ -19,6 +32,7 @@ enum class Phase
 	//仮に衝突テストフェーズを作成する
 	Phase_CollisionTest,
     Phase_Result,
+	Phase_Tutorial,
 
 	Phase_Max,
 };

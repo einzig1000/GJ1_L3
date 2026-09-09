@@ -24,14 +24,13 @@ public:
 
 private:
 
-	// フェーズクラス
-	IPhase* currentPhase_;
-	IPhase* previousPhase_;
-	std::unordered_map<Phase, std::unique_ptr<IPhase>> phaseMap_;
+	std::unique_ptr<IPhase> previousPhase_;
+	std::unique_ptr<IPhase> currentPhase_;
 
-	void ChangePhase(Phase phase);
-
+	std::unique_ptr<IPhase> CreatePhase(Phase phase);
 	PhaseContext phaseContext_;
+	
+
 
 
 	bool phaseChanging_ = false;

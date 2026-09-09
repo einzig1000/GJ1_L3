@@ -129,6 +129,7 @@
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
     <ClCompile Include="src\application\GameObject\UI\UIModel\UIModel.cpp" />
     <ClCompile Include="src\application\GameObject\UI\UIManager\UIManager.cpp" />
+    <ClCompile Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.h" />
@@ -402,6 +403,7 @@
     <ClInclude Include="src\application\GameObject\HumanModel\HumanModel.h" />
     <ClInclude Include="src\application\GameObject\UI\UIModel\UIModel.h" />
     <ClInclude Include="src\application\GameObject\UI\UIManager\UIManager.h" />
+    <ClInclude Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
