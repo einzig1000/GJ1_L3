@@ -13,7 +13,7 @@ void CollisionManager::Load()
     CollisionTag::LoadTagNames();
     //グラス
     CollisionTag::AddTag("Glass");
-    //ターゲットのお客様
+    //ターゲット
     CollisionTag::AddTag("Target");
     //椅子
     CollisionTag::AddTag("Chair");
@@ -23,8 +23,15 @@ void CollisionManager::Load()
     CollisionTag::AddTag("Table");
     //予測
     CollisionTag::AddTag("Prediction");
+    //お客様
+    CollisionTag::AddTag("Customer");
 
     CollisionTag::SaveTagNames();
+}
+
+CollisionManager::~CollisionManager()
+{
+    Finalize();
 }
 
 void CollisionManager::Finalize()

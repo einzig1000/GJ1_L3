@@ -16,8 +16,6 @@ enum class Phase
     Phase_Title,
     Phase_GameScene,
 	Phase_SikouteiDevelop,
-	//仮に衝突テストフェーズを作成する
-	Phase_CollisionTest,
     Phase_Result,
 
 	Phase_Max,

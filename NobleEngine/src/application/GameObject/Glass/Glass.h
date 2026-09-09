@@ -23,6 +23,8 @@ public:
     /// @brief 壊れたフラグの取得
     /// @return 
     bool GetIsBroken() { return isBroken_; }
+    //カスタマーとの判定を得る
+    bool GetIsHitCustomer() { return isHitCustomer_; }
 
     void Initialize();
     void Update(const int32_t cameraID);
@@ -36,6 +38,8 @@ public:
 	void AddTranslate(const Vector3& translate) { transform_.translate += translate; };
 
 	Vector3 GetTranslate() { return transform_.translate; };
+    Vector3& GetTranslatePointer() { return transform_.translate; };
+
 	//void SetVelocity(const Vector3& vel) { velocity_ = vel; };
     Vector3 GetVelocity() { return velocity_; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
@@ -50,7 +54,8 @@ public:
 
 private:
 	LightDataForGPU* lightData_;
-
+    //
+    bool isHitCustomer_ = false;
     //床との当たり判定
     bool isHitFloor_ = false;
     //壊れたフラグ

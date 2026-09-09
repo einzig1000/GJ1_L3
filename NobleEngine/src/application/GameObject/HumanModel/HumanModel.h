@@ -6,24 +6,29 @@ class HumanModel
 {
 public:
     HumanModel();
-    ~HumanModel();
-
+   virtual ~HumanModel();
+   virtual void Load();
     void Initialize();
+    void SetGlassPos(Vector3* pos) { glassPos_ = pos; }
     void Update(const int32_t cameraID);
     void Draw(int32_t renderTargetID);
     void DrawImGui();
+    void SetAnimation(const std::string name);
+    virtual void UpdateAnimation();
+    void SetIsShot(const bool isShot) { isShot_ = isShot; };
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
-
 	void SetTranslate(Vector3 translate) { transform_.translate = translate; }
-
+    void SetRotateY(const float rotateY) { transform_.rotate.y = rotateY; }
     void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
-
-private:
+protected:
+    bool isEndAnimation_ = false;
+    bool isShot_ = false;
+    //グラスぽず
+    Vector3* glassPos_ = nullptr;
+ 
     LightDataForGPU* lightData_;
-
     std::unique_ptr<RenderObject>obj_ = nullptr;
-
     EulerTransforms transform_;
     Matrix4x4 worldMatrix_;
     Matrix4x4 wvpMatrix_;
@@ -45,8 +50,6 @@ private:
     uint32_t numVertices_;
     SkinInstance skinInstance_;
     const ModelData* modelData_ = nullptr;
-
-
     Collision::CompoundCollider comCollider_;
 };
 
