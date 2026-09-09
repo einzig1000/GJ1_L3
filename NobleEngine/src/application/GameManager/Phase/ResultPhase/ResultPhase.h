@@ -1,5 +1,6 @@
 #pragma once
 #include <GameManager/Phase/IPhase.h>
+#include <numbers>
 class ResultPhase : public IPhase {
 
 public:
@@ -242,27 +243,81 @@ private:
 	ResultRayMaterialBuffer resultRayMaterialBuffer_{};
 
 	// ResultRayの位置
-	Vector3 resultRayPosition_ = Vector3(-70.0f, 19.0f, -5.0f);
+	Vector3 resultRayPosition_ = Vector3(-65.0f, 19.0f, -4.0f);
+
+	// GoodでManの手が上がり、ResultRayが点灯し始める時刻（秒）
+	static constexpr float kResultRayTurnOnGoodTime_ = 1.0f;
+	// ResultRayが上から下へ伸び切るまでの時間（秒）
+	static constexpr float kResultRayRevealDuration_ = 0.35f;
+	float resultRayRevealElapsedTime_ = 0.0f;
+	bool isResultRayTurnedOn_ = false;
 
 	void Initialize_ResultRayModel();
+	void Update_ResultRayAnimation(float deltaTime);
 	void Update_ResultRayModel();
 	void Draw_ResultRayModel();
 
-	// 現在はWin演出を先に実装しているため、単体確認時はWinを既定にする
 	bool isWin_ = true;
 
 	// カメラID
 	int32_t c_main_ = -1;
+
+	// ========================================
+	// Win演出後のカメラ（値はここで調整可能）
+	// ========================================
+
+	// 看板前に置くカクテルの位置。
+	// Space後のカメラは、この座標を中心に周回・接近する。
+	Vector3 cocktailPosition_ = Vector3(-60.0f, 7.0f, -10.0f);
+	Vector3 cocktailScale_ = Vector3(10.0f, 10.0f, 10.0f);
+	// 2.5周を、TitlePhaseと同じ角速度で回す
+	static constexpr float kResultCameraOrbitDuration_ = 5.0f;
+	static constexpr float kResultCameraOrbitAngle_ = std::numbers::pi_v<float> * 5.0f;
+	// 周回しながら縮める最終距離
+	static constexpr float kResultCameraOrbitEndDistance_ = 8.0f;
+	// 周回後、弧を描いて中央へ飛び込む時間と高さ
+	static constexpr float kResultCameraDiveDuration_ = 0.6f;
+	static constexpr float kResultCameraArcHeight_ = 6.0f;
+	// 中央へ近づいた後に残す距離
+	static constexpr float kResultCameraStopDistance_ = 0.5f;
+
+	enum class ResultCameraState {
+		WaitingForInput,
+		Orbiting,
+		Diving,
+		Finished,
+	};
+
+	ResultCameraState resultCameraState_ = ResultCameraState::WaitingForInput;
+	float resultCameraElapsedTime_ = 0.0f;
+	float resultCameraStartTheta_ = 0.0f;
+	float resultCameraStartPhi_ = 0.0f;
+	float resultCameraStartDistance_ = 1.0f;
+
+	static float EaseInOut01(float value);
+	void AimCameraFromPosition(const Vector3& cameraPosition, const Vector3& target);
+	void Start_ResultCameraAnimation();
+	void Update_ResultCameraAnimation(float deltaTime);
 
 	// ライト用定数バッファ
 	LightBuffer lightBuffer_{};
 
 	Model barModel_;
 	Model signboardModel_;
+	Model cocktailModel_;
+	Model cocktailWaterModel_;
+
+	WaterWaveBuffer waterWaveBuffer_{};
+	WaterCameraBuffer waterCameraBuffer_{};
+	WaterColorBuffer waterColorBuffer_{};
+	WaterLightingBuffer waterLightingBuffer_{};
+	float cocktailWaterAnimationTime_ = 0.0f;
 
 	void Initialize_LightModel(Model& model);
 	void Update_LightModel(Model& model);
 	void Initialize_LightBuffer();
+	void Initialize_CocktailWaterModel();
+	void Update_CocktailWaterModel(float deltaTime);
 
 	// ========================================
 	// Man（スキニングアニメーション）
@@ -273,15 +328,25 @@ private:
 	int32_t manIdleAnimationID_ = -1;
 	int32_t manWalkAnimationID_ = -1;
 	int32_t manGoodAnimationID_ = -1;
+	int32_t manBadAnimationID_ = -1;
+	int32_t manCatchAnimationID_ = -1;
+	int32_t manThrowAnimationID_ = -1;
 	int32_t manCurrentAnimationID_ = -1;
 
 	// ManはZ=-60から歩き始め、Z=-10で停止する
-	static constexpr float kManStartZ_ = -105.0f;
-	static constexpr float kManTargetZ_ = -15.0f;
+	static constexpr float kManStartZ_ = -108.0f;
+	static constexpr float kManTargetZ_ = -18.0f;
 
 	static constexpr float kManWalkSpeed_ = 10.0f;
 	static constexpr float kManTurnDuration_ = 0.75f;
 	static constexpr float kManGoodEndTime_ = 1.999f;
+
+	// Lose演出用
+	static constexpr float kManBadEndTime_ = 2.540f;
+	static constexpr float kManCatchEndTime_ = 1.165f;
+	static constexpr float kManThrowEndTime_ = 4.499f;
+	static constexpr float kManBadWaitDuration_ = 2.0f;
+	static constexpr float kManBadApproachDistance_ = 5.0f;
 
 	enum class ManWinState {
 		Walking,
@@ -291,10 +356,26 @@ private:
 	};
 
 	ManWinState manWinState_ = ManWinState::Walking;
+
+	enum class ManLoseState {
+		Walking,
+		PlayingBad,
+		WaitingAfterBad,
+		PlayingCatch,
+		PlayingThrow,
+		HoldingThrow,
+	};
+
+	ManLoseState manLoseState_ = ManLoseState::Walking;
 	bool isManWalking_ = true;
 	float manTurnElapsedTime_ = 0.0f;
 	float manTurnStartY_ = 0.0f;
 	float manTurnTargetY_ = 0.0f;
+	float manLoseWaitElapsedTime_ = 0.0f;
+	Vector3 manBadStartPosition_{};
+	Vector3 manBadTargetPosition_{};
+	float manBadStartRotationY_ = 0.0f;
+	float manBadTargetRotationY_ = 0.0f;
 
 	std::unique_ptr<RenderObject> manObject_;
 	std::unique_ptr<ComputeObject> manAnimationCompute_;
@@ -311,6 +392,7 @@ private:
 	void Initialize_Man();
 	void Update_Man();
 	void Update_WinMan();
+	void Update_LoseMan();
 	void Draw_Man();
 	void DrawImGui_Models();
 
