@@ -15,6 +15,7 @@ ResultPhase::ResultPhase() {
 	// モデル
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
 	signboardModel_.ID = Game::Asset::Model::Load("assets/application/model/Signboard/Signboard.obj");
+	resultUIModel_.ID = Game::Asset::Model::Load("assets/application/model/UI_Result/UI_kari.obj");
 	// TitlePhaseで使用しているカクテルグラスと同じモデル
 	cocktailModel_.ID = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
 	cocktailWaterModel_.ID = Game::Asset::Model::Load("assets/application/model/Water/CocktailWater.obj");
@@ -24,6 +25,7 @@ ResultPhase::ResultPhase() {
 	// テクスチャ
 	barModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
 	signboardModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Signboard/Signboard.png");
+	resultUIModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/UI_Result/UI_Kari.png");
 	cocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
 
 	// Manモデル・テクスチャ・アニメーション
@@ -272,6 +274,8 @@ void ResultPhase::Update_ResultRayAnimation(float scaledDeltaTime) {
 	if (!isResultRayTurnedOn_ && (shouldTurnOnWinRay || shouldTurnOnLoseRay)) {
 		isResultRayTurnedOn_ = true;
 		resultRayRevealElapsedTime_ = 0.0f;
+		// Win・Loseとも、ResultRayの点灯開始と同じフレームで文字を表示し始める。
+		isResultUIVisible_ = true;
 	}
 
 	if (!isResultRayTurnedOn_) {
@@ -281,6 +285,20 @@ void ResultPhase::Update_ResultRayAnimation(float scaledDeltaTime) {
 
 	resultRayRevealElapsedTime_ += scaledDeltaTime;
 	resultRayMaterialBuffer_.reveal = EaseInOut01(resultRayRevealElapsedTime_ / kResultRayRevealDuration_);
+}
+
+void ResultPhase::Update_ResultUIModel() {
+	if (resultUIModel_.Models_ == nullptr || resultUIModel_.transforms_.empty()) {
+		return;
+	}
+
+	// 消灯中はX方向の描画幅を0にして完全に隠す。
+	// 点灯後はResultRayと同じ表示率で中央から横方向へ広げる。
+	const float reveal = isResultUIVisible_ ? resultRayMaterialBuffer_.reveal : 0.0f;
+	resultUIModel_.transforms_[0].scale = Vector3(resultUIScale_.x * reveal, resultUIScale_.y, resultUIScale_.z);
+	resultUIModel_.transforms_[0].rotate = resultUIRotation_;
+	resultUIModel_.transforms_[0].translate = resultUIPosition_;
+	Update_LightModel(resultUIModel_);
 }
 
 void ResultPhase::Update_ResultRayModel() {
@@ -422,6 +440,7 @@ void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 		if (arcT >= 1.0f) {
 			resultCameraState_ = ResultCameraState::LoseStraight;
 			resultCameraElapsedTime_ = 0.0f;
+
 		}
 		return;
 	}
@@ -440,6 +459,7 @@ void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 			const Vector3 endMovement = loseLiquidCameraEndPosition_ - loseLiquidCameraArcStartPosition_;
 			AimCameraFromPosition(loseLiquidCameraEndPosition_, loseLiquidCameraArcStartFocus_ + endMovement);
 			resultCameraState_ = ResultCameraState::Finished;
+			nextPhase_ = Phase::Phase_Title;
 		}
 		return;
 	}
@@ -479,6 +499,7 @@ void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 
 	if (diveT >= 1.0f) {
 		resultCameraState_ = ResultCameraState::Finished;
+		nextPhase_ = Phase::Phase_Title;
 	}
 }
 
@@ -975,6 +996,15 @@ void ResultPhase::DrawImGui_Models() {
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("Result UI")) {
+		ImGui::DragFloat3("Position##ResultUI", &resultUIPosition_.x, 0.1f);
+		ImGui::DragFloat3("Scale##ResultUI", &resultUIScale_.x, 0.01f);
+		ImGui::DragFloat3("Rotation##ResultUI", &resultUIRotation_.x, 0.01f);
+		ImGui::Text("Visible : %s", isResultUIVisible_ ? "true" : "false");
+		ImGui::Text("Reveal : %.3f", resultRayMaterialBuffer_.reveal);
+		ImGui::TreePop();
+	}
+
 	if (ImGui::TreeNode("Cocktail")) {
 		ImGui::DragFloat3("Scale##Cocktail", &cocktailScale_.x, 0.01f);
 		ImGui::DragFloat3("Position##Cocktail", &cocktailPosition_.x, 0.1f);
@@ -1031,6 +1061,7 @@ void ResultPhase::InitializeCommon() {
 
 	Initialize_LightModel(barModel_);
 	Initialize_LightModel(signboardModel_);
+	Initialize_LightModel(resultUIModel_);
 	Initialize_LightModel(cocktailModel_);
 	Initialize_CocktailWaterModel();
 	Initialize_LiquidModel();
@@ -1043,6 +1074,10 @@ void ResultPhase::InitializeCommon() {
 
 	// SignboardをZ=0.0fへ配置する
 	signboardModel_.transforms_[0] = EulerTransforms(Vector3(0.7f, 0.7f, 0.7f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-75.0f, 21.0f, -2.0f));
+
+	// ResultRayよりカメラから遠いX位置へ置き、文字が光の後ろに見えるようにする。
+	// 初期Xスケールは0で、点灯するまでは描画範囲を閉じておく。
+	resultUIModel_.transforms_[0] = EulerTransforms(Vector3(0.0f, resultUIScale_.y, resultUIScale_.z), resultUIRotation_, resultUIPosition_);
 
 	// TitlePhaseと同じ大きさのカクテルを看板前へ配置する
 	cocktailModel_.transforms_[0] = EulerTransforms(cocktailScale_, Vector3(0.0f, 0.0f, 0.0f), cocktailPosition_);
@@ -1066,6 +1101,7 @@ void ResultPhase::InitializeWin() {
 	resultRayMaterialBuffer_.reveal = 0.0f;
 	resultRayRevealElapsedTime_ = 0.0f;
 	isResultRayTurnedOn_ = false;
+	isResultUIVisible_ = false;
 	resultCameraState_ = ResultCameraState::WaitingForInput;
 	resultCameraElapsedTime_ = 0.0f;
 	isCocktailVisible_ = true;
@@ -1105,6 +1141,7 @@ void ResultPhase::InitializeLose() {
 	resultRayMaterialBuffer_.reveal = 0.0f;
 	resultRayRevealElapsedTime_ = 0.0f;
 	isResultRayTurnedOn_ = false;
+	isResultUIVisible_ = false;
 	resultCameraState_ = ResultCameraState::WaitingForInput;
 	resultCameraElapsedTime_ = 0.0f;
 }
@@ -1127,6 +1164,7 @@ void ResultPhase::UpdateWin() {
 	const float scaledDeltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 	Update_WinMan();
 	Update_ResultRayAnimation(scaledDeltaTime);
+	Update_ResultUIModel();
 	Update_ResultCameraAnimation(scaledDeltaTime);
 	Update_ResultRayModel();
 }
@@ -1136,6 +1174,7 @@ void ResultPhase::UpdateLose() {
 	Update_LoseMan();
 	Update_LoseGlassAnimation();
 	Update_ResultRayAnimation(scaledDeltaTime);
+	Update_ResultUIModel();
 	Update_ResultCameraAnimation(scaledDeltaTime);
 	Update_ResultRayModel();
 }
@@ -1151,6 +1190,10 @@ void ResultPhase::DrawCommon() {
 		liquidModel_.Models_->Draw(renderTargetID_);
 	}
 	Draw_Man();
+	if (isResultUIVisible_ && resultRayMaterialBuffer_.reveal > 0.0001f) {
+		// 先に文字を描き、後から半透明のResultRayを重ねる。
+		resultUIModel_.Models_->Draw(renderTargetID_);
+	}
 	Draw_ResultRayModel();
 }
 

@@ -252,12 +252,21 @@ private:
 	float resultRayRevealElapsedTime_ = 0.0f;
 	bool isResultRayTurnedOn_ = false;
 
+	// ========================================
+	// Result UI（ResultRayの後ろに表示する文字）
+	// ========================================
+	Vector3 resultUIPosition_ = Vector3(-74.0f, 13.0f, -3.0f);
+	Vector3 resultUIScale_ = Vector3(1.0f, 1.0f, 1.0f);
+	Vector3 resultUIRotation_ = Vector3(std::numbers::pi_v<float>*3/2.0f, std::numbers::pi_v<float>*3/2.0f, 0.0f);
+	bool isResultUIVisible_ = false;
+
 	void Initialize_ResultRayModel();
 	void Update_ResultRayAnimation(float scaledDeltaTime);
 	void Update_ResultRayModel();
 	void Draw_ResultRayModel();
+	void Update_ResultUIModel();
 
-	bool isWin_ = false;
+	bool isWin_ = true;
 
 	// カメラID
 	int32_t c_main_ = -1;
@@ -320,6 +329,7 @@ private:
 
 	Model barModel_;
 	Model signboardModel_;
+	Model resultUIModel_;
 	Model cocktailModel_;
 	Model cocktailWaterModel_;
 	Model liquidModel_;
