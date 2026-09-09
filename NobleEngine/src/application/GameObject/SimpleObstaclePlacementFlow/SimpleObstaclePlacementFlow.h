@@ -6,7 +6,6 @@
 
 class SimpleObstaclePlacementFlow
 {
-
 private:
     // 全障害物の発射開始位置・回転。
     EulerTransforms spawnPoint_;
@@ -103,6 +102,10 @@ public:
 
     // Editorから障害物の位置を直接書き換える(localPositionと現在のtransformを両方更新)
     void SetPieceLocalPosition(int32_t index, const Vector3& position);
+
+    // 指定indexのPieceを削除する。末尾のPieceをindexへ移動してpop_backする。
+    // 呼び出し側(obstacles_など)のswap-and-popと同じタイミングで呼ぶこと。
+    void RemovePiece(int32_t index);
 
     void Initialize();
 

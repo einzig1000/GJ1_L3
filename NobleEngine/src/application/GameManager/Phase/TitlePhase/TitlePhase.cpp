@@ -210,9 +210,9 @@ void TitlePhase::Initialize_LightModels() {
 	titleRayMaterialBuffer_.padding = 0.0f;
 
 	waterWaveBuffer_.relativeScale = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-	waterWaveBuffer_.waveAxisXWS = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-	waterWaveBuffer_.waveAxisYWS = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-	waterWaveBuffer_.waveAxisZWS = Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+	waterWaveBuffer_.waveAxisX = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+	waterWaveBuffer_.waveAxisY = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+	waterWaveBuffer_.waveAxisZ = Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 	waterWaveBuffer_.surfaceY = 7.0f;
 	waterWaveBuffer_.commonWorldScale = 10.0f;
 	waterWaveBuffer_.sideWaveDepth = 0.5f;
@@ -229,10 +229,10 @@ void TitlePhase::Initialize_LightModels() {
 	waterColorBuffer_.colorBlendWidth = 0.25f;
 	waterColorBuffer_.colorDistortion = 0.3f;
 	waterColorBuffer_.colorPatternScale = 1.0f;
-	waterColorBuffer_.convectionSpeed = 0.35f;
-	waterColorBuffer_.convectionStrength = 0.2f;
-	waterColorBuffer_.convectionScale = 1.0f;
-	waterColorBuffer_.mixProgress = 1.0f;
+	//waterColorBuffer_.convectionSpeed = 0.35f;
+	//waterColorBuffer_.convectionStrength = 0.2f;
+	//waterColorBuffer_.convectionScale = 1.0f;
+	//waterColorBuffer_.mixProgress = 1.0f;
 	waterColorBuffer_.motionIntensity = 0.0f;
 	waterColorBuffer_.smoothness = 0.8f;
 	waterColorBuffer_.fresnelStrength = 0.2f;
@@ -1540,10 +1540,9 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		isSpaceHoldTracking_ = false;
 		isSpaceFastForward_ = false;
 		ChangePhase(Phase::Phase_SikouteiDevelop);
-		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-		if (volume < 0.0f)
-			Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
-		Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.01f;
+		if (volume < 0.0f) Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
+		else Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
 	}
 	const float smoothTopMoveT = EaseInOut01(topMoveT);
 

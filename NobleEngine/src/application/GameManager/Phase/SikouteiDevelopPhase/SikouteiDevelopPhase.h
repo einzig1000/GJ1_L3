@@ -13,21 +13,12 @@ class SimpleObstaclePlacementFlow;
 class HumanModel;
 class UIManager;
 
-
-
-enum class CameraPhase
+struct LayerTextureIndexData
 {
-	// 盤面確認中。Theta/Phiともにマウス操作可能
-	Free,
-	// 射出角度調整中。Phiロック状態。Thetaはマウス操作可能
-	ShotAngleSetup,
-	// グラススライド中。Theta/Phiともにロック状態。
-	GlassFollowing,
-	// グラスキャッチ中。Theta/Phiともにロック状態。
-	CatchFollowing,
-
+	struct { int32_t index; int32_t _pad[3]; } textures[8];
+	int32_t textureCount;
+	int32_t _pad[3];
 };
-
 
 class SikouteiDevelopPhase :
 	public IPhase
@@ -44,6 +35,10 @@ public:
 
 
 private:
+	std::unique_ptr<RenderObject> drawForMain_[2];
+
+	int32_t rt_3D_ = -1;
+
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
 
@@ -68,6 +63,7 @@ private:
 	bool isShot_ = false;
 
 
+
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 	bool isDebugDraw_ = false;
@@ -85,6 +81,8 @@ private:
 	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
 	int32_t obstacleCount = 0;
 	int32_t deleteIndex = -1;
+	// そのステージで壊せる最大数
+	int32_t maxBreakableObstacleCount_ = 0;
 
 	// テーブル
 	std::unique_ptr<Table> table_;

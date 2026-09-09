@@ -552,9 +552,14 @@ namespace Game
 			return Engine::Instance().GetTimeManager()->GetScaledDeltaTimeMs();
 		}
 
-		uint32_t GetElapsedTime()
+		uint32_t GetElapsedFrameTime()
 		{
-			return Engine::Instance().GetTimeManager()->GetFixFPS()->GetFrameCount();
+			return Engine::Instance().GetTimeManager()->GetFixFPS()->GetElapsedFrameTime();
+		}
+
+		float GetElapsedSecTime()
+		{
+			return Engine::Instance().GetTimeManager()->GetFixFPS()->GetElapsedSecTime();
 		}
 	}
 
