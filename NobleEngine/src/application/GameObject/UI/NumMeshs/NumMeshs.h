@@ -16,10 +16,19 @@ public:
     void Draw(const int32_t renderTexture);
     void DrawImGui(const char* label);
     //利益の設定 
-    void SetValue(const int32_t benefit) {
-    value_ = benefit;
-    isUpdateValue_ = true;
-     };
+    void SetValue(const int32_t benefit)
+    {
+        value_ = benefit;
+        isUpdateValue_ = true;
+    };
+	void AddValue(const int32_t benefit)
+	{
+		value_ += benefit;
+		isUpdateValue_ = true;
+	};
+
+	int32_t GetValue() const { return value_; }
+
     void SetEulerTransform(const EulerTransforms& transform);
 private:
     bool isMinus_ = false;

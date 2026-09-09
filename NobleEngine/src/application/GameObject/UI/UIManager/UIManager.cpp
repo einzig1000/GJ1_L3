@@ -150,3 +150,18 @@ void UIManager::DebugImGui()
 
     breakEvaluation_->DebugImGui();
 }
+
+void UIManager::SetScore(float score)
+{
+    benefitMesh_->SetValue(static_cast<int32_t>(score));
+}
+
+void UIManager::AddScore(float score)
+{
+	benefitMesh_->AddValue(static_cast<int32_t>(score));
+}
+
+int32_t UIManager::GetScore() const
+{
+    return benefitMesh_->GetValue();
+}
