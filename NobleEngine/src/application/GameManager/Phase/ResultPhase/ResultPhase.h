@@ -12,6 +12,7 @@ public:
 	void DrawImGui() override;
 
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
+	void SetIsWin(bool isWin) { isWin_ = isWin; }
 
 private:
 	static constexpr int32_t kMaxLightCount_ = 20;
@@ -231,7 +232,8 @@ private:
 		float padding;
 	};
 
-	bool isWin_ = false;
+	// 現在はWin演出を先に実装しているため、単体確認時はWinを既定にする
+	bool isWin_ = true;
 
 	// カメラID
 	int32_t c_main_ = -1;
@@ -253,13 +255,29 @@ private:
 	int32_t manTextureID_ = -1;
 	int32_t manIdleAnimationID_ = -1;
 	int32_t manWalkAnimationID_ = -1;
+	int32_t manGoodAnimationID_ = -1;
+	int32_t manCurrentAnimationID_ = -1;
 
-	// ManはZ=-65から歩き始め、Z=-5で停止する
-	static constexpr float kManStartZ_ = -60.0f;
-	static constexpr float kManTargetZ_ = -10.0f;
+	// ManはZ=-60から歩き始め、Z=-10で停止する
+	static constexpr float kManStartZ_ = -85.0f;
+	static constexpr float kManTargetZ_ = -15.0f;
 
 	static constexpr float kManWalkSpeed_ = 10.0f;
+	static constexpr float kManTurnDuration_ = 0.75f;
+	static constexpr float kManGoodEndTime_ = 1.999f;
+
+	enum class ManWinState {
+		Walking,
+		TurningToCamera,
+		PlayingGood,
+		HoldingGood,
+	};
+
+	ManWinState manWinState_ = ManWinState::Walking;
 	bool isManWalking_ = true;
+	float manTurnElapsedTime_ = 0.0f;
+	float manTurnStartY_ = 0.0f;
+	float manTurnTargetY_ = 0.0f;
 
 	std::unique_ptr<RenderObject> manObject_;
 	std::unique_ptr<ComputeObject> manAnimationCompute_;
@@ -275,6 +293,7 @@ private:
 
 	void Initialize_Man();
 	void Update_Man();
+	void Update_WinMan();
 	void Draw_Man();
 	void DrawImGui_Models();
 

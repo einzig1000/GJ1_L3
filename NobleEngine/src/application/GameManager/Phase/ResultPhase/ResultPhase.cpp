@@ -1,5 +1,7 @@
 #include "ResultPhase.h"
 #include "Game.h"
+
+#include <cmath>
 #include <numbers>
 
 ResultPhase::ResultPhase() {
@@ -20,6 +22,7 @@ ResultPhase::ResultPhase() {
 	manTextureID_ = Game::Asset::Texture::Load("assets/application/model/Man/texture_body.png");
 	manIdleAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Idle");
 	manWalkAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Walk");
+	manGoodAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Good");
 }
 ResultPhase::~ResultPhase() {}
 void ResultPhase::Initialize() {
@@ -183,10 +186,13 @@ void ResultPhase::Initialize_Man() {
 	manAnimationCompute_->SetSBufferData(2, manModelData_->skinBindData.influenceHeapSlot);
 	manAnimationCompute_->SetUAVData(0, Game::Resource::GetUAV(manResultHeapSlot_));
 
-	// 最初はZ=5からWalkで登場する
+	// 最初はZ=-60からWalkで登場する
 	manTransform_ = EulerTransforms(Vector3(15.0f, 15.0f, 15.0f), Vector3(0.0f, std::numbers::pi_v<float>, 0.0f), Vector3(-70.0f, -12.0f, kManStartZ_));
 	manAnimationTime_ = 0.0f;
+	manCurrentAnimationID_ = manWalkAnimationID_;
+	manWinState_ = ManWinState::Walking;
 	isManWalking_ = true;
+	manTurnElapsedTime_ = 0.0f;
 }
 
 void ResultPhase::Update_Man() {
@@ -194,34 +200,102 @@ void ResultPhase::Update_Man() {
 		return;
 	}
 
-	const float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-	manAnimationTime_ += deltaTime;
-
-	// Z=-5へ到着したら正確に停止してIdleへ切り替える
-	if (isManWalking_) {
-		manTransform_.translate.z += kManWalkSpeed_ * deltaTime;
-
-		if (manTransform_.translate.z >= kManTargetZ_) {
-			manTransform_.translate.z = kManTargetZ_;
-			isManWalking_ = false;
-
-			// Idleを先頭から再生する
-			manAnimationTime_ = 0.0f;
-		}
-	}
-
 	const Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
 	const Matrix4x4 world = manTransform_.GetWorldMatrix();
 	const Matrix4x4 wvp = world * viewProjection;
 
-	const int32_t currentAnimationID = isManWalking_ ? manWalkAnimationID_ : manIdleAnimationID_;
-
-	Game::Asset::Animation::ComputeAnimationData(currentAnimationID, manSkinInstance_, manModelData_->skinBindData, manAnimationTime_);
+	Game::Asset::Animation::ComputeAnimationData(manCurrentAnimationID_, manSkinInstance_, manModelData_->skinBindData, manAnimationTime_);
 	Game::Resource::UpdateData(manSkinInstance_.paletteHandle, manSkinInstance_.palette);
 
 	manObject_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
 	manObject_->SetCBufferData(1, ShaderType::VertexShader, &world);
 	manAnimationCompute_->SetSBufferData(0, Game::Resource::GetSRV(manSkinInstance_.paletteHandle));
+}
+
+void ResultPhase::Update_WinMan() {
+	if (manObject_ == nullptr || manAnimationCompute_ == nullptr || manModelData_ == nullptr) {
+		return;
+	}
+
+	const float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+
+	switch (manWinState_) {
+	case ManWinState::Walking:
+		manCurrentAnimationID_ = manWalkAnimationID_;
+		manAnimationTime_ += deltaTime;
+		manTransform_.translate.z += kManWalkSpeed_ * deltaTime;
+
+		if (manTransform_.translate.z >= kManTargetZ_) {
+			manTransform_.translate.z = kManTargetZ_;
+
+			// 到着後もWalkを続けたまま、カメラの方向へ旋回する
+			manWinState_ = ManWinState::TurningToCamera;
+			manCurrentAnimationID_ = manWalkAnimationID_;
+			manTurnElapsedTime_ = 0.0f;
+			manTurnStartY_ = manTransform_.rotate.y;
+
+			const Vector3 cameraPosition = Game::Camera::Getter::GetWorldPosition(c_main_);
+			const float directionX = cameraPosition.x - manTransform_.translate.x;
+			const float directionZ = cameraPosition.z - manTransform_.translate.z;
+
+			// このManモデルは正面が-Z側なので、求めたYawへ180度を加える
+			manTurnTargetY_ = std::atan2(directionX, directionZ) + std::numbers::pi_v<float>;
+
+			// 最短方向へ回転するよう角度差を-PI～+PIへ収める
+			float angleDifference = manTurnTargetY_ - manTurnStartY_;
+			while (angleDifference > std::numbers::pi_v<float>) {
+				angleDifference -= std::numbers::pi_v<float> * 2.0f;
+			}
+			while (angleDifference < -std::numbers::pi_v<float>) {
+				angleDifference += std::numbers::pi_v<float> * 2.0f;
+			}
+			manTurnTargetY_ = manTurnStartY_ + angleDifference;
+		}
+		break;
+
+	case ManWinState::TurningToCamera: {
+		// 旋回中もIdleへ切り替えず、Walkを継続する
+		manCurrentAnimationID_ = manWalkAnimationID_;
+		manAnimationTime_ += deltaTime;
+		manTurnElapsedTime_ += deltaTime;
+
+		float turnT = manTurnElapsedTime_ / kManTurnDuration_;
+		if (turnT > 1.0f) {
+			turnT = 1.0f;
+		}
+
+		// Ease In Out Sineで滑らかにカメラへ向く
+		const float easedTurnT = -(std::cos(std::numbers::pi_v<float> * turnT) - 1.0f) * 0.5f;
+		manTransform_.rotate.y = manTurnStartY_ + (manTurnTargetY_ - manTurnStartY_) * easedTurnT;
+
+		if (turnT >= 1.0f) {
+			manTransform_.rotate.y = manTurnTargetY_;
+			isManWalking_ = false;
+			manWinState_ = ManWinState::PlayingGood;
+			manCurrentAnimationID_ = manGoodAnimationID_;
+			manAnimationTime_ = 0.0f;
+		}
+		break;
+	}
+
+	case ManWinState::PlayingGood:
+		manCurrentAnimationID_ = manGoodAnimationID_;
+		manAnimationTime_ += deltaTime;
+
+		if (manAnimationTime_ >= kManGoodEndTime_) {
+			manAnimationTime_ = kManGoodEndTime_;
+			manWinState_ = ManWinState::HoldingGood;
+		}
+		break;
+
+	case ManWinState::HoldingGood:
+		// Goodをループさせず、最後のポーズをそのまま保持する
+		manCurrentAnimationID_ = manGoodAnimationID_;
+		manAnimationTime_ = kManGoodEndTime_;
+		break;
+	}
+
+	Update_Man();
 }
 
 void ResultPhase::Draw_Man() {
@@ -253,6 +327,8 @@ void ResultPhase::DrawImGui_Models() {
 		ImGui::Text("Animation : %s", isManWalking_ ? "Walk" : "Idle");
 		ImGui::Text("Walk Animation ID : %d", manWalkAnimationID_);
 		ImGui::Text("Idle Animation ID : %d", manIdleAnimationID_);
+		ImGui::Text("Good Animation ID : %d", manGoodAnimationID_);
+		ImGui::Text("Win State : %d", static_cast<int32_t>(manWinState_));
 		ImGui::TreePop();
 	}
 
@@ -272,19 +348,35 @@ void ResultPhase::InitializeCommon() {
 	barModel_.transforms_[0] = EulerTransforms(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
 }
 
-void ResultPhase::InitializeWin() {}
+void ResultPhase::InitializeWin() {
+	manTransform_.translate.z = kManStartZ_;
+	manTransform_.rotate.y = std::numbers::pi_v<float>;
+	manAnimationTime_ = 0.0f;
+	manCurrentAnimationID_ = manWalkAnimationID_;
+	manWinState_ = ManWinState::Walking;
+	isManWalking_ = true;
+	manTurnElapsedTime_ = 0.0f;
+}
 
-void ResultPhase::InitializeLose() {}
+void ResultPhase::InitializeLose() {
+	manTransform_.translate.z = kManTargetZ_;
+	manAnimationTime_ = 0.0f;
+	manCurrentAnimationID_ = manIdleAnimationID_;
+	isManWalking_ = false;
+}
 
 void ResultPhase::UpdateCommon() {
 	Game::Camera::Update(c_main_);
 	Update_LightModel(barModel_);
-	Update_Man();
 }
 
-void ResultPhase::UpdateWin() {}
+void ResultPhase::UpdateWin() { Update_WinMan(); }
 
-void ResultPhase::UpdateLose() {}
+void ResultPhase::UpdateLose() {
+	manCurrentAnimationID_ = manIdleAnimationID_;
+	manAnimationTime_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+	Update_Man();
+}
 
 void ResultPhase::DrawCommon() {
 	barModel_.Models_->Draw();
