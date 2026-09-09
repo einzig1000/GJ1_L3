@@ -91,17 +91,32 @@ void UIManager::Initialize()
 
     benefitMesh_->Initialize(6, { { 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, {-0.28f,0.4f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
     timeMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
+    
+    isInitializeCamera_ = false;
 
+    const float hPi = std::numbers::pi_v<float>*0.5f;
+    Game::Camera::Setter::SetPhiTarget(hPi, 0.0f, EaseType::LINEAR, uiCameraID_);
+    Game::Camera::Setter::SetCenter({ 0.0f,-1.3,11.9f }, 0, EaseType::LINEAR, uiCameraID_);
+    Game::Camera::Update(uiCameraID_);
 }
 
 void UIManager::Update()
 {
+
+    if (!isInitializeCamera_) {
+        isInitializeCamera_ = true;
+        const float hPi = std::numbers::pi_v<float>*0.5f;
+        Game::Camera::Setter::SetPhiTarget(hPi, 0.0f, EaseType::LINEAR, uiCameraID_);
+        Game::Camera::Setter::SetCenter({ 0.0f,-1.3,11.9f }, 0, EaseType::LINEAR, uiCameraID_);
+        Game::Camera::Update(uiCameraID_);
+    }
+
     //ゲームタイマー
     gameTimer_ -= Game::Time::GetScaledDeltaTimeMs()*0.001f;
     timeMesh_->SetValue(gameTimer_);
-
+  /*  Game::Camera::Update(uiCameraID_);*/
     //Game::Camera::Setter::SetCenter();
-    Game::Camera::Update(uiCameraID_);
+
     //破壊判定オブジェクト
     breakEvaluation_->Update(uiCameraID_);
 

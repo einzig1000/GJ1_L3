@@ -32,6 +32,12 @@ public:
 
 private:
 
+    bool isInitializeCamera_ = false;
+    struct modelIDs {
+        int32_t model_ = -1;
+        int32_t texture_ = -1;
+    };
+
     float gameTimer_ = 0.0f;
 
     int32_t renderTextureID_ = -1;
