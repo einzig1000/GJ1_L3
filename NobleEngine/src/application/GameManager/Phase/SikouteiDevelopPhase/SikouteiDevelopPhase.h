@@ -10,7 +10,7 @@ class CollisionManager;
 class CocktailWater;
 class PredictionObj;
 class SimpleObstaclePlacementFlow;
-
+class HumanModel;
 
 
 class CounterSec
@@ -96,6 +96,9 @@ private:
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
 
+	bool LoadLightData();
+	void SaveLightData();
+
 
 	LightDataForGPU lightData_;
 
@@ -106,6 +109,9 @@ private:
 	CounterSec cameraPhaseCounter_;
 	void ChangeCameraPhase(CameraPhase phase);
 	void UpdateCameraPhase();
+
+
+
 
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
@@ -129,17 +135,26 @@ private:
 	std::unique_ptr<Table> table_;
 
 	// 人間
-	std::unique_ptr<RenderObject> human_[3];
-	Material material_;
-	EulerTransforms humanTransforms_[3];
+	std::unique_ptr<HumanModel> human_[3];
 	float humanRotateDegree[3] = { 90.0f, 210.0f, 330.0f, };	// 人間がテーブルから見てどの角度にいるか
 	int32_t currentGlassUserIndex_ = 0;					// 現在グラスを持っている人間のインデックス
 	float humansize_ = 30.0f;							// キャッチ出来る角度
+
+	// バー
+	std::unique_ptr<RenderObject> bar_;
+	Material barMaterial_;
+	int32_t barTextureID_ = -1;
+	EulerTransforms barTransforms_;
+
 
 	// マーカー(デバッグ描画)
 	std::unique_ptr<RenderObject> markers_[6];
 	EulerTransforms markerTransforms_[6];
 	std::vector<float> markerAngles_;					// マーカーがテーブルから見てどの角度にいるか
+
+
+	GlassType glassType = GlassType::Champagne;
+
 
 	//予測オブジェ
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;

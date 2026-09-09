@@ -32,7 +32,10 @@ public:
         Vector3 velocity;
     };
 
+    void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+
 private:
+    LightDataForGPU* lightData_;
     void CheckColliders();
 
     // 予測用の仮想衝突が実際の障害物コライダーの物理状態(速度・めり込み量)を

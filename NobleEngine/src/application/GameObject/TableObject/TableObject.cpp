@@ -85,42 +85,56 @@ void TableObject::Draw()
 
 void TableObject::DrawImGui()
 {
-    ImGui::Begin("GameObj");
+    //ImGui::Begin("GameObj");
+    //
+    //ImGui::PushID(static_cast<int>(glassType_));
+    //if (ImGui::TreeNode("TableObject"))
+    //{
+    //    static Vector3 vel;
+    //    ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
+    //    //物理ボディ
+    //    if (!comCollider_.colliders.empty())
+    //    {
+    //        auto& collider = comCollider_.colliders.at(0);
+    //        auto  phyB = collider->GetPhysicsBody();
+    //
+    //        ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+    //        ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1.0f);
+    //
+    //        collider->SetMass(phyB.mass);
+    //        collider->SetCoefficiendOfRestituion(phyB.coefficiendOfRestituion);
+    //
+    //
+    //        if (ImGui::Button("Shot"))
+    //        {
+    //            collider->SetVelocity(vel);
+    //        }
+    //    }
+    //
+    //    ImGui::Checkbox("isHitFloor", &isHitFloor_);
+    //
+    //    ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
+    //    ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
+    //    ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
+    //
+    //    ImGui::TreePop();
+    //}
+    //
+    //ImGui::PopID();
+    //
+    //ImGui::End();
 
-    ImGui::PushID(static_cast<int>(glassType_));
+    ImGui::Begin("Material");
+
     if (ImGui::TreeNode("TableObject"))
     {
-        static Vector3 vel;
-        ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
-        //物理ボディ
-        if (!comCollider_.colliders.empty())
-        {
-            auto& collider = comCollider_.colliders.at(0);
-            auto  phyB = collider->GetPhysicsBody();
+        ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
+        ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
+        ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
+        ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
 
-            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-            ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1.0f);
-
-            collider->SetMass(phyB.mass);
-            collider->SetCoefficiendOfRestituion(phyB.coefficiendOfRestituion);
-
-
-            if (ImGui::Button("Shot"))
-            {
-                collider->SetVelocity(vel);
-            }
-        }
-
-        ImGui::Checkbox("isHitFloor", &isHitFloor_);
-
-        ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
-        ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
-        ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-
-        ImGui::TreePop();
+		ImGui::TreePop();
     }
-
-    ImGui::PopID();
 
     ImGui::End();
 

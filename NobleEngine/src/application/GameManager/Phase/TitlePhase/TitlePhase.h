@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GameManager/Phase/IPhase.h>
+#include <System/CreateMaskTexture/CreateMaskTexture.h>
 #include <chrono>
 #include <cstdint>
 #include <numbers>
@@ -19,6 +20,8 @@ public:
 
 private:
 	static constexpr int32_t kMaxLightCount_ = 20;
+
+	std::unique_ptr<CreateMaskTexture> maskTextureCreator_;
 
 	// ========================================
 	// Light
