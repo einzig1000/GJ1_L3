@@ -6,7 +6,7 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
-
+#include <GameManager/Phase/ResultPhase/ResultPhase.h>
 GameManager::GameManager() 
 {
 	JsonManager::LoadAll("assets/application/json");
