@@ -342,10 +342,10 @@ private:
 	static constexpr float kManGoodEndTime_ = 1.999f;
 
 	// Lose演出用
-	static constexpr float kManBadEndTime_ = 2.540f;
-	static constexpr float kManCatchEndTime_ = 1.165f;
-	static constexpr float kManThrowEndTime_ = 4.499f;
-	static constexpr float kManBadWaitDuration_ = 2.0f;
+	// man.gltf内の各クリップの実際の終了時刻より少しだけ手前で止める
+	static constexpr float kManBadEndTime_ = 2.374f;
+	static constexpr float kManCatchEndTime_ = 1.916f;
+	static constexpr float kManThrowEndTime_ = 1.624f;
 	static constexpr float kManBadApproachDistance_ = 5.0f;
 
 	enum class ManWinState {
@@ -360,7 +360,6 @@ private:
 	enum class ManLoseState {
 		Walking,
 		PlayingBad,
-		WaitingAfterBad,
 		PlayingCatch,
 		PlayingThrow,
 		HoldingThrow,
@@ -371,11 +370,37 @@ private:
 	float manTurnElapsedTime_ = 0.0f;
 	float manTurnStartY_ = 0.0f;
 	float manTurnTargetY_ = 0.0f;
-	float manLoseWaitElapsedTime_ = 0.0f;
 	Vector3 manBadStartPosition_{};
 	Vector3 manBadTargetPosition_{};
 	float manBadStartRotationY_ = 0.0f;
 	float manBadTargetRotationY_ = 0.0f;
+
+	// ========================================
+	// Lose時のカクテルグラス追従・投擲
+	// ========================================
+
+	// man.gltf内で左手に使われているジョイント名
+	static constexpr const char* kManLeftHandJointName_ = "Hand_L";
+	// 左手ジョイント基準でのグラス位置調整値。
+	// 手首ではなく手のひらへ合わせたい場合は、この値を微調整する。
+	Vector3 loseGlassHandLocalOffset_ = Vector3(0.0f, 0.0f, 0.0f);
+	// Hand_Lが見つからなかった場合だけ使用するMan原点基準の予備位置
+	Vector3 loseGlassFallbackOffset_ = Vector3(-4.0f, 16.0f, 1.0f);
+	// 看板へグラスが衝突する位置
+	Vector3 loseGlassSignboardHitPosition_ = Vector3(-74.0f, 18.0f, -2.0f);
+	// Throw開始から左手の追従を解除するまでの時間（秒）
+	static constexpr float kLoseGlassReleaseTime_ = 1.10f;
+	// 左手から看板へ到達するまでの時間（秒）
+	static constexpr float kLoseGlassFlightDuration_ = 0.45f;
+	// 投擲軌道の高さ
+	static constexpr float kLoseGlassThrowArcHeight_ = 3.0f;
+
+	int32_t manLeftHandJointIndex_ = -1;
+	Vector3 loseGlassTablePosition_{};
+	Vector3 loseGlassThrowStartPosition_{};
+	Vector3 cocktailRotation_{};
+	bool isLoseGlassReleased_ = false;
+	bool hasLoseGlassHitSignboard_ = false;
 
 	std::unique_ptr<RenderObject> manObject_;
 	std::unique_ptr<ComputeObject> manAnimationCompute_;
@@ -393,6 +418,8 @@ private:
 	void Update_Man();
 	void Update_WinMan();
 	void Update_LoseMan();
+	Vector3 GetLoseGlassLeftHandPosition();
+	void Update_LoseGlassAnimation();
 	void Draw_Man();
 	void DrawImGui_Models();
 

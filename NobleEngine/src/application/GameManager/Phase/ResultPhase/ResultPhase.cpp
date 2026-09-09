@@ -31,8 +31,8 @@ ResultPhase::ResultPhase() {
 	manIdleAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Idle");
 	manWalkAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Walk");
 	manGoodAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Good");
-	manBadAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "BAD");
-	manCatchAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Catch ");
+	manBadAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Bad");
+	manCatchAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Catch");
 	manThrowAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Throw");
 }
 ResultPhase::~ResultPhase() {}
@@ -433,6 +433,14 @@ void ResultPhase::Initialize_Man() {
 
 	manVertexCount_ = static_cast<uint32_t>(manModelData_->vertices.size());
 	manSkinInstance_ = Game::Asset::Animation::CreateSkinInstance(manModelID_);
+
+	// リアルタイム更新されるSkeletonから、追従対象の左手ジョイントを一度だけ引く。
+	manLeftHandJointIndex_ = -1;
+	const auto leftHandJoint = manSkinInstance_.skeleton.jointIndexByName.find(kManLeftHandJointName_);
+	if (leftHandJoint != manSkinInstance_.skeleton.jointIndexByName.end()) {
+		manLeftHandJointIndex_ = leftHandJoint->second;
+	}
+
 	manResultHeapSlot_ = Game::Resource::CreateCompute(sizeof(VertexData), manVertexCount_);
 
 	manObject_ = std::make_unique<RenderObject>();
@@ -628,25 +636,14 @@ void ResultPhase::Update_LoseMan() {
 		if (badT >= 1.0f) {
 			manTransform_.translate = manBadTargetPosition_;
 			manTransform_.rotate.y = manBadTargetRotationY_;
-			manAnimationTime_ = kManBadEndTime_;
-			manLoseWaitElapsedTime_ = 0.0f;
-			manLoseState_ = ManLoseState::WaitingAfterBad;
-		}
-		break;
-	}
 
-	case ManLoseState::WaitingAfterBad:
-		// Badの最終姿勢を約2秒間維持する
-		manCurrentAnimationID_ = manBadAnimationID_;
-		manAnimationTime_ = kManBadEndTime_;
-		manLoseWaitElapsedTime_ += deltaTime;
-
-		if (manLoseWaitElapsedTime_ >= kManBadWaitDuration_) {
+			// Bad終了後は待機やBadの再設定を挟まず、そのままCatchを開始する。
 			manLoseState_ = ManLoseState::PlayingCatch;
 			manCurrentAnimationID_ = manCatchAnimationID_;
 			manAnimationTime_ = 0.0f;
 		}
 		break;
+	}
 
 	case ManLoseState::PlayingCatch:
 		manCurrentAnimationID_ = manCatchAnimationID_;
@@ -677,6 +674,87 @@ void ResultPhase::Update_LoseMan() {
 	}
 
 	Update_Man();
+}
+
+Vector3 ResultPhase::GetLoseGlassLeftHandPosition() {
+	if (manLeftHandJointIndex_ >= 0 && manLeftHandJointIndex_ < static_cast<int32_t>(manSkinInstance_.skeleton.joints.size())) {
+		// skeletonSpaceMatrixはアニメーション計算後のManモデル空間にある。
+		// Man自身のworldを後ろへ掛け、左手ジョイントのワールド行列へ変換する。
+		const auto& leftHandJoint = manSkinInstance_.skeleton.joints[manLeftHandJointIndex_];
+		const Matrix4x4 leftHandWorld = leftHandJoint.skeletonSpaceMatrix * manTransform_.GetWorldMatrix();
+
+		// 調整値も左手の向きに追従させたうえで、ワールド座標を取り出す。
+		return Vector3(
+		    loseGlassHandLocalOffset_.x * leftHandWorld.m[0][0] + loseGlassHandLocalOffset_.y * leftHandWorld.m[1][0] + loseGlassHandLocalOffset_.z * leftHandWorld.m[2][0] + leftHandWorld.m[3][0],
+		    loseGlassHandLocalOffset_.x * leftHandWorld.m[0][1] + loseGlassHandLocalOffset_.y * leftHandWorld.m[1][1] + loseGlassHandLocalOffset_.z * leftHandWorld.m[2][1] + leftHandWorld.m[3][1],
+		    loseGlassHandLocalOffset_.x * leftHandWorld.m[0][2] + loseGlassHandLocalOffset_.y * leftHandWorld.m[1][2] + loseGlassHandLocalOffset_.z * leftHandWorld.m[2][2] + leftHandWorld.m[3][2]);
+	}
+
+	// ジョイント名の相違などがあっても、演出全体が止まらないための予備処理。
+	const float sinY = std::sin(manTransform_.rotate.y);
+	const float cosY = std::cos(manTransform_.rotate.y);
+	const Vector3 rotatedOffset(
+	    loseGlassFallbackOffset_.x * cosY + loseGlassFallbackOffset_.z * sinY, loseGlassFallbackOffset_.y, -loseGlassFallbackOffset_.x * sinY + loseGlassFallbackOffset_.z * cosY);
+	return manTransform_.translate + rotatedOffset;
+}
+
+void ResultPhase::Update_LoseGlassAnimation() {
+	if (isWin_) {
+		return;
+	}
+
+	switch (manLoseState_) {
+	case ManLoseState::Walking:
+	case ManLoseState::PlayingBad:
+		cocktailPosition_ = loseGlassTablePosition_;
+		cocktailRotation_ = Vector3(0.0f, 0.0f, 0.0f);
+		break;
+
+	case ManLoseState::PlayingCatch: {
+		// Catchの手が机へ伸びる動きに合わせ、机上から実際のHand_Lへ補間する。
+		const float catchT = EaseInOut01(manAnimationTime_ / kManCatchEndTime_);
+		const Vector3 leftHandPosition = GetLoseGlassLeftHandPosition();
+		cocktailPosition_ = loseGlassTablePosition_ * (1.0f - catchT) + leftHandPosition * catchT;
+		cocktailRotation_.z = -std::numbers::pi_v<float> * 0.15f * catchT;
+		break;
+	}
+
+	case ManLoseState::PlayingThrow:
+		if (!isLoseGlassReleased_ && manAnimationTime_ < kLoseGlassReleaseTime_) {
+			// Throwの振り下ろし途中までは、毎フレーム更新されたHand_Lへ追従する。
+			cocktailPosition_ = GetLoseGlassLeftHandPosition();
+			cocktailRotation_.z = -std::numbers::pi_v<float> * 0.15f;
+			break;
+		}
+
+		if (!isLoseGlassReleased_) {
+			isLoseGlassReleased_ = true;
+			loseGlassThrowStartPosition_ = cocktailPosition_;
+		}
+
+		if (!hasLoseGlassHitSignboard_) {
+			const float flightTime = manAnimationTime_ - kLoseGlassReleaseTime_;
+			const float flightT = std::clamp(flightTime / kLoseGlassFlightDuration_, 0.0f, 1.0f);
+			const float easedFlightT = EaseInOut01(flightT);
+
+			cocktailPosition_ = loseGlassThrowStartPosition_ * (1.0f - easedFlightT) + loseGlassSignboardHitPosition_ * easedFlightT;
+			cocktailPosition_.y += 4.0f * kLoseGlassThrowArcHeight_ * easedFlightT * (1.0f - easedFlightT);
+			cocktailRotation_.x = std::numbers::pi_v<float> * 2.0f * easedFlightT;
+			cocktailRotation_.z = -std::numbers::pi_v<float> * 0.15f + std::numbers::pi_v<float> * 2.0f * easedFlightT;
+
+			if (flightT >= 1.0f) {
+				cocktailPosition_ = loseGlassSignboardHitPosition_;
+				hasLoseGlassHitSignboard_ = true;
+			}
+		}
+		break;
+
+	case ManLoseState::HoldingThrow:
+		if (hasLoseGlassHitSignboard_) {
+			cocktailPosition_ = loseGlassSignboardHitPosition_;
+		}
+		break;
+	}
 }
 
 void ResultPhase::Draw_Man() {
@@ -727,6 +805,8 @@ void ResultPhase::DrawImGui_Models() {
 		ImGui::Text("Throw Animation ID : %d", manThrowAnimationID_);
 		ImGui::Text("Win State : %d", static_cast<int32_t>(manWinState_));
 		ImGui::Text("Lose State : %d", static_cast<int32_t>(manLoseState_));
+		ImGui::Text("Left Hand Joint Index : %d", manLeftHandJointIndex_);
+		ImGui::DragFloat3("Glass Hand Offset##Man", &loseGlassHandLocalOffset_.x, 0.01f);
 		ImGui::TreePop();
 	}
 
@@ -798,11 +878,15 @@ void ResultPhase::InitializeLose() {
 	manCurrentAnimationID_ = manWalkAnimationID_;
 	manLoseState_ = ManLoseState::Walking;
 	isManWalking_ = true;
-	manLoseWaitElapsedTime_ = 0.0f;
 	manBadStartPosition_ = manTransform_.translate;
 	manBadTargetPosition_ = manTransform_.translate;
 	manBadStartRotationY_ = manTransform_.rotate.y;
 	manBadTargetRotationY_ = manTransform_.rotate.y;
+	loseGlassTablePosition_ = cocktailPosition_;
+	loseGlassThrowStartPosition_ = cocktailPosition_;
+	cocktailRotation_ = Vector3(0.0f, 0.0f, 0.0f);
+	isLoseGlassReleased_ = false;
+	hasLoseGlassHitSignboard_ = false;
 	resultRayMaterialBuffer_.reveal = 0.0f;
 	resultRayRevealElapsedTime_ = 0.0f;
 	isResultRayTurnedOn_ = false;
@@ -815,6 +899,7 @@ void ResultPhase::UpdateCommon() {
 	Game::Camera::Update(c_main_);
 	// ヘッダーまたはImGuiで変更した位置を、モデルとカメラ中心の両方へ反映する
 	cocktailModel_.transforms_[0].scale = cocktailScale_;
+	cocktailModel_.transforms_[0].rotate = cocktailRotation_;
 	cocktailModel_.transforms_[0].translate = cocktailPosition_;
 	Update_LightModel(barModel_);
 	Update_LightModel(signboardModel_);
@@ -833,6 +918,7 @@ void ResultPhase::UpdateWin() {
 void ResultPhase::UpdateLose() {
 	const float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 	Update_LoseMan();
+	Update_LoseGlassAnimation();
 	Update_ResultRayAnimation(deltaTime);
 	Update_ResultRayModel();
 }
