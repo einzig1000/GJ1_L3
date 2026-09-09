@@ -4,8 +4,10 @@
 NumMeshs::NumMeshs()
 {    
     Numbers::Load();
-    numbers_.resize(maxDigit);
-    for (int i = 0; i < maxDigit; ++i) {
+
+    numbers_.resize(maxDigit_);
+
+    for (int i = 0; i < maxDigit_; ++i) {
         numbers_[i] = std::make_unique<Numbers>();
     }
     //マイナス
@@ -18,11 +20,9 @@ NumMeshs::~NumMeshs()
 
 
 void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transform, Matrix4x4* parent)
-{  //最初はマイナス値にしてみる
-
-
+{  
+    maxDigit_ = maxDigit;
     for (int i = 0; i < maxDigit; ++i) {
-
         numbers_[i]->Initialize(0, transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }, transform.rotate, transform.scale, parent);
     }
 
@@ -39,11 +39,11 @@ void NumMeshs::Update(const int32_t cameraID)
 
         int32_t tempBenefit = std::abs(value_);
 
-        for (int digit = maxDigit-1; digit >= 0; digit--) {
+        for (int digit = maxDigit_ -1; digit >= 0; digit--) {
           
             int digitNum = std::powf(10, digit);
             int num = tempBenefit / digitNum;
-            numbers_[maxDigit - 1-digit]->SetModelId(num);
+            numbers_[maxDigit_ - 1-digit]->SetModelId(num);
             tempBenefit %= digitNum;
         }
     }
@@ -56,7 +56,7 @@ void NumMeshs::Update(const int32_t cameraID)
        minus_->Update(cameraID);
     }
 
-    for (int i = 0; i < maxDigit; ++i) {
+    for (int i = 0; i < maxDigit_; ++i) {
         numbers_[i]->SetColor(color);
         numbers_[i]->Update(cameraID);
     }
@@ -66,7 +66,7 @@ void NumMeshs::Update(const int32_t cameraID)
 
 void NumMeshs::Draw(const int32_t renderTexture)
 {
-    for (int i = 0; i < maxDigit; ++i) {
+    for (int i = 0; i < maxDigit_; ++i) {
         numbers_[i]->Draw(renderTexture);
     }
 
@@ -89,8 +89,7 @@ void NumMeshs::DrawImGui(const char* label)
             SetValue(value);
         }
 
-
-        for (int i = 0; i < maxDigit; ++i) {
+        for (int i = 0; i < maxDigit_; ++i) {
             numbers_[i]->DrawImGui(label);
         }
 
@@ -99,4 +98,18 @@ void NumMeshs::DrawImGui(const char* label)
     }
 
     ImGui::End();
+}
+
+void NumMeshs::SetEulerTransform(const EulerTransforms& transform)
+{
+
+    for (int i = 0; i < maxDigit_; ++i) {
+        EulerTransforms numTransform = EulerTransforms{.scale = transform.scale,.rotate =  transform.rotate,.translate =  {transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }} };
+        numbers_[i]->SetTransform(numTransform);
+    }
+
+    EulerTransforms minusTransform = EulerTransforms{.scale =  transform.scale,.rotate =  transform.rotate, .translate = {transform.translate - Vector3{ transform.scale.x * 0.5f,0.0f,0.0f }} };
+    //マイナスは10のインデックスに入っている
+    minus_->SetTransform(minusTransform);
+
 }

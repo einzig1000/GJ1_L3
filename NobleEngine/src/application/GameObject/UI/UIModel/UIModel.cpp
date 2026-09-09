@@ -10,7 +10,6 @@ UIModel::UIModel()
 
     obj_->SetupFromShaders();
 
-
 }
 
 UIModel::~UIModel()
@@ -76,9 +75,4 @@ void UIModel::DebugUI(const int id)
 
     ImGui::End();
 
-}
-
-void UIModel::SetRotateX(const float rotate)
-{
-    transform_.rotate.x = rotate;
 }
