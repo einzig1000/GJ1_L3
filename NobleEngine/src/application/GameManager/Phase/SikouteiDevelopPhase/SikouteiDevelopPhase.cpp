@@ -320,7 +320,8 @@ void SikouteiDevelopPhase::Update()
                 glass_->SetTranslate(glassPos);
                 glass_->SetVelocity(Vector3{});
                 uiManager_->GetBreakEvaluation()->SetMaxBreakCount(maxBreakableObstacleCount_);
-                uiManager_->GetBreakEvaluation()->SetBreakCount(obstacleCount);
+                uiManager_->GetBreakEvaluation()->SetBreakCount(maxBreakableObstacleCount_ - obstacleCount);
+				uiManager_->AddScore(maxBreakableObstacleCount_ - obstacleCount);
                 break;
             }
         }
@@ -454,18 +455,6 @@ void SikouteiDevelopPhase::Draw()
     for (int32_t i = 0; i < 3; i++)
     {
         human_[i]->Draw(rt_3D_);
-    }
-    for (int32_t i = 0; i < 6; i++)
-    {
-        Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
-        Matrix4x4 wvp = world * viewPro;
-        Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
-
-        markers_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-        markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
-        markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-        markers_[i]->Draw(rt_3D_);
     }
     {
         Matrix4x4 world = barTransforms_.GetWorldMatrix();

@@ -5,8 +5,15 @@ class UIModel;
 class NumMeshs;
 class BreakEvaluation;
 
+    struct modelIDs {
+        int32_t model_ = -1;
+        int32_t texture_ = -1;
+    };
+
 class UIManager
 {
+
+
 public:
     UIManager();
     ~UIManager();
@@ -18,6 +25,10 @@ public:
 
 	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
     int32_t GetRenderTextureID() const { return renderTextureID_; }
+
+    void SetScore(float score);
+    void AddScore(float score);
+    int32_t GetScore() const;
 
 private:
 
@@ -52,6 +63,7 @@ private:
     std::unique_ptr<NumMeshs>benefitMesh_ = nullptr;
     //時間
     std::unique_ptr<NumMeshs>timeMesh_ = nullptr;
+
 
 };
 

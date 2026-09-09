@@ -394,18 +394,18 @@ void TutorialPhase::Draw()
     {
         human_[i]->Draw(renderTargetID_);
     }
-    for (int32_t i = 0; i < 6; i++)
-    {
-        Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
-        Matrix4x4 wvp = world * viewPro;
-        Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
+    //for (int32_t i = 0; i < 6; i++)
+    //{
+    //    Matrix4x4 world = markerTransforms_[i].GetWorldMatrix();
+    //    Matrix4x4 wvp = world * viewPro;
+    //    Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
 
-        markers_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-        markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
-        markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-        markers_[i]->Draw(renderTargetID_);
-    }
+    //    markers_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+    //    markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
+    //    markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
+    //    markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
+    //    markers_[i]->Draw(renderTargetID_);
+    //}
     {
         Matrix4x4 world = barTransforms_.GetWorldMatrix();
         Matrix4x4 wvp = world * viewPro;

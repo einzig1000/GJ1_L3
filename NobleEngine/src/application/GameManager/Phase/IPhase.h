@@ -9,6 +9,8 @@
 struct PhaseContext
 {
 	std::vector<int32_t> renderTargetIDs;
+
+	float score;
 };
 
 class IPhase
