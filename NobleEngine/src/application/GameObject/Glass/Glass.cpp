@@ -25,6 +25,8 @@ void Glass::Initialize()
 {
     //床との当たり判定
     isHitFloor_ = false;
+    //顧客との当たり判定を得る
+    isHitCustomer_ = false;
 
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
@@ -44,7 +46,8 @@ void Glass::Initialize()
         CollisionTag::GetTag("Glass"),
 
         CollisionTag::GetTag("Target") |
-        CollisionTag::GetTag("Obstacles")
+        CollisionTag::GetTag("Obstacles")|
+        CollisionTag::GetTag("Customer")
     );
 
 
@@ -66,8 +69,11 @@ void Glass::Initialize()
 
             }
 
-            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Table")) {
-                //テーブルだったら
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Customer")) {
+             
+                    //顧客と最初に当たった時を得る
+                    isHitCustomer_ = true;
+                
             }
 
             if (isCollisionResponse) {
@@ -88,6 +94,8 @@ void Glass::Update(const int32_t cameraID)
 {
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
+    isHitCustomer_ = false;
+
     velocity_ = { 0.0f, 0.0f, 0.0f };
 
     //物理を呼ぶぞ！

@@ -4,6 +4,8 @@
 #include <GameObject/Table/Table.h>
 #include <GameObject/CocktailWater/CocktailWater.h>
 #include <GameObject/HumanModel/HumanModel.h>
+#include <GameObject/Bartender/Bartender.h>
+#include <GameObject/Customer/Customer.h>
 #include <System/CollisionManager/CollisionManager.h>
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
@@ -182,7 +184,16 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 	}
 	for (int32_t i = 0; i < 3; i++)
 	{
-		human_[i] = std::make_unique<HumanModel>();
+        
+        if (i == 2) {
+            //インデックスの一番目がカスタマー
+            human_[i] = std::make_unique<Customer>();
+        } else {
+            //バーテンダー
+            human_[i] = std::make_unique<Bartender>();
+        }
+
+        human_[i]->Load();
         human_[i]->SetLightData(&lightData_);
 	}
 
@@ -211,6 +222,8 @@ SikouteiDevelopPhase::~SikouteiDevelopPhase()
 
 void SikouteiDevelopPhase::Initialize()
 {
+
+    isShot_ = false;
 	nextPhase_ = Phase::Phase_None;
     context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_SikouteiDevelop)] = renderTargetID_;
 
@@ -258,6 +271,7 @@ void SikouteiDevelopPhase::Initialize()
 
 void SikouteiDevelopPhase::Update()
 {
+
     Game::Camera::Update(c_main_);
 
     if (Game::IO::Key::IsJustPressed('R'))
@@ -339,8 +353,12 @@ void SikouteiDevelopPhase::Update()
     }
     for (int32_t i = 0; i < 3; i++)
     {
+        human_[i]->SetIsShot(isShot_);
         human_[i]->Update(c_main_);
     }
+
+    //人間に発射フラグを渡したら発射を毎フレーム偽にする
+    isShot_ = false;
 
     //コライダー更新
     if (isDebugDraw_) collisionManager_->DebugUpdate(c_main_);
@@ -394,7 +412,8 @@ void SikouteiDevelopPhase::Update()
 
                 ableDrag_ = false;
                 prediction_->SetVelocity(Vector3{});
-
+                //
+                isShot_ = true;
                 ChangeCameraPhase(CameraPhase::GlassFollowing);
             }
             else
@@ -486,7 +505,7 @@ void SikouteiDevelopPhase::DrawImGui()
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
     uiManager_->DebugImGui();
-
+    human_[2]->DrawImGui();
     ImGui::Begin("glass");
 
     Vector3 glassVel = glass_->GetVelocity();
@@ -761,8 +780,6 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
         simpleObstaclePlacementFlow_->ReadObstaclePlacement(tempTransform);
     }
 
-
-
     key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
     Vector3 humanRotateDeg;
     JsonManager::Load(path, key, humanRotateDeg);
@@ -772,11 +789,14 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
     key = "/Stage" + std::to_string(stage) + "/Human/Scale";
     JsonManager::Load(path, key, humansize_);
 
+    const float pi = std::numbers::pi_v<float>*2.0f/3.0f;
     for (int32_t i = 0; i < 3; i++)
     {
-        Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
-        humanPos.y = 1.28f;
+        Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, humanRotateDegree[i]);
+        humanPos.y = 0.0f;
         human_[i]->SetTranslate(humanPos);
+        human_[i]->SetGlassPos(&glass_->GetTranslatePointer());
+        human_[i]->SetRotateY(-pi*i);
     }
 
     for (int32_t i = 0; i < 6; i++)

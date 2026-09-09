@@ -60,7 +60,7 @@ private:
 	void ChangeCameraPhase(CameraPhase phase);
 	void UpdateCameraPhase();
 
-
+	bool isShot_ = false;
 
 
 

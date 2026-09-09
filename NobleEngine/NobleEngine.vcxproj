@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameObject\Customer\Customer.cpp" />
+    <ClCompile Include="src\application\GameObject\Bartender\Bartender.cpp" />
     <ClCompile Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.cpp" />
     <ClCompile Include="src\application\System\CreateMaskTexture\CreateMaskTexture.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
@@ -132,6 +134,8 @@
     <ClCompile Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\Customer\Customer.h" />
+    <ClInclude Include="src\application\GameObject\Bartender\Bartender.h" />
     <ClInclude Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.h" />
     <ClInclude Include="src\application\System\CreateMaskTexture\CreateMaskTexture.h" />
     <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />

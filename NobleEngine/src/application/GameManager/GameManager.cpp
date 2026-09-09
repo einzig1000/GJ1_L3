@@ -10,9 +10,11 @@
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
 #include <GameManager/Phase/Tutorial/TutorialPhase.h>
 
+#include <GameManager/Phase/ResultPhase/ResultPhase.h>
 GameManager::GameManager() 
 {
 	JsonManager::LoadAll("assets/application/json");
+
 
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 
@@ -20,10 +22,10 @@ GameManager::GameManager()
 	maskTextureCreator_->Initialize();
 	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
-
 	Phase startUpPhase = Phase::Phase_SikouteiDevelop;
 	currentPhase_ = CreatePhase(startUpPhase);
 	currentPhase_->SetContext(&phaseContext_);
+
 	currentPhase_->Initialize();
 
 	currentRenderTargetID_ = phaseContext_.renderTargetIDs[static_cast<size_t>(startUpPhase)];
