@@ -33,7 +33,7 @@ GameManager::GameManager()
 
 
 
-	Phase startUpPhase = Phase::Phase_Result;
+	Phase startUpPhase = Phase::Phase_Title;
 	currentPhase_ = phaseMap_[startUpPhase].get();
 	currentPhase_->Initialize();
 
