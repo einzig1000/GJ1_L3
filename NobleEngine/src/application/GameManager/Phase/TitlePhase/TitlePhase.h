@@ -18,6 +18,10 @@ public:
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
 
 private:
+	int32_t s_TitleScene_ = 0;
+	std::vector<int32_t> s_TitleScene_PlayIDs_;
+	float volume = 0.0f;
+
 	static constexpr int32_t kMaxLightCount_ = 20;
 
 	// ========================================
@@ -595,6 +599,7 @@ private:
 	void Update_WaterModel();
 	void Update_TitleRayModel();
 	void Update_Animation();
+	void Update_Sound();
 	void AimCameraFromFixedPosition(const Vector3& cameraPosition, const Vector3& target);
 	void Start_CocktailCameraAnimation();
 	void Start_GinCameraAnimation();

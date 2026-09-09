@@ -26,7 +26,7 @@ public:
 
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
     /// @brief グラスタイプを持たせるか基底クラスにするかは考える
     /// @param type 
@@ -43,8 +43,14 @@ public:
     float GetRadius() { return transform_.scale.x * 1.0f; };
 
     //コライダーをゲットする
+
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
+
+	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+
 private:
+	LightDataForGPU* lightData_;
+
     //床との当たり判定
     bool isHitFloor_ = false;
     //壊れたフラグ
@@ -52,16 +58,16 @@ private:
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
 
-    // モデルID
-    int32_t modelID_ = -1;
-    //テクスチャID
-    int32_t textureID_ = -1;
-
     //インスタンス数に応じてそれぞれの構造を持たせる
     EulerTransforms transform_;
     Matrix4x4 worldMatrix_;
+    Matrix4x4 wvpMatrix_;
     Vector4 color_;
 	Vector3 velocity_;
+	Vector3 cameraPos_;
+	Material material_;
+    int32_t modelID_ = -1;
+    int32_t textureID_ = -1;
 
     Collision::CompoundCollider comCollider_;
     //パーティクル

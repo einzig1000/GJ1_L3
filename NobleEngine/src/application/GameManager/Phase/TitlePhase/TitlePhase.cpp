@@ -7,7 +7,15 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 #include <string>
+
 TitlePhase::TitlePhase() {
+
+	// レンダーターゲット
+	renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "Title");
+
+	// サウンド
+	s_TitleScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/TitleScene.mp3");
+
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
@@ -54,13 +62,18 @@ TitlePhase::~TitlePhase() {}
 void TitlePhase::Initialize() {
 	// フェーズ初期化
 	nextPhase_ = Phase::Phase_None;
+	context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_Title)] = renderTargetID_;
 
 	Initialize_LightModels();
+
+	volume = 0.0f;
+	s_TitleScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_TitleScene_, true, volume));
 }
 
 void TitlePhase::Update() {
 	Game::Camera::Update(c_main_);
 
+	Update_Sound();
 	Update_Animation();
 	Update_TitleSelect();
 	Update_LightModels();
@@ -1300,6 +1313,13 @@ void TitlePhase::Update_Animation() {
 	}
 }
 
+void TitlePhase::Update_Sound()
+{
+	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
+	volume = std::clamp(volume, 0.0f, 1.0f);
+	Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+}
+
 void TitlePhase::Start_CocktailCameraAnimation() {
 	// ここで氷投入開始時の実際のカメラ位置を保存する。
 	// Update_Animation側はこのZ値を変えず、X・Yと注視角だけを補間する。
@@ -1492,8 +1512,13 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 
 	// 第2段階：正面位置から真上へ、少し高く膨らむ放物線を描いて移動する。
 	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
-	if (topMoveT > 1.0f) {
+	if (topMoveT > 1.0f)
+	{
 		topMoveT = 1.0f;
+		ChangePhase(Phase::Phase_SikouteiDevelop);
+		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+		if (volume < 0.0f) Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
+		Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
 	}
 	const float smoothTopMoveT = EaseInOut01(topMoveT);
 
@@ -1509,6 +1534,7 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 
 	// 放物線上の現在位置から毎フレーム角度を求め、常にカクテルへ視線を追従させる。
 	AimCameraFromFixedPosition(currentCameraPosition, currentCocktailFocus);
+
 }
 
 void TitlePhase::Update_Model(Model& model) {
@@ -1596,23 +1622,23 @@ void TitlePhase::Update_TitleRayModel() {
 }
 
 void TitlePhase::Draw_LightModels() {
-	barModel_.Models_->Draw();
-	glassModel_.Models_->Draw();
-	CocktailModel_.Models_->Draw();
-	cocktailWaterModel_.Models_->Draw();
-	ginModel_.Models_->Draw();
+	barModel_.Models_->Draw(renderTargetID_);
+	glassModel_.Models_->Draw(renderTargetID_);
+	CocktailModel_.Models_->Draw(renderTargetID_);
+	cocktailWaterModel_.Models_->Draw(renderTargetID_);
+	ginModel_.Models_->Draw(renderTargetID_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-		iceModel_[i].Models_->Draw();
+		iceModel_[i].Models_->Draw(renderTargetID_);
 	}
 
 	// 切り替え開始から表示し、下から上昇させる
 	if (isTitleSelectTransitionStarted_ || titlePhaseSelection_ == TitlePhaseSelection::Select) {
 		for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
-			titleSelectModels_[i].Models_->Draw();
+			titleSelectModels_[i].Models_->Draw(renderTargetID_);
 		}
 	}
 
 	// TitleRayが深度を書き込んでもTitleSelectを隠さないように、
 	// TitleSelectを含む全モデルの描画後にボリューム光を重ねる。
-	titleRayModel_.Models_->Draw();
+	titleRayModel_.Models_->Draw(renderTargetID_);
 }

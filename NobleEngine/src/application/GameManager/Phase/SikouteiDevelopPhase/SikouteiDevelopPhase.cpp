@@ -3,12 +3,14 @@
 #include <GameObject/TableObject/TableObject.h>
 #include <GameObject/Table/Table.h>
 #include <GameObject/CocktailWater/CocktailWater.h>
+#include <GameObject/HumanModel/HumanModel.h>
 #include <System/CollisionManager/CollisionManager.h>
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
-#include"../../../GameObject/PredictionObj/PredictionObj.h"
+#include<GameObject/PredictionObj/PredictionObj.h>
 #include<GameObject/SimpleObstaclePlacementFlow/SimpleObstaclePlacementFlow.h>
+#include<GameObject/UI/UIManager/UIManager.h>
 
 namespace
 {
@@ -119,6 +121,12 @@ namespace
 
 SikouteiDevelopPhase::SikouteiDevelopPhase()
 {
+    // レンダーターゲット
+    renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "SikouteiDevelop");
+
+    // サウンド
+	s_GameScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/GameScene.mp3");
+
     // カメラ
     c_main_ = Game::Camera::AddCamera("SikouteiDevelopPhase");
 
@@ -130,11 +138,14 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
     // オブジェクト実体生成
 	cocktailWater_ = std::make_unique<CocktailWater>();
     table_ = std::make_unique<Table>();
+    table_->SetLightData(&lightData_);
     glass_ = std::make_unique<Glass>();
+    glass_->SetLightData(&lightData_);
     for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
     {
         obstacles_[i] = std::make_unique<TableObject>();
         obstacles_[i]->Initialize();
+        obstacles_[i]->SetLightData(&lightData_);
     }
 
 	markerAngles_.resize(6);
@@ -148,21 +159,31 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 	}
 	for (int32_t i = 0; i < 3; i++)
 	{
-		human_[i] = std::make_unique<RenderObject>();
-		human_[i]->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
-		human_[i]->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
-		human_[i]->SetupFromShaders();
-		human_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
+		human_[i] = std::make_unique<HumanModel>();
+        human_[i]->SetLightData(&lightData_);
 	}
 
+	bar_ = std::make_unique<RenderObject>();
+    bar_->psoConfig_.vs = "assets/shaders/PunctualLight/PunctualLight.VS.hlsl";
+    bar_->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
+    bar_->modelID_ = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
+    bar_->SetupFromShaders();
+    barTextureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
 
     prediction_ = std::make_unique<PredictionObj>();
 	prediction_->SetCollisionManager(collisionManager_.get());
     prediction_->SetObstacleArray(obstacles_);
+    prediction_->SetLightData(&lightData_);
 
     Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(45.0f), 0.0f, EaseType::OUT_BACK, c_main_);
 
     simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
+
+    barTransforms_.scale = Vector3{ 0.1f, 0.1f, 0.1f };
+    barTransforms_.translate = Vector3{ 0.0f, 0.6f, 9.0f };
+
+    uiManager_ = std::make_unique<UIManager>();
+
 }
 
 SikouteiDevelopPhase::~SikouteiDevelopPhase()
@@ -170,14 +191,22 @@ SikouteiDevelopPhase::~SikouteiDevelopPhase()
 
 void SikouteiDevelopPhase::Initialize()
 {
+	nextPhase_ = Phase::Phase_None;
+    context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_SikouteiDevelop)] = renderTargetID_;
+
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
-    Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[0]);
-    glassPos.y = 1.28f;
-    glass_->SetTranslate(glassPos);
 	cocktailWater_->Initialize();
+    //予測オブジェクト
     prediction_->Initialize();
+    //UI管理
+    uiManager_->Initialize();
+
+    for (int32_t i = 0; i < 3; i++)
+    {
+        human_[i]->Initialize();
+    }
 
     EulerTransforms spawnTransform;
     spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
@@ -187,11 +216,22 @@ void SikouteiDevelopPhase::Initialize()
     
     LoadObstacleData(0);
 
-    simpleObstaclePlacementFlow_->HideAllPieces();
-    simpleObstaclePlacementFlow_->StartDisappear();
+	LoadLightData();
+
+    volume = 0.0f;
+    s_GameScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_GameScene_, true, volume));
+
 
     cameraSpherical_.theta = Game::Math::Converter::DegreeToRadian(humanRotateDegree[0]);
     Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.2f, EaseType::OUT_BACK, c_main_);
+
+
+    cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
+    ChangeCameraPhase(CameraPhase::CatchFollowing);
+    Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
+    glassPos.y = 1.28f;
+    glass_->SetTranslate(glassPos);
+    glass_->SetVelocity(Vector3{});
 }
 
 void SikouteiDevelopPhase::Update()
@@ -207,6 +247,10 @@ void SikouteiDevelopPhase::Update()
         glass_->SetTranslate(glassPos);
         glass_->SetVelocity(Vector3{});
     }
+
+	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
+	volume = std::clamp(volume, 0.0f, 1.0f);
+	Game::Audio::SetAudioVolume(s_GameScene_PlayIDs_[0], volume);
 
     // テーブル外判定
     Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
@@ -242,22 +286,24 @@ void SikouteiDevelopPhase::Update()
         deleteIndex = -1;
     }
 
-    // オブジェクト更新
-    glass_->Update(c_main_);
-    cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
-    cocktailWater_->Update(c_main_);
-    table_->Update(c_main_);
   
     simpleObstaclePlacementFlow_->Update();
     for (int i = 0; i < obstacleCount; ++i) {
         obstacles_[i]->SetTranslate(simpleObstaclePlacementFlow_->GetPieces(i).transform.translate);
     }
 
-    
-
+    // オブジェクト更新
+    glass_->Update(c_main_);
+    cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
+    cocktailWater_->Update(c_main_);
+    table_->Update(c_main_);
     for (int32_t i = 0; i < obstacleCount; i++)
     {
         obstacles_[i]->Update(c_main_);
+    }
+    for (int32_t i = 0; i < 3; i++)
+    {
+        human_[i]->Update(c_main_);
     }
 
     //コライダー更新
@@ -329,24 +375,21 @@ void SikouteiDevelopPhase::Update()
     prediction_->SetVelocity(velocity);
     prediction_->SetTranslate(glass_->GetTranslate());
     prediction_->Update(c_main_);
+
+    //UI管理
+    uiManager_->Update();
+
 }
 
 void SikouteiDevelopPhase::Draw()
 {
     const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
     const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
+	const Vector3 cameraPos = Game::Camera::Getter::GetWorldPosition(c_main_);
 
     for (int32_t i = 0; i < 3; i++)
     {
-        Matrix4x4 world = humanTransforms_[i].GetWorldMatrix();
-        Matrix4x4 wvp = world * viewPro;
-        Vector4 color = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-        human_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-        human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
-        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-        human_[i]->Draw();
+        human_[i]->Draw(renderTargetID_);
     }
     for (int32_t i = 0; i < 6; i++)
     {
@@ -358,29 +401,43 @@ void SikouteiDevelopPhase::Draw()
         markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
         markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
         markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-        markers_[i]->Draw();
+        markers_[i]->Draw(renderTargetID_);
+    }
+    {
+        Matrix4x4 world = barTransforms_.GetWorldMatrix();
+        Matrix4x4 wvp = world * viewPro;
+        Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+        bar_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+        bar_->SetCBufferData(1, ShaderType::VertexShader, &world);
+        bar_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos);
+        bar_->SetCBufferData(1, ShaderType::PixelShader, &lightData_);
+        bar_->SetCBufferData(2, ShaderType::PixelShader, &barMaterial_);
+        bar_->SetCBufferData(3, ShaderType::PixelShader, &barTextureID_);
+		bar_->Draw(renderTargetID_);
     }
 
-
     //テーブルの描画
-    table_->Draw();
+    table_->Draw(renderTargetID_);
 
     if (cameraPhase_ == CameraPhase::ShotAngleSetup)
     {
-        prediction_->Draw();
+        prediction_->Draw(renderTargetID_);
     }
 
 	// 障害物の描画
     for (int32_t i = 0; i < obstacleCount; i++)
 	{
-		obstacles_[i]->Draw();
+		obstacles_[i]->Draw(renderTargetID_);
 	}
-	cocktailWater_->Draw();
+	cocktailWater_->Draw(renderTargetID_);
     //グラスは半透明なので後に描画する
-    glass_->Draw();
+    glass_->Draw(renderTargetID_);
 
     //コライダーデバック描画
     if (isDebugDraw_) collisionManager_->DebugDraw();
+    //UIなので一番最後に描画する
+    uiManager_->Draw();
 }
 
 void SikouteiDevelopPhase::DrawImGui()
@@ -388,9 +445,10 @@ void SikouteiDevelopPhase::DrawImGui()
     glass_->DrawImGui();
     cocktailWater_->DrawImGui();
     obstacles_[0]->DrawImGui();
-    //table_->DrawImGui();
+    table_->DrawImGui();
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
+    uiManager_->DebugImGui();
 
     ImGui::Begin("glass");
 
@@ -436,16 +494,15 @@ void SikouteiDevelopPhase::DrawImGui()
     // 障害物の追加
     if (ImGui::TreeNode("Add Obstacle"))
     {
-        static GlassType glassType;
-
         auto names = magic_enum::enum_names<GlassType>();
         auto values = magic_enum::enum_values<GlassType>();
 
         size_t current = magic_enum::enum_index(glassType).value();
 
+		// GlassType先頭の要素を除外して表示する
         if (ImGui::BeginCombo("GlassType", names[current].data()))
         {
-            for (std::size_t i = 0; i < names.size(); i++)
+            for (std::size_t i = 1; i < names.size(); i++)
             {
                 bool selected = (current == static_cast<int>(i));
                 if (ImGui::Selectable(names[i].data(), selected))
@@ -469,7 +526,8 @@ void SikouteiDevelopPhase::DrawImGui()
             obstacles_[obstacleCount]->Initialize();
             obstacles_[obstacleCount]->SetGlassTypeAndLoadModels(glassType);
             Vector3 pos = { position.x, 1.28f, position.y };
-            obstacles_[obstacleCount]->SetTranslate(pos);
+            obstacles_[obstacleCount]->SetTranslate(pos);   //ここで読み込む
+            simpleObstaclePlacementFlow_->ReadObstaclePlacement(obstacles_[obstacleCount]->GetTransform());
             obstacleCount++;
         }
 
@@ -521,9 +579,9 @@ void SikouteiDevelopPhase::DrawImGui()
 
             for (int32_t i = 0; i < 3; i++)
             {
-                humanTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
-                humanTransforms_[i].translate.y = 1.28f;
-                humanTransforms_[i].scale = Vector3{ 0.5f,0.5f,0.5f };
+				Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
+                humanPos.y = 1.28f;
+				human_[i]->SetTranslate(humanPos);
             }
 
             for (int32_t i = 0; i < 6; i++)
@@ -539,6 +597,54 @@ void SikouteiDevelopPhase::DrawImGui()
                 markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
             }
         }
+
+        ImGui::TreePop();
+    }
+
+    // ライト
+    if (ImGui::TreeNode("LightData"))
+    {
+		if (ImGui::Button("Load", ImVec2(40, 20))) LoadLightData();
+		ImGui::SameLine();
+		if (ImGui::Button("Save", ImVec2(40, 20))) SaveLightData();
+
+        ImGui::DragInt("LightCount", &lightData_.LightCount, 1, 0, 4);
+            ImGui::ColorEdit3("ambientColor", &lightData_.ambientColor.x);
+        for (int i = 0; i < lightData_.LightCount; ++i)
+        {
+
+            std::string lightNodeName = "Light" + std::to_string(i);
+            if (ImGui::TreeNode(lightNodeName.c_str()))
+            {
+                ImGui::SeparatorText("Common");
+                ImGui::ColorEdit3("color", &lightData_.lights[i].color.x);
+                ImGui::DragFloat("intensity", &lightData_.lights[i].intensity, 0.01f);
+
+                ImGui::SeparatorText("type");
+                ImGui::DragInt("type", &lightData_.lights[i].type, 1, 0, 2);
+
+                ImGui::SeparatorText("Directional");
+                ImGui::DragFloat3("direction", &lightData_.lights[i].direction.x, 0.01f);
+
+                ImGui::SeparatorText("Spot");
+                ImGui::DragFloat("spotCos", &lightData_.lights[i].spotCos, 0.01f);
+
+                ImGui::SeparatorText("Point / Spot");
+                ImGui::DragFloat3("position", &lightData_.lights[i].position.x, 0.01f);
+                ImGui::DragFloat("range", &lightData_.lights[i].range, 0.01f);
+
+                ImGui::TreePop();
+            }
+        }
+
+        ImGui::TreePop();
+    }
+
+    // 人間の位置
+    if (ImGui::TreeNode("Bar"))
+    {
+        ImGui::DragFloat3("Scale", &barTransforms_.scale.x, 0.01f);
+        ImGui::DragFloat3("Translate", &barTransforms_.translate.x, 1.0f);
 
         ImGui::TreePop();
     }
@@ -629,9 +735,9 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 
     for (int32_t i = 0; i < 3; i++)
     {
-        humanTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
-        humanTransforms_[i].translate.y = 1.28f;
-        humanTransforms_[i].scale = Vector3{ 0.5f,0.5f,0.5f };
+        Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
+        humanPos.y = 1.28f;
+        human_[i]->SetTranslate(humanPos);
     }
 
     for (int32_t i = 0; i < 6; i++)
@@ -647,6 +753,9 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
         markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
     }
 
+
+    simpleObstaclePlacementFlow_->HideAllPieces();
+    simpleObstaclePlacementFlow_->StartPlacement();
 
 	return true;
 }
@@ -671,6 +780,69 @@ void SikouteiDevelopPhase::SaveObstacleData(int32_t stage)
     key = "/Stage" + std::to_string(stage) + "/Human/Scale";
     JsonManager::AddParam(path, key, humansize_);
 
+	JsonManager::Save(path);
+}
+
+
+bool SikouteiDevelopPhase::LoadLightData()
+{
+    std::string path = "assets/application/json/StageData/Lights.json";
+    std::string key = "/Count";
+    bool success = JsonManager::Load(path, key, lightData_.LightCount);
+    if (!success) return false;
+
+	key = "/ambientColor";
+    success = JsonManager::Load(path, key, lightData_.ambientColor);
+	if (!success) return false;
+
+    for (int32_t i = 0; i < lightData_.LightCount; i++)
+    {
+        key = "/Light" + std::to_string(i) + "/color";
+        JsonManager::Load(path, key, lightData_.lights[i].color);
+        key = "/Light" + std::to_string(i) + "/intensity";
+        JsonManager::Load(path, key, lightData_.lights[i].intensity);
+        key = "/Light" + std::to_string(i) + "/direction";
+        JsonManager::Load(path, key, lightData_.lights[i].direction);
+        key = "/Light" + std::to_string(i) + "/spotCos";
+        JsonManager::Load(path, key, lightData_.lights[i].spotCos);
+        key = "/Light" + std::to_string(i) + "/position";
+        JsonManager::Load(path, key, lightData_.lights[i].position);
+        key = "/Light" + std::to_string(i) + "/range";
+        JsonManager::Load(path, key, lightData_.lights[i].range);
+        key = "/Light" + std::to_string(i) + "/position";
+        JsonManager::Load(path, key, lightData_.lights[i].position);
+        key = "/Light" + std::to_string(i) + "/type";
+        JsonManager::Load(path, key, lightData_.lights[i].type);
+    }
+
+    return true;
+}
+
+void SikouteiDevelopPhase::SaveLightData()
+{
+    std::string path = "assets/application/json/StageData/Lights.json";
+    std::string key = "/Count";
+	JsonManager::AddParam(path, key, lightData_.LightCount);
+	key = "/ambientColor";
+	JsonManager::AddParam(path, key, lightData_.ambientColor);
+
+	for (int32_t i = 0; i < lightData_.LightCount; i++)
+	{
+		key = "/Light" + std::to_string(i) + "/color";
+		JsonManager::AddParam(path, key, lightData_.lights[i].color);
+		key = "/Light" + std::to_string(i) + "/intensity";
+		JsonManager::AddParam(path, key, lightData_.lights[i].intensity);
+		key = "/Light" + std::to_string(i) + "/direction";
+		JsonManager::AddParam(path, key, lightData_.lights[i].direction);
+		key = "/Light" + std::to_string(i) + "/spotCos";
+		JsonManager::AddParam(path, key, lightData_.lights[i].spotCos);
+		key = "/Light" + std::to_string(i) + "/position";
+		JsonManager::AddParam(path, key, lightData_.lights[i].position);
+		key = "/Light" + std::to_string(i) + "/range";
+		JsonManager::AddParam(path, key, lightData_.lights[i].range);
+		key = "/Light" + std::to_string(i) + "/type";
+		JsonManager::AddParam(path, key, lightData_.lights[i].type);
+	}
 	JsonManager::Save(path);
 }
 
@@ -723,16 +895,6 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
         const Vector2 mouseDelta = Game::IO::Mouse::Get2DPositionDelta();
         constexpr float limit = 60.0f;
 
-        //// phiをマウスで操作
-        //cameraSpherical_.phi += mouseDelta.y * mouseInsensitivity_;
-        //cameraSpherical_.phi = std::clamp(cameraSpherical_.phi, 0.0f, limit);
-        //Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.0f, EaseType::OUT_BACK, c_main_);
-
-		// thetaをマウスで操作
-        //cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
-        //if (cameraSpherical_.theta > humanRotateDegree[currentGlassUserIndex_] + limit) cameraSpherical_.theta = humanRotateDegree[currentGlassUserIndex_] + limit;
-        //if (cameraSpherical_.theta < humanRotateDegree[currentGlassUserIndex_] - limit) cameraSpherical_.theta = humanRotateDegree[currentGlassUserIndex_] - limit;
-        //Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 0.0f, EaseType::OUT_BACK, c_main_);
 
         // centerをグラスで固定
         Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
@@ -750,18 +912,6 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
 
         cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
 
-        //cameraSpherical_.theta -= Game::Math::Converter::DegreeToRadian(mouseDelta.x * mouseInsensitivity_);
-        //cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
-        //float thetaPlusLimit = Game::Math::Converter::DegreeToRadian(humanRotateDegree[currentGlassUserIndex_] + limit);
-        //float thetaMinusLimit = Game::Math::Converter::DegreeToRadian(humanRotateDegree[currentGlassUserIndex_] - limit);
-        //if (cameraSpherical_.theta > thetaPlusLimit)
-        //{
-        //    cameraSpherical_.theta = thetaPlusLimit;
-        //}
-        //if (cameraSpherical_.theta < thetaMinusLimit)
-        //{
-        //    cameraSpherical_.theta = thetaMinusLimit;
-        //}
         Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.0f, EaseType::OUT_BACK, c_main_);
 
 		// centerをグラスで固定
@@ -788,7 +938,7 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
     }
     case CameraPhase::CatchFollowing:
     {
-        if (cameraPhaseCounter_.CountUp(Game::Time::GetScaledDeltaTimeMs() * 0.001f))
+        if (cameraPhaseCounter_.CountUp())
         {
             ableDrag_ = true;
             ChangeCameraPhase(CameraPhase::Free);

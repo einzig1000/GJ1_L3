@@ -9,36 +9,32 @@ public:
     ~Table() = default;
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 
-    float GetRadius() { return transforms_[0].scale.x * 2.8f; };
-    Vector3 GetTranslate() { return transforms_[0].translate; };
-    EulerTransforms GetEulerTransforms() { return transforms_[0]; };
+    float GetRadius() { return transform_.scale.x * 2.8f; };
+    Vector3 GetTranslate() { return transform_.translate; };
+    EulerTransforms GetEulerTransforms() { return transform_; };
+
+    void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
 private:
+    LightDataForGPU* lightData_;
+
     //グラス
     std::unique_ptr<RenderObject> obj_ = nullptr;
 
-    // モデルID
+    EulerTransforms transform_;
+    Matrix4x4 worldMatrix_;
+    Matrix4x4 wvpMatrix_;
+    Vector4 color_;
+    Vector3 velocity_;
+    Vector3 cameraPos_;
+    Material material_;
     int32_t modelID_ = -1;
-    //テクスチャID
     int32_t textureID_ = -1;
-
-    //インスタンス数　仮に1としておく
-    int32_t instanceCount_ = 1;
-    // ディスクリプタヒープスロット
-    int32_t worldMatrixHeapSlot_ = -1;
-    int32_t colorHeapSlot_ = -1;
-    int32_t textureIndexHeapSlot_ = -1;
-
-    //インスタンス数に応じてそれぞれの構造を持たせる
-    std::vector<EulerTransforms> transforms_;
-    std::vector<Matrix4x4> worldMatrices_;
-    std::vector<Vector4> colors_;
-    std::vector<int32_t> textureIndices_;
 
     Collision::CompoundCollider comCollider_;
 

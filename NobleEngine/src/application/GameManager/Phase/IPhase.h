@@ -8,6 +8,7 @@
 // フェーズ間
 struct PhaseContext
 {
+	std::vector<int32_t> renderTargetIDs;
 };
 
 class IPhase
@@ -29,5 +30,7 @@ protected:
 	Phase nextPhase_ = Phase::Phase_None;
 
 	PhaseContext* context_ = nullptr;
+
+	int32_t renderTargetID_ = -1;
 };
 

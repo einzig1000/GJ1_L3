@@ -14,8 +14,8 @@ TableObject::TableObject()
 
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
-    glassObj_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
-    glassObj_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+    glassObj_->psoConfig_.vs = "assets/shaders/PunctualLight/PunctualLight.VS.hlsl";
+    glassObj_->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
     glassObj_->SetupFromShaders();
 
     // GlassParticle
@@ -59,66 +59,84 @@ void TableObject::Update(const int32_t cameraID)
     //スケールタイム適用済みのデルタタイムを取得して座標を動かす
     transform_.translate += vel * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
-    worldMatrix_ = transform_.GetWorldMatrix();
+    cameraPos_ = Game::Camera::Getter::GetWorldPosition(cameraID);
     Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-    Matrix4x4 wvp = worldMatrix_ * viewProjection;
-
-    glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-    glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
-    glassObj_->SetCBufferData(0, ShaderType::PixelShader, &color_);
-    glassObj_->SetCBufferData(1, ShaderType::PixelShader, &textureID_); 
+    worldMatrix_ = transform_.GetWorldMatrix();
+    wvpMatrix_ = worldMatrix_ * viewProjection;
 
     glassParticle_->Update(cameraID);
 
+    material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
+    material_.alpha = color_.w;
 }
 
-void TableObject::Draw()
+void TableObject::Draw(int32_t renderTargetID)
 {
-    glassObj_->Draw();
-    glassParticle_->Draw();
+    glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
+    glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
+    glassObj_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos_);
+    glassObj_->SetCBufferData(1, ShaderType::PixelShader, lightData_);
+    glassObj_->SetCBufferData(2, ShaderType::PixelShader, &material_);
+    glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
+
+    glassObj_->Draw(renderTargetID);
+    glassParticle_->Draw(renderTargetID);
 }
 
 void TableObject::DrawImGui()
 {
-    ImGui::Begin("GameObj");
+    //ImGui::Begin("GameObj");
+    //
+    //ImGui::PushID(static_cast<int>(glassType_));
+    //if (ImGui::TreeNode("TableObject"))
+    //{
+    //    static Vector3 vel;
+    //    ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
+    //    //物理ボディ
+    //    if (!comCollider_.colliders.empty())
+    //    {
+    //        auto& collider = comCollider_.colliders.at(0);
+    //        auto  phyB = collider->GetPhysicsBody();
+    //
+    //        ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+    //        ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1.0f);
+    //
+    //        collider->SetMass(phyB.mass);
+    //        collider->SetCoefficiendOfRestituion(phyB.coefficiendOfRestituion);
+    //
+    //
+    //        if (ImGui::Button("Shot"))
+    //        {
+    //            collider->SetVelocity(vel);
+    //        }
+    //    }
+    //
+    //    ImGui::Checkbox("isHitFloor", &isHitFloor_);
+    //
+    //    ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
+    //    ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
+    //    ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
+    //
+    //    ImGui::TreePop();
+    //}
+    //
+    //ImGui::PopID();
+    //
+    //ImGui::End();
 
-    ImGui::PushID(static_cast<int>(glassType_));
+    ImGui::Begin("Material");
+
     if (ImGui::TreeNode("TableObject"))
     {
-        static Vector3 vel;
-        ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
-        //物理ボディ
-        if (!comCollider_.colliders.empty())
-        {
-            auto& collider = comCollider_.colliders.at(0);
-            auto  phyB = collider->GetPhysicsBody();
+        ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
+        ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
+        ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
+        ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
 
-            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-            ImGui::SliderFloat("coefficiendOfRestituion", &phyB.coefficiendOfRestituion, 0.001f, 1.0f);
-
-            collider->SetMass(phyB.mass);
-            collider->SetCoefficiendOfRestituion(phyB.coefficiendOfRestituion);
-
-
-            if (ImGui::Button("Shot"))
-            {
-                collider->SetVelocity(vel);
-            }
-        }
-
-        ImGui::Checkbox("isHitFloor", &isHitFloor_);
-
-        ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
-        ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
-        ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-
-        ImGui::TreePop();
+		ImGui::TreePop();
     }
 
-    ImGui::PopID();
-
     ImGui::End();
-
 
     //バーティクルデバック表示
     glassParticle_->DebugImGui(static_cast<int32_t>(glassType_));

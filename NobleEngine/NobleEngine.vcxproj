@@ -11,11 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.cpp" />
+    <ClCompile Include="src\application\System\CreateMaskTexture\CreateMaskTexture.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
     <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
     <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
     <ClCompile Include="src\application\GameObject\PredictionObj\PredictionObj.cpp" />
-    <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\NumMeshs\NumMesh.cpp" />
     <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp" />
     <ClCompile Include="src\application\GameObject\TableObject\TableObject.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.cpp" />
@@ -125,8 +127,12 @@
     <ClCompile Include="src\engine\TimeManager\TimeScaler\TimeScaler.cpp" />
     <ClCompile Include="src\application\GameObject\Table\Table.cpp" />
     <ClCompile Include="src\application\GameObject\HumanModel\HumanModel.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\UIModel\UIModel.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\UIManager\UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.h" />
+    <ClInclude Include="src\application\System\CreateMaskTexture\CreateMaskTexture.h" />
     <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
     <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -135,7 +141,7 @@
     <ClInclude Include="src\application\GameManager\Phase\SikouteiDevelopPhase\SikouteiDevelopPhase.h" />
     <ClInclude Include="src\application\GameObject\Effect\Particle\Particle.h" />
     <ClInclude Include="src\application\GameObject\Effect\GlassParticle\GlassParticle.h" />
-    <ClInclude Include="src\application\GameObject\UI\Benefit\Benefit.h" />
+    <ClInclude Include="src\application\GameObject\UI\NumMeshs\NumMeshs.h" />
     <ClInclude Include="src\application\System\CompoundCollider\CompoundCollider.h" />
     <ClInclude Include="src\application\System\CollisionInfo.h" />
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />
@@ -394,6 +400,8 @@
     <ClInclude Include="src\engine\TimeManager\TimeScaler\TimeScaler.h" />
     <ClInclude Include="src\application\GameObject\Table\Table.h" />
     <ClInclude Include="src\application\GameObject\HumanModel\HumanModel.h" />
+    <ClInclude Include="src\application\GameObject\UI\UIModel\UIModel.h" />
+    <ClInclude Include="src\application\GameObject\UI\UIManager\UIManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />

@@ -1148,17 +1148,20 @@ struct alignas(16) PunctualLight
 
 struct LightDataForGPU
 {
-	PunctualLight lights[4];
+	PunctualLight lights[8];
 	int32_t LightCount = 0;
 	Vector3 ambientColor = { 0.0f, 0.0f, 0.0f };
 };
 
 struct Material
 {
+    // テクスチャにかける補正。基本{1.0f,1.0f,1.0f}でよい
 	Vector3 diffuseColor = { 1.0f, 1.0f, 1.0f };
+    // 鏡面反射の点の大きさ
 	float  shininess = 1.0f;
+    // ハイライト自体の色と強さ
 	Vector3 specularColor = { 1.0f, 1.0f, 1.0f };
-	float  _pad0 = 0.0f;
+    float alpha = 1.0f;
 };
 
 #pragma endregion

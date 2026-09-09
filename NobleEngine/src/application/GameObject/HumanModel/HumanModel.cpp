@@ -5,12 +5,13 @@ HumanModel::HumanModel()
     std::string directory = "assets/application/model/Woman/";
     std::string filePath = directory+"woman.gltf";
     // モデル
-    model_ = Game::Asset::Model::Load(filePath);
+	modelID_ = Game::Asset::Model::Load(filePath);
     // アニメーション
     animationIDs_["Idle"] = Game::Asset::Animation::Load(filePath, "Idle");
     animationIDs_["Walk"] = Game::Asset::Animation::Load(filePath, "Walk");
     // テクスチャ
-    texture_ = Game::Asset::Texture::Load(directory + "texture_body.png");
+	textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
+    //texture_ = Game::Asset::Texture::Load(directory + "texture.png");
 }
 
 HumanModel::~HumanModel()
@@ -19,16 +20,16 @@ HumanModel::~HumanModel()
 
 void HumanModel::Initialize()
 {
-	modelData_ = Game::Asset::Model::GetData(model_);
+	modelData_ = Game::Asset::Model::GetData(modelID_);
 	numVertices_ = static_cast<uint32_t>(modelData_->vertices.size());
-	skinInstance_ = Game::Asset::Animation::CreateSkinInstance(model_);
+	skinInstance_ = Game::Asset::Animation::CreateSkinInstance(modelID_);
 	resultHeapSlot_ = Game::Resource::CreateCompute(sizeof(VertexData), numVertices_);
 
 	animation_ = std::make_unique<RenderObject>();
-	animation_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModelNonIASet.VS.hlsl";
-	animation_->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
+	animation_->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModelNonIASetForLigft.VS.hlsl";
+	animation_->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
 	animation_->SetupFromShaders();
-	animation_->modelID_ = model_;
+	animation_->modelID_ = modelID_;
 
 	animationCompute_ = std::make_unique<ComputeObject>();
 	animationCompute_->psoConfig_.cs = "assets/shaders/Skinning/Skinning.CS.hlsl";
@@ -39,7 +40,7 @@ void HumanModel::Initialize()
 	const Vector4    color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	const Matrix4x4  world = Matrix4x4::MakeIdentity4x4();
 	animation_->SetCBufferData(0, ShaderType::PixelShader, &color);
-	animation_->SetCBufferData(1, ShaderType::PixelShader, &texture_);
+	animation_->SetCBufferData(1, ShaderType::PixelShader, &textureID_);
 	animation_->SetSBufferData(0, ShaderType::VertexShader, Game::Resource::GetSRV(resultHeapSlot_));
 
 	animationCompute_->SetCBufferData(0, &numVertices_);
@@ -53,7 +54,7 @@ void HumanModel::Initialize()
 	transform_ = { .scale = {1.0f,1.0f,1.0f},.rotate = {0.0f,0.0f,0.0f},.translate = {0.0f,0.0f,0.0f} };
 	worldMatrix_ = transform_.GetWorldMatrix();
 	//インスタンス1なので0とし行列のコンテナは考えない
-	comCollider_.CreateFromModelData(model_, worldMatrix_, CollisionTag::GetTag("Target"), CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Table"));
+	comCollider_.CreateFromModelData(modelID_, worldMatrix_, CollisionTag::GetTag("Target"), CollisionTag::GetTag("Glass")| CollisionTag::GetTag("Table"));
 
 }
 
@@ -62,23 +63,26 @@ void HumanModel::Update(const int32_t cameraID)
 	animationTime_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 
 	Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-
-	
+	cameraPos_ = Game::Camera::Getter::GetWorldPosition(cameraID);
 	worldMatrix_ = transform_.GetWorldMatrix();
-	Matrix4x4 wvp = worldMatrix_ * viewProjection;
+	wvpMatrix_ = worldMatrix_ * viewProjection;
 
 	Game::Asset::Animation::ComputeAnimationData(animationIDs_[currentAnimationName_], skinInstance_, modelData_->skinBindData, animationTime_);
 	Game::Resource::UpdateData(skinInstance_.paletteHandle, skinInstance_.palette);
 
-	animation_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-	animation_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
-
 	animationCompute_->SetSBufferData(0, Game::Resource::GetSRV(skinInstance_.paletteHandle));
 }
 
-void HumanModel::Draw()
+void HumanModel::Draw(int32_t renderTargetID)
 {
-	animation_->Draw();
+	animation_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
+	animation_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
+	animation_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos_);
+	animation_->SetCBufferData(1, ShaderType::PixelShader, lightData_);
+	animation_->SetCBufferData(2, ShaderType::PixelShader, &material_);
+	animation_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
+
+	animation_->Draw(renderTargetID);
 	animationCompute_->Dispatch();
 }
 
@@ -123,5 +127,21 @@ void HumanModel::DrawImGui()
 	}
 
 	ImGui::End();
+
+
+	ImGui::Begin("Material");
+
+	if (ImGui::TreeNode("HumanModel"))
+	{
+		ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
+		ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
+		ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
+		ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
+
+		ImGui::TreePop();
+	}
+
+	ImGui::End();
+
 }
 

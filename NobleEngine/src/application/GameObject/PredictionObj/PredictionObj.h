@@ -13,7 +13,7 @@ public:
 
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
 
     void SetTranslate(const Vector3& translate) { emitter_.translate = translate; };
@@ -32,7 +32,10 @@ public:
         Vector3 velocity;
     };
 
+    void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+
 private:
+    LightDataForGPU* lightData_;
     void CheckColliders();
 
     // 予測用の仮想衝突が実際の障害物コライダーの物理状態(速度・めり込み量)を

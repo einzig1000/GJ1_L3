@@ -26,7 +26,7 @@ struct Material
     float3 diffuseColor;
     float shininess; // 鏡面ハイライトの鋭さ
     float3 specularColor;
-    float _pad0;
+    float alpha;
 };
 
 struct LightResult
@@ -38,12 +38,11 @@ struct LightResult
 cbuffer CameraCB : register(b0)
 {
     float3 gCameraWorldPosition;
-    float _pad1;
 };
 
 cbuffer LightCB : register(b1)
 {
-    PunctualLight gLights[4];
+    PunctualLight gLights[8];
     int gLightCount;
     float3 gAmbientColor;
 };
@@ -182,9 +181,12 @@ PSOutput main(PSInput input)
         diffuseLighting += lr.diffuse;
         specularLighting += lr.specular;
     }
-
-    float3 finalColor = (texColor.rgb * gMaterial.diffuseColor * diffuseLighting) + specularLighting;
     
-    output.color = float4(finalColor, texColor.a);
+    //float3 finalColor = (texColor.rgb * gMaterial.diffuseColor * diffuseLighting) + specularLighting;
+    //output.color = float4(finalColor, texColor.a);
+    
+    
+    float3 finalColor = (texColor.rgb * gMaterial.diffuseColor * diffuseLighting) + specularLighting;
+    output.color = float4(finalColor, texColor.a * gMaterial.alpha);
     return output;
 }

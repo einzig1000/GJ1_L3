@@ -10,19 +10,29 @@ public:
 
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
-private:
-    std::unique_ptr<RenderObject>obj_ = nullptr;
-    //モデル
-    int32_t model_ = -1;
-    //テクスチャ
-    int32_t texture_ = -1;
 
-    EulerTransforms transform_{};
+	void SetTranslate(Vector3 translate) { transform_.translate = translate; }
+
+    void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+
+private:
+    LightDataForGPU* lightData_;
+
+    std::unique_ptr<RenderObject>obj_ = nullptr;
+
+    EulerTransforms transform_;
     Matrix4x4 worldMatrix_;
+    Matrix4x4 wvpMatrix_;
+    Vector4 color_;
+    Vector3 velocity_;
+    Vector3 cameraPos_;
+    Material material_;
+    int32_t modelID_ = -1;
+    int32_t textureID_ = -1;
 
     std::string currentAnimationName_ = "Idle";
     //アニメーションID
