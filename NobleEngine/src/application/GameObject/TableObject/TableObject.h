@@ -44,11 +44,17 @@ public:
 
     void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
+	bool IsBroken() const { return isBroken_; };
+
 private:
     LightDataForGPU* lightData_;
     
     //床との当たり判定
     bool isHitFloor_ = false;
+    // グラスとの衝突で消し飛んだか
+	bool isBroken_ = false;
+    // 死後5秒で存在ごと消える
+	CounterSec deathCounter_;
 
 	GlassType glassType_ = GlassType::GLASS_MAX;
 

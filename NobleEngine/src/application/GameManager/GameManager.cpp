@@ -28,7 +28,7 @@ GameManager::GameManager()
 
 
 
-	Phase startUpPhase = Phase::Phase_Title;
+	Phase startUpPhase = Phase::Phase_SikouteiDevelop;
 	currentPhase_ = phaseMap_[startUpPhase].get();
 	currentPhase_->Initialize();
 
@@ -59,7 +59,7 @@ void GameManager::Update()
 	if (nextPhase != Phase::Phase_None)
 	{
 		// タイマー開始
-		counterSec_.SetTargetTime(10.0f);
+		counterSec_.Initialize(10.0f);
 		// フラグ乱立
 		phaseChanging_ = true;
 
@@ -81,7 +81,7 @@ void GameManager::Update()
 		previousPhase_->Update();
 		maskTextureCreator_->Update();
 
-		if (counterSec_.CountUp())
+		if (counterSec_.GetProgress() >= 1.0f)
 		{
 			phaseChanging_ = false;
 			currentRenderTargetID_ = targetRenderTargetID_;

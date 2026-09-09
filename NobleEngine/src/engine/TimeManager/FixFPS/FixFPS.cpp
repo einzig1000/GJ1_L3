@@ -59,7 +59,8 @@ void FixFPS::Update()
     previousTime_ = currentTime;
 
     // フレームカウント更新
-    frameCount_++;
+    elapsedFrameTime_++;
+	elapsedSecTime_ += clampedDeltaMs_ * 0.001f;
 }
 
 void FixFPS::SetFPSCap(int32_t fpsCap)

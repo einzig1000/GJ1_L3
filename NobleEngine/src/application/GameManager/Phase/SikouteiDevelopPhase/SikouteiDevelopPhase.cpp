@@ -8,9 +8,10 @@
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
-#include<GameObject/PredictionObj/PredictionObj.h>
-#include<GameObject/SimpleObstaclePlacementFlow/SimpleObstaclePlacementFlow.h>
-#include<GameObject/UI/UIManager/UIManager.h>
+#include <GameObject/PredictionObj/PredictionObj.h>
+#include <GameObject/SimpleObstaclePlacementFlow/SimpleObstaclePlacementFlow.h>
+#include <GameObject/UI/UIManager/UIManager.h>
+#include <GameObject/UI/BreakEvaluation/BreakEvaluation.h>
 
 namespace
 {
@@ -244,6 +245,7 @@ void SikouteiDevelopPhase::Update()
         ChangeCameraPhase(CameraPhase::CatchFollowing);
         Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
         glassPos.y = 1.28f;
+		glass_->ResetBroken();
         glass_->SetTranslate(glassPos);
         glass_->SetVelocity(Vector3{});
     }
@@ -271,6 +273,8 @@ void SikouteiDevelopPhase::Update()
                 glassPos.y = 1.28f + 0.06f;
                 glass_->SetTranslate(glassPos);
                 glass_->SetVelocity(Vector3{});
+                uiManager_->GetBreakEvaluation()->SetMaxBreakCount(maxBreakableObstacleCount_);
+                uiManager_->GetBreakEvaluation()->SetBreakCount(obstacleCount);
                 break;
             }
         }
@@ -288,7 +292,8 @@ void SikouteiDevelopPhase::Update()
 
   
     simpleObstaclePlacementFlow_->Update();
-    for (int i = 0; i < obstacleCount; ++i) {
+    for (int i = 0; i < obstacleCount; ++i)
+    {
         obstacles_[i]->SetTranslate(simpleObstaclePlacementFlow_->GetPieces(i).transform.translate);
     }
 
@@ -300,6 +305,10 @@ void SikouteiDevelopPhase::Update()
     for (int32_t i = 0; i < obstacleCount; i++)
     {
         obstacles_[i]->Update(c_main_);
+		if (obstacles_[i]->IsBroken())
+		{
+			deleteIndex = i;
+		}
     }
     for (int32_t i = 0; i < 3; i++)
     {
@@ -346,6 +355,7 @@ void SikouteiDevelopPhase::Update()
             prediction_->SetObstacleCount(obstacleCount);
             prediction_->SetVelocity(velocity);
             prediction_->SetTranslate(glass_->GetTranslate());
+            prediction_->Update(c_main_);
         }
         if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
         {
@@ -366,15 +376,14 @@ void SikouteiDevelopPhase::Update()
             }
         }
 
-        prediction_->Update(c_main_);
     }
 
 
     UpdateCameraPhase();
-    Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-    prediction_->SetVelocity(velocity);
-    prediction_->SetTranslate(glass_->GetTranslate());
-    prediction_->Update(c_main_);
+    //Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+    //prediction_->SetVelocity(velocity);
+    //prediction_->SetTranslate(glass_->GetTranslate());
+    //prediction_->Update(c_main_);
 
     //UI管理
     uiManager_->Update();
@@ -695,6 +704,8 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 	bool success = JsonManager::Load(path, key, obstacleCount);
 	if (!success) return false;
 
+    maxBreakableObstacleCount_ = obstacleCount;
+
     simpleObstaclePlacementFlow_->Initialize();
 
     for (int32_t i = 0; i < obstacleCount; i++)
@@ -875,7 +886,7 @@ void SikouteiDevelopPhase::ChangeCameraPhase(CameraPhase phase)
 
         Game::Camera::Setter::SetDistanceTarget(5.0f, 0.7f, EaseType::OUT_CIRC, c_main_);
 
-		cameraPhaseCounter_.SetTargetTime(0.7f);
+		cameraPhaseCounter_.Initialize(0.7f);
 
         break;
     }
@@ -938,7 +949,7 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
     }
     case CameraPhase::CatchFollowing:
     {
-        if (cameraPhaseCounter_.CountUp())
+        if (cameraPhaseCounter_.GetProgress() >= 1.0f)
         {
             ableDrag_ = true;
             ChangeCameraPhase(CameraPhase::Free);

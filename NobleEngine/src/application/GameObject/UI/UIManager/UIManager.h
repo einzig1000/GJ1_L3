@@ -15,6 +15,8 @@ public:
     void Draw();
     void DebugImGui();
 
+	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
+
 private:
     struct modelIDs {
         int32_t model_ = -1;

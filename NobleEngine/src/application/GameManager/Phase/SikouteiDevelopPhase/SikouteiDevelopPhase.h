@@ -68,6 +68,7 @@ private:
 
 
 
+
 	//コリジョン管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 	bool isDebugDraw_ = false;
@@ -85,6 +86,8 @@ private:
 	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
 	int32_t obstacleCount = 0;
 	int32_t deleteIndex = -1;
+	// そのステージで壊せる最大数
+	int32_t maxBreakableObstacleCount_ = 0;
 
 	// テーブル
 	std::unique_ptr<Table> table_;

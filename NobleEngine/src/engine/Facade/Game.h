@@ -698,8 +698,11 @@ namespace Game
 		/// <returns>スケールタイム適用済デルタタイム</returns>
 		float GetScaledDeltaTimeMs();
 
-		/// <returns>起動からの経過時間取得</returns>
-		uint32_t GetElapsedTime();
+		/// <returns>起動からの経過フレーム数取得</returns>
+		uint32_t GetElapsedFrameTime();
+
+		/// <returns>起動からの経過秒数取得</returns>
+		float GetElapsedSecTime();
 
 		/// <returns>フレームレート取得</returns>
 		float GetFrameRate();
@@ -818,33 +821,22 @@ namespace Game
 class CounterSec
 {
 private:
-	float progressSec_ = 0.0f;
-	float target_ = 0.001f;
+	float target_ = -1.0f;
+	float startSec_ = 0.0f;
 
 public:
 
-	void SetTargetTime(float target)
+	void Initialize(float target)
 	{
-		progressSec_ = 0.0f;
 		target_ = target;
+		startSec_ = Game::Time::GetElapsedSecTime();
 	}
 
-	//// GetErapsTimeMsを作ればCountUpはいらない
-
-	bool CountUp()
-	{
-		progressSec_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-		if (progressSec_ > target_)
-		{
-			return true;
-		}
-		return false;
-	}
-
-	// 0.0f ~ 1.0f
+	// 0.0f ～
 	float GetProgress() const
 	{
-		if (target_ == 0.0f) return 0.0f;
+		if (target_ <= 0.0f) return 0.0f;
+		float progressSec_ = Game::Time::GetElapsedSecTime() - startSec_;
 		return progressSec_ / target_;
 	}
 };
@@ -852,30 +844,21 @@ public:
 class CounterF
 {
 private:
-	int32_t progressFrame_ = 0;
-	int32_t target_ = 0;
+	int32_t target_ = -1;
+	int32_t startFrame_ = 0;
 
 public:
 
-	void SetTargetFrame(int32_t target)
+	void Initialize(int32_t target)
 	{
-		progressFrame_ = 0;
 		target_ = target;
-	}
-
-	bool CountUp()
-	{
-		progressFrame_++;
-		if (progressFrame_ > target_)
-		{
-			return true;
-		}
-		return false;
+		startFrame_ = Game::Time::GetElapsedFrameTime();
 	}
 
 	float GetProgress() const
 	{
-		if (target_ == 0) return 0;
+		if (target_ <= 0) return 0;
+		int32_t progressFrame_ = Game::Time::GetElapsedFrameTime() - startFrame_;
 		return static_cast<float>(progressFrame_) / static_cast<float>(target_);
 	}
 };
