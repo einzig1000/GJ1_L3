@@ -252,6 +252,14 @@ private:
 	int32_t manModelID_ = -1;
 	int32_t manTextureID_ = -1;
 	int32_t manIdleAnimationID_ = -1;
+	int32_t manWalkAnimationID_ = -1;
+
+	// ManはZ=-65から歩き始め、Z=-5で停止する
+	static constexpr float kManStartZ_ = -60.0f;
+	static constexpr float kManTargetZ_ = -10.0f;
+
+	static constexpr float kManWalkSpeed_ = 10.0f;
+	bool isManWalking_ = true;
 
 	std::unique_ptr<RenderObject> manObject_;
 	std::unique_ptr<ComputeObject> manAnimationCompute_;

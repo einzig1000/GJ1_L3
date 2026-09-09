@@ -1,10 +1,11 @@
 #include "ResultPhase.h"
 #include "Game.h"
+#include <numbers>
 
 ResultPhase::ResultPhase() {
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("Result");
-	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -5.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
+	Game::Camera::Setter::SetCenter(Vector3(-50.0f, 7.0f, -5.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetThetaTarget(0.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 	Game::Camera::Setter::SetPhiTarget(0.0f, 0.0f, EaseType::IN_OUT_SINE, c_main_);
 
@@ -14,10 +15,11 @@ ResultPhase::ResultPhase() {
 	// テクスチャ
 	barModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
 
-	// Manモデル・テクスチャ・Idleアニメーション
+	// Manモデル・テクスチャ・アニメーション
 	manModelID_ = Game::Asset::Model::Load("assets/application/model/Man/man.gltf");
 	manTextureID_ = Game::Asset::Texture::Load("assets/application/model/Man/texture_body.png");
 	manIdleAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Idle");
+	manWalkAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Walk");
 }
 ResultPhase::~ResultPhase() {}
 void ResultPhase::Initialize() {
@@ -181,8 +183,10 @@ void ResultPhase::Initialize_Man() {
 	manAnimationCompute_->SetSBufferData(2, manModelData_->skinBindData.influenceHeapSlot);
 	manAnimationCompute_->SetUAVData(0, Game::Resource::GetUAV(manResultHeapSlot_));
 
-	manTransform_ = EulerTransforms(Vector3(15.0f, 15.0f, 15.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-70.0f, -12.0f, -5.0f));
+	// 最初はZ=5からWalkで登場する
+	manTransform_ = EulerTransforms(Vector3(15.0f, 15.0f, 15.0f), Vector3(0.0f, std::numbers::pi_v<float>, 0.0f), Vector3(-70.0f, -12.0f, kManStartZ_));
 	manAnimationTime_ = 0.0f;
+	isManWalking_ = true;
 }
 
 void ResultPhase::Update_Man() {
@@ -190,13 +194,29 @@ void ResultPhase::Update_Man() {
 		return;
 	}
 
-	manAnimationTime_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+	const float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+	manAnimationTime_ += deltaTime;
+
+	// Z=-5へ到着したら正確に停止してIdleへ切り替える
+	if (isManWalking_) {
+		manTransform_.translate.z += kManWalkSpeed_ * deltaTime;
+
+		if (manTransform_.translate.z >= kManTargetZ_) {
+			manTransform_.translate.z = kManTargetZ_;
+			isManWalking_ = false;
+
+			// Idleを先頭から再生する
+			manAnimationTime_ = 0.0f;
+		}
+	}
 
 	const Matrix4x4 viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
 	const Matrix4x4 world = manTransform_.GetWorldMatrix();
 	const Matrix4x4 wvp = world * viewProjection;
 
-	Game::Asset::Animation::ComputeAnimationData(manIdleAnimationID_, manSkinInstance_, manModelData_->skinBindData, manAnimationTime_);
+	const int32_t currentAnimationID = isManWalking_ ? manWalkAnimationID_ : manIdleAnimationID_;
+
+	Game::Asset::Animation::ComputeAnimationData(currentAnimationID, manSkinInstance_, manModelData_->skinBindData, manAnimationTime_);
 	Game::Resource::UpdateData(manSkinInstance_.paletteHandle, manSkinInstance_.palette);
 
 	manObject_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
@@ -209,9 +229,9 @@ void ResultPhase::Draw_Man() {
 		return;
 	}
 
-	// TestPhaseと同じ順番で登録する
-	manObject_->Draw();
+	// 描画で使用する頂点を先にスキニングしてからManを描画する
 	manAnimationCompute_->Dispatch();
+	manObject_->Draw();
 }
 
 void ResultPhase::DrawImGui_Models() {
@@ -229,6 +249,10 @@ void ResultPhase::DrawImGui_Models() {
 		ImGui::DragFloat3("Rotate##Man", &manTransform_.rotate.x, 0.01f);
 		ImGui::DragFloat3("Translate##Man", &manTransform_.translate.x, 0.01f);
 		ImGui::DragFloat("Animation Time##Man", &manAnimationTime_, 0.01f);
+		ImGui::Text("Current Z : %.3f", manTransform_.translate.z);
+		ImGui::Text("Animation : %s", isManWalking_ ? "Walk" : "Idle");
+		ImGui::Text("Walk Animation ID : %d", manWalkAnimationID_);
+		ImGui::Text("Idle Animation ID : %d", manIdleAnimationID_);
 		ImGui::TreePop();
 	}
 
@@ -236,6 +260,10 @@ void ResultPhase::DrawImGui_Models() {
 }
 
 void ResultPhase::InitializeCommon() {
+	// 前フェーズでTimeScaleが止められていても、
+	// Resultでは移動とアニメーションが必ず進むように戻す
+	Game::Time::SetTimeScale(1.0f);
+
 	Initialize_LightModel(barModel_);
 	Initialize_LightBuffer();
 	Initialize_Man();
