@@ -57,12 +57,19 @@ TitlePhase::TitlePhase() {
 	}
 }
 
-TitlePhase::~TitlePhase() {}
+TitlePhase::~TitlePhase() {
+	// Spaceを押したまま別フェーズへ移っても倍速を残さない。
+	Game::Time::SetTimeScale(1.0f);
+}
 
 void TitlePhase::Initialize() {
 	// フェーズ初期化
 	nextPhase_ = Phase::Phase_None;
 	context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_Title)] = renderTargetID_;
+	Game::Time::SetTimeScale(1.0f);
+	spaceHoldStartTime_ = std::chrono::steady_clock::time_point{};
+	isSpaceHoldTracking_ = false;
+	isSpaceFastForward_ = false;
 
 	Initialize_LightModels();
 
@@ -71,12 +78,42 @@ void TitlePhase::Initialize() {
 }
 
 void TitlePhase::Update() {
+	// カメラや各演出を更新する前にTimeScaleを確定させる。
+	Update_SpaceTimeScale();
 	Game::Camera::Update(c_main_);
 
 	Update_Sound();
 	Update_Animation();
 	Update_TitleSelect();
 	Update_LightModels();
+}
+
+void TitlePhase::Update_SpaceTimeScale() {
+	constexpr BYTE kSpaceKey = 0x20;
+	const bool isSpaceHeld = Game::IO::Key::IsHeld(kSpaceKey);
+
+	if (isSpaceHeld) {
+		if (!isSpaceHoldTracking_) {
+			isSpaceHoldTracking_ = true;
+			spaceHoldStartTime_ = std::chrono::steady_clock::now();
+		}
+
+		// 長押し判定自体はTimeScaleの影響を受けない実時間で数える。
+		const float heldTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - spaceHoldStartTime_).count();
+		if (!isSpaceFastForward_ && heldTime >= kSpaceFastForwardHoldTime_) {
+			isSpaceFastForward_ = true;
+			Game::Time::SetTimeScale(2.0f);
+		}
+		return;
+	}
+
+	// 2秒未満で離した場合を含め、Spaceを離したら必ず通常速度へ戻す。
+	if (isSpaceHoldTracking_ || isSpaceFastForward_) {
+		Game::Time::SetTimeScale(1.0f);
+	}
+	spaceHoldStartTime_ = std::chrono::steady_clock::time_point{};
+	isSpaceHoldTracking_ = false;
+	isSpaceFastForward_ = false;
 }
 
 void TitlePhase::Draw() { Draw_LightModels(); }
@@ -1497,6 +1534,11 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
 	if (topMoveT > 1.0f) {
 		topMoveT = 1.0f;
+		// 倍速中にフェーズが切り替わっても、次フェーズへ2倍速を持ち越さない。
+		Game::Time::SetTimeScale(1.0f);
+		spaceHoldStartTime_ = std::chrono::steady_clock::time_point{};
+		isSpaceHoldTracking_ = false;
+		isSpaceFastForward_ = false;
 		ChangePhase(Phase::Phase_SikouteiDevelop);
 		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 		if (volume < 0.0f)
