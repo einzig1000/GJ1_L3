@@ -20,6 +20,8 @@ public:
     int32_t GetRenderTextureID() const { return renderTextureID_; }
 
 private:
+
+    bool isInitializeCamera_ = false;
     struct modelIDs {
         int32_t model_ = -1;
         int32_t texture_ = -1;
