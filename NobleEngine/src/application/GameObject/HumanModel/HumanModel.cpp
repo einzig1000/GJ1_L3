@@ -11,6 +11,7 @@ HumanModel::HumanModel()
     animationIDs_["Walk"] = Game::Asset::Animation::Load(filePath, "Walk");
     // テクスチャ
 	textureID_ = Game::Asset::Texture::Load(directory + "texture_body.png");
+    texture_ = Game::Asset::Texture::Load(directory + "texture.png");
 }
 
 HumanModel::~HumanModel()

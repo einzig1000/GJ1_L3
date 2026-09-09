@@ -1,4 +1,4 @@
-#include "Benefit.h"
+#include "NumMeshs.h"
 #include"../Numbers/Numbers.h"
 
 NumMeshs::NumMeshs()
@@ -16,17 +16,19 @@ NumMeshs::~NumMeshs()
 {
 }
 
-void NumMeshs::Initialize(const uint32_t maxDigit, const Vector3 startPos)
-{
-    //最初はマイナス値にしてみる
+
+void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transform, Matrix4x4* parent)
+{  //最初はマイナス値にしてみる
     isMinus_ = true;
 
     for (int i = 0; i < maxDigit; ++i) {
-        numbers_[i]->Initialize(0, startPos+ Vector3{ i * 0.5f,0.0f,0.0f });
+
+        numbers_[i]->Initialize(0, transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }, transform.rotate, transform.scale, parent);
     }
 
     //マイナスは10のインデックスに入っている
-    minus_->Initialize(10, startPos - Vector3{ 0.5f,0.0f,0.0f });
+    minus_->Initialize(10, transform.translate - Vector3{ transform.scale.x * 0.5f,0.0f,0.0f }, transform.rotate, transform.scale, parent);
+
 }
 
 void NumMeshs::Update(const int32_t cameraID)
@@ -42,7 +44,7 @@ void NumMeshs::Update(const int32_t cameraID)
           
             int digitNum = std::powf(10, digit);
             int num = tempBenefit / digitNum;
-            numbers_[maxDigit-1-digit]->SetModelId(num);
+            numbers_[maxDigit - 1-digit]->SetModelId(num);
             tempBenefit %= digitNum;
         }
     }
@@ -63,28 +65,38 @@ void NumMeshs::Update(const int32_t cameraID)
 
 }
 
-void NumMeshs::Draw()
+void NumMeshs::Draw(const int32_t renderTexture)
 {
     for (int i = 0; i < maxDigit; ++i) {
-        numbers_[i]->Draw();
+        numbers_[i]->Draw(renderTexture);
     }
 
     if (isMinus_) {
-        minus_->Draw();
+        minus_->Draw(renderTexture);
     }
 
 }
 
-void NumMeshs::DrawImGui()
+void NumMeshs::DrawImGui(const char* label)
 {
 
     ImGui::Begin("UI");
 
-    static int32_t benefit = 0;
-    ImGui::SliderInt("benefit", &benefit, -999999, 999999);
-    
-    if (ImGui::Button("UpdateBenefit")) {
-        SetValue(benefit);
+    if (ImGui::TreeNode(label)) {
+        static int32_t value = 0;
+        ImGui::SliderInt(label, &value, -999999, 999999);
+
+        if (ImGui::Button("UpdateNumber")) {
+            SetValue(value);
+        }
+
+
+        for (int i = 0; i < maxDigit; ++i) {
+            numbers_[i]->DrawImGui(label);
+        }
+
+
+        ImGui::TreePop();
     }
 
     ImGui::End();
