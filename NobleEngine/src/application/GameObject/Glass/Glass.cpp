@@ -36,6 +36,7 @@ void Glass::Initialize()
     glassObj_->modelID_ = modelID_;
     //一旦半透明にしておく
     color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
+	material_.alpha = 0.5f;
 
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
@@ -146,45 +147,60 @@ void Glass::Draw()
 
 void Glass::DrawImGui()
 {
-    ImGui::Begin("GameObj");
+    //ImGui::Begin("GameObj");
+    //
+    //if (ImGui::TreeNode("Glass"))
+    //{
+    //    static Vector3 vel;
+    //    ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
+    //    //物理ボディ
+    //    if (ImGui::TreeNode("PhysicsBody")) {
+    //        if (!comCollider_.colliders.empty()) {
+    //            auto& collider = comCollider_.colliders.at(0);
+    //            auto  phyB = collider->GetPhysicsBody();
+    //            float mass = phyB.mass;
+    //
+    //            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+    //
+    //            collider->SetMass(phyB.mass);
+    //
+    //            if (ImGui::Button("Shot"))
+    //            {
+    //                collider->SetVelocity(vel);
+    //            }
+    //        }
+    //
+    //        ImGui::Checkbox("isHitFloor", &isHitFloor_);
+    //
+    //        ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
+    //        ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
+    //        ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
+    //        ImGui::ColorEdit4("Color##", &color_.x);
+    //
+    //        ImGui::TreePop();
+    //    }
+    //
+    //
+    //
+    //    ImGui::TreePop();
+    //}
+    //
+    //ImGui::End();
+
+    ImGui::Begin("Material");
 
     if (ImGui::TreeNode("Glass"))
     {
-        static Vector3 vel;
-        ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
-        //物理ボディ
-        if (ImGui::TreeNode("PhysicsBody")) {
-            if (!comCollider_.colliders.empty()) {
-                auto& collider = comCollider_.colliders.at(0);
-                auto  phyB = collider->GetPhysicsBody();
-                float mass = phyB.mass;
-
-                ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-
-                collider->SetMass(phyB.mass);
-
-                if (ImGui::Button("Shot"))
-                {
-                    collider->SetVelocity(vel);
-                }
-            }
-
-            ImGui::Checkbox("isHitFloor", &isHitFloor_);
-
-            ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
-            ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
-            ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-            ImGui::ColorEdit4("Color##", &color_.x);
-
-            ImGui::TreePop();
-        }
-
-
+		ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
+		ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
+		ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
+		ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
 
         ImGui::TreePop();
     }
 
     ImGui::End();
+
 
     //glassParticle_->DebugImGui();
 }

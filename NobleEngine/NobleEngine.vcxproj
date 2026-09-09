@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\System\CreateMaskTexture\CreateMaskTexture.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
     <ClCompile Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.cpp" />
     <ClCompile Include="src\application\GameObject\CocktailWater\CocktailWater.cpp" />
@@ -129,6 +130,7 @@
     <ClCompile Include="src\application\GameObject\UI\UIManager\UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\System\CreateMaskTexture\CreateMaskTexture.h" />
     <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
     <ClInclude Include="src\application\GameObject\SimpleObstaclePlacementFlow\SimpleObstaclePlacementFlow.h" />
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
