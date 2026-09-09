@@ -20,13 +20,13 @@ public:
     value_ = benefit;
     isUpdateValue_ = true;
      };
-
+    void SetEulerTransform(const EulerTransforms& transform);
 private:
     bool isMinus_ = false;
     int32_t value_ = 0;
     bool isUpdateValue_ = false;
     //6桁
-    uint32_t maxDigit = 6;
+    uint32_t maxDigit_ = 6;
     std::vector<std::unique_ptr<Numbers>>numbers_;
     std::unique_ptr<Numbers> minus_ = nullptr;
   

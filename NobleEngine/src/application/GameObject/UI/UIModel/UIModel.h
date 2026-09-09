@@ -25,6 +25,8 @@ public:
     void Update(const int32_t cameraID);
     void Draw(const int32_t renderTexture);
     void DebugUI(const int id);
-    void SetRotateX(const float rotate);
+    void SetEulerTransform(const EulerTransforms& transform) {
+        transform_ = transform;
+    };
 };
 

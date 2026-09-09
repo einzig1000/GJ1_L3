@@ -117,6 +117,7 @@
     <ClCompile Include="src\application\GameObject\UI\UIModel\UIModel.cpp" />
     <ClCompile Include="src\application\GameObject\UI\UIManager\UIManager.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.cpp" />
     <ClCompile Include="src\application\System\CreateMaskTexture\CreateMaskTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -398,6 +399,7 @@
     <ClInclude Include="src\application\GameObject\UI\UIModel\UIModel.h" />
     <ClInclude Include="src\application\GameObject\UI\UIManager\UIManager.h" />
     <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
+    <ClInclude Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.h" />
     <ClInclude Include="src\application\System\CreateMaskTexture\CreateMaskTexture.h" />
   </ItemGroup>
   <ItemGroup>
@@ -730,9 +732,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\GameObject\UI\Numbers\Numbers.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameObject\UI\Benefit\Benefit.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

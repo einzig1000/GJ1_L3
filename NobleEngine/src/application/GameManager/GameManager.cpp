@@ -8,8 +8,6 @@
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
 #include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
 
-
-
 GameManager::GameManager() 
 {
 	currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);

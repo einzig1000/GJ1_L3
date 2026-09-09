@@ -38,11 +38,6 @@ Numbers::~Numbers()
 {
 }
 
-void Numbers::SetStencil(const DepthStencilID id)
-{
-    obj_->psoConfig_.depthStencilID = id;
-}
-
 void Numbers::Initialize(const uint32_t number, const Vector3& position, const Vector3& rotation, const Vector3& scale, Matrix4x4* parent)
 {    //トランスフォーム
     transform_.translate = position;
@@ -54,6 +49,11 @@ void Numbers::Initialize(const uint32_t number, const Vector3& position, const V
     //モデルを取得する
     obj_->modelID_ = modelIDs_[number];
     color_ = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+}
+
+void Numbers::SetTransform(const EulerTransforms& transform)
+{
+    transform_ = transform;
 }
 
 void Numbers::Update(const int32_t cameraID)
