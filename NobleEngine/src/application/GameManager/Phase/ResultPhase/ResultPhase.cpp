@@ -40,6 +40,7 @@ ResultPhase::ResultPhase() {
 }
 ResultPhase::~ResultPhase() {}
 void ResultPhase::Initialize() {
+	nextPhase_ = Phase::Phase_None;
 	// 結果画面の初期化処理をここに記述
 	InitializeCommon();
 	if (isWin_) {
