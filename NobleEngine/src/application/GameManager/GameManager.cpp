@@ -6,6 +6,7 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
+#include <GameManager/Phase/ResultPhase/ResultPhase.h>
 
 //衝突判定テスト用フェーズ
 #include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
@@ -14,7 +15,7 @@
 
 GameManager::GameManager() 
 {
-	currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);
+	currentPhase_ = CreatePhase(Phase::Phase_Result);
 	currentPhase_->SetContext(&phaseContext_);
 	currentPhase_->Initialize();
 
@@ -68,6 +69,8 @@ std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
 		return std::make_unique<CollisionTestPhase>();
 	case Phase::Phase_SikouteiDevelop:
 		return std::make_unique<SikouteiDevelopPhase>();
+	case Phase::Phase_Result:
+		return std::make_unique<ResultPhase>();
 	default:
 		Log("Error : 該当するフェーズクラスが存在しません");
 		assert(false);
