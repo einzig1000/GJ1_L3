@@ -14,14 +14,14 @@ public:
     void Update();
     void Draw();
     void DebugImGui();
-
+    float GetTimer() { return gameTimer_; };
 private:
     struct modelIDs {
         int32_t model_ = -1;
         int32_t texture_ = -1;
     };
 
-
+    float gameTimer_ = 0.0f;
 
     int32_t renderTextureID_ = -1;
     //UIのcamera
