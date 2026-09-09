@@ -22,7 +22,7 @@ GameManager::GameManager()
 	maskTextureCreator_->Initialize();
 	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
-	Phase startUpPhase = Phase::Phase_SikouteiDevelop;
+	Phase startUpPhase = Phase::Phase_Title;
 	currentPhase_ = CreatePhase(startUpPhase);
 	currentPhase_->SetContext(&phaseContext_);
 
