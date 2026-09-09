@@ -8,6 +8,10 @@
 #include <numbers>
 #include <string>
 TitlePhase::TitlePhase() {
+
+	// レンダーターゲット
+	renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "Title");
+
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
@@ -47,6 +51,8 @@ TitlePhase::TitlePhase() {
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		titleSelectModels_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
 	}
+
+	maskTextureCreator_ = std::make_unique<CreateMaskTexture>();
 }
 
 TitlePhase::~TitlePhase() {}
@@ -1596,23 +1602,23 @@ void TitlePhase::Update_TitleRayModel() {
 }
 
 void TitlePhase::Draw_LightModels() {
-	barModel_.Models_->Draw();
-	glassModel_.Models_->Draw();
-	CocktailModel_.Models_->Draw();
-	cocktailWaterModel_.Models_->Draw();
-	ginModel_.Models_->Draw();
+	barModel_.Models_->Draw(renderTargetID_);
+	glassModel_.Models_->Draw(renderTargetID_);
+	CocktailModel_.Models_->Draw(renderTargetID_);
+	cocktailWaterModel_.Models_->Draw(renderTargetID_);
+	ginModel_.Models_->Draw(renderTargetID_);
 	for (int32_t i = 0; i < kMaxIceCount_; ++i) {
-		iceModel_[i].Models_->Draw();
+		iceModel_[i].Models_->Draw(renderTargetID_);
 	}
 
 	// 切り替え開始から表示し、下から上昇させる
 	if (isTitleSelectTransitionStarted_ || titlePhaseSelection_ == TitlePhaseSelection::Select) {
 		for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
-			titleSelectModels_[i].Models_->Draw();
+			titleSelectModels_[i].Models_->Draw(renderTargetID_);
 		}
 	}
 
 	// TitleRayが深度を書き込んでもTitleSelectを隠さないように、
 	// TitleSelectを含む全モデルの描画後にボリューム光を重ねる。
-	titleRayModel_.Models_->Draw();
+	titleRayModel_.Models_->Draw(renderTargetID_);
 }

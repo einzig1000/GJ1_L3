@@ -42,7 +42,7 @@ cbuffer CameraCB : register(b0)
 
 cbuffer LightCB : register(b1)
 {
-    PunctualLight gLights[4];
+    PunctualLight gLights[8];
     int gLightCount;
     float3 gAmbientColor;
 };
@@ -182,11 +182,11 @@ PSOutput main(PSInput input)
         specularLighting += lr.specular;
     }
     
-    float3 finalColor = (texColor.rgb * gMaterial.diffuseColor * diffuseLighting) + specularLighting;
-    output.color = float4(finalColor, texColor.a);
-    
-    
     //float3 finalColor = (texColor.rgb * gMaterial.diffuseColor * diffuseLighting) + specularLighting;
-    //output.color = float4(finalColor, texColor.a * gMaterial.alpha);
+    //output.color = float4(finalColor, texColor.a);
+    
+    
+    float3 finalColor = (texColor.rgb * gMaterial.diffuseColor * diffuseLighting) + specularLighting;
+    output.color = float4(finalColor, texColor.a * gMaterial.alpha);
     return output;
 }

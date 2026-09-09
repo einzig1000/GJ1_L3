@@ -3,6 +3,7 @@
 #include <GameObject/TableObject/TableObject.h>
 #include <GameObject/Table/Table.h>
 #include <GameObject/CocktailWater/CocktailWater.h>
+#include <GameObject/HumanModel/HumanModel.h>
 #include <System/CollisionManager/CollisionManager.h>
 #include <Utilities/Json/JsonManager.h>
 #include <externals/MagicEnum/magic_enum.hpp>
@@ -152,21 +153,28 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
 	}
 	for (int32_t i = 0; i < 3; i++)
 	{
-		human_[i] = std::make_unique<RenderObject>();
-        human_[i]->psoConfig_.vs = "assets/shaders/PunctualLight/PunctualLight.VS.hlsl";
-        human_[i]->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
-		human_[i]->SetupFromShaders();
-		human_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
+		human_[i] = std::make_unique<HumanModel>();
+        human_[i]->SetLightData(&lightData_);
 	}
 
+	bar_ = std::make_unique<RenderObject>();
+    bar_->psoConfig_.vs = "assets/shaders/PunctualLight/PunctualLight.VS.hlsl";
+    bar_->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
+    bar_->modelID_ = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
+    bar_->SetupFromShaders();
+    barTextureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
 
     prediction_ = std::make_unique<PredictionObj>();
 	prediction_->SetCollisionManager(collisionManager_.get());
     prediction_->SetObstacleArray(obstacles_);
+    prediction_->SetLightData(&lightData_);
 
     Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(45.0f), 0.0f, EaseType::OUT_BACK, c_main_);
 
     simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
+
+    barTransforms_.scale = Vector3{ 0.1f, 0.1f, 0.1f };
+    barTransforms_.translate = Vector3{ 0.0f, 0.6f, 9.0f };
 
     uiManager_ = std::make_unique<UIManager>();
 
@@ -186,6 +194,11 @@ void SikouteiDevelopPhase::Initialize()
     //UI管理
     uiManager_->Initialize();
 
+    for (int32_t i = 0; i < 3; i++)
+    {
+        human_[i]->Initialize();
+    }
+
     EulerTransforms spawnTransform;
     spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
     spawnTransform.rotate = Vector3(0.0f, 0.0f, 0.0f);
@@ -194,8 +207,8 @@ void SikouteiDevelopPhase::Initialize()
     
     LoadObstacleData(0);
 
-    simpleObstaclePlacementFlow_->HideAllPieces();
-    simpleObstaclePlacementFlow_->StartDisappear();
+	LoadLightData();
+
 
     cameraSpherical_.theta = Game::Math::Converter::DegreeToRadian(humanRotateDegree[0]);
     Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.2f, EaseType::OUT_BACK, c_main_);
@@ -249,22 +262,24 @@ void SikouteiDevelopPhase::Update()
         deleteIndex = -1;
     }
 
-    // オブジェクト更新
-    glass_->Update(c_main_);
-    cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
-    cocktailWater_->Update(c_main_);
-    table_->Update(c_main_);
   
     simpleObstaclePlacementFlow_->Update();
     for (int i = 0; i < obstacleCount; ++i) {
         obstacles_[i]->SetTranslate(simpleObstaclePlacementFlow_->GetPieces(i).transform.translate);
     }
 
-    
-
+    // オブジェクト更新
+    glass_->Update(c_main_);
+    cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
+    cocktailWater_->Update(c_main_);
+    table_->Update(c_main_);
     for (int32_t i = 0; i < obstacleCount; i++)
     {
         obstacles_[i]->Update(c_main_);
+    }
+    for (int32_t i = 0; i < 3; i++)
+    {
+        human_[i]->Update(c_main_);
     }
 
     //コライダー更新
@@ -350,16 +365,6 @@ void SikouteiDevelopPhase::Draw()
 
     for (int32_t i = 0; i < 3; i++)
     {
-        Matrix4x4 world = humanTransforms_[i].GetWorldMatrix();
-        Matrix4x4 wvp = world * viewPro;
-        Vector4 color = Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-        human_[i]->SetCBufferData(0, ShaderType::VertexShader, &wvp);
-        human_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
-        human_[i]->SetCBufferData(0, ShaderType::PixelShader, &cameraPos);
-        human_[i]->SetCBufferData(1, ShaderType::PixelShader, &lightData_);
-        human_[i]->SetCBufferData(2, ShaderType::PixelShader, &material_);
-        human_[i]->SetCBufferData(3, ShaderType::PixelShader, &white1x1);
         human_[i]->Draw();
     }
     for (int32_t i = 0; i < 6; i++)
@@ -374,7 +379,19 @@ void SikouteiDevelopPhase::Draw()
         markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
         markers_[i]->Draw();
     }
+    {
+        Matrix4x4 world = barTransforms_.GetWorldMatrix();
+        Matrix4x4 wvp = world * viewPro;
+        Vector4 color = Vector4{ 1.0f, 0.0f, 0.0f, 1.0f };
 
+        bar_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
+        bar_->SetCBufferData(1, ShaderType::VertexShader, &world);
+        bar_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos);
+        bar_->SetCBufferData(1, ShaderType::PixelShader, &lightData_);
+        bar_->SetCBufferData(2, ShaderType::PixelShader, &barMaterial_);
+        bar_->SetCBufferData(3, ShaderType::PixelShader, &barTextureID_);
+		bar_->Draw();
+    }
 
     //テーブルの描画
     table_->Draw();
@@ -404,7 +421,7 @@ void SikouteiDevelopPhase::DrawImGui()
     glass_->DrawImGui();
     cocktailWater_->DrawImGui();
     obstacles_[0]->DrawImGui();
-    //table_->DrawImGui();
+    table_->DrawImGui();
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
     uiManager_->DebugImGui();
@@ -453,16 +470,15 @@ void SikouteiDevelopPhase::DrawImGui()
     // 障害物の追加
     if (ImGui::TreeNode("Add Obstacle"))
     {
-        static GlassType glassType;
-
         auto names = magic_enum::enum_names<GlassType>();
         auto values = magic_enum::enum_values<GlassType>();
 
         size_t current = magic_enum::enum_index(glassType).value();
 
+		// GlassType先頭の要素を除外して表示する
         if (ImGui::BeginCombo("GlassType", names[current].data()))
         {
-            for (std::size_t i = 0; i < names.size(); i++)
+            for (std::size_t i = 1; i < names.size(); i++)
             {
                 bool selected = (current == static_cast<int>(i));
                 if (ImGui::Selectable(names[i].data(), selected))
@@ -486,7 +502,8 @@ void SikouteiDevelopPhase::DrawImGui()
             obstacles_[obstacleCount]->Initialize();
             obstacles_[obstacleCount]->SetGlassTypeAndLoadModels(glassType);
             Vector3 pos = { position.x, 1.28f, position.y };
-            obstacles_[obstacleCount]->SetTranslate(pos);
+            obstacles_[obstacleCount]->SetTranslate(pos);   //ここで読み込む
+            simpleObstaclePlacementFlow_->ReadObstaclePlacement(obstacles_[obstacleCount]->GetTransform());
             obstacleCount++;
         }
 
@@ -538,9 +555,9 @@ void SikouteiDevelopPhase::DrawImGui()
 
             for (int32_t i = 0; i < 3; i++)
             {
-                humanTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
-                humanTransforms_[i].translate.y = 1.28f;
-                humanTransforms_[i].scale = Vector3{ 0.5f,0.5f,0.5f };
+				Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
+                humanPos.y = 1.28f;
+				human_[i]->SetTranslate(humanPos);
             }
 
             for (int32_t i = 0; i < 6; i++)
@@ -563,10 +580,14 @@ void SikouteiDevelopPhase::DrawImGui()
     // ライト
     if (ImGui::TreeNode("LightData"))
     {
+		if (ImGui::Button("Load", ImVec2(40, 20))) LoadLightData();
+		ImGui::SameLine();
+		if (ImGui::Button("Save", ImVec2(40, 20))) SaveLightData();
+
         ImGui::DragInt("LightCount", &lightData_.LightCount, 1, 0, 4);
+            ImGui::ColorEdit3("ambientColor", &lightData_.ambientColor.x);
         for (int i = 0; i < lightData_.LightCount; ++i)
         {
-            ImGui::ColorEdit3("ambientColor", &lightData_.ambientColor.x);
 
             std::string lightNodeName = "Light" + std::to_string(i);
             if (ImGui::TreeNode(lightNodeName.c_str()))
@@ -595,6 +616,14 @@ void SikouteiDevelopPhase::DrawImGui()
         ImGui::TreePop();
     }
 
+    // 人間の位置
+    if (ImGui::TreeNode("Bar"))
+    {
+        ImGui::DragFloat3("Scale", &barTransforms_.scale.x, 0.01f);
+        ImGui::DragFloat3("Translate", &barTransforms_.translate.x, 1.0f);
+
+        ImGui::TreePop();
+    }
 
     simpleObstaclePlacementFlow_->DrawImGui();
 
@@ -682,9 +711,9 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 
     for (int32_t i = 0; i < 3; i++)
     {
-        humanTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
-        humanTransforms_[i].translate.y = 1.28f;
-        humanTransforms_[i].scale = Vector3{ 0.5f,0.5f,0.5f };
+        Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
+        humanPos.y = 1.28f;
+        human_[i]->SetTranslate(humanPos);
     }
 
     for (int32_t i = 0; i < 6; i++)
@@ -700,6 +729,9 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
         markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
     }
 
+
+    simpleObstaclePlacementFlow_->HideAllPieces();
+    simpleObstaclePlacementFlow_->StartPlacement();
 
 	return true;
 }
@@ -724,6 +756,69 @@ void SikouteiDevelopPhase::SaveObstacleData(int32_t stage)
     key = "/Stage" + std::to_string(stage) + "/Human/Scale";
     JsonManager::AddParam(path, key, humansize_);
 
+	JsonManager::Save(path);
+}
+
+
+bool SikouteiDevelopPhase::LoadLightData()
+{
+    std::string path = "assets/application/json/StageData/Lights.json";
+    std::string key = "/Count";
+    bool success = JsonManager::Load(path, key, lightData_.LightCount);
+    if (!success) return false;
+
+	key = "/ambientColor";
+    success = JsonManager::Load(path, key, lightData_.ambientColor);
+	if (!success) return false;
+
+    for (int32_t i = 0; i < lightData_.LightCount; i++)
+    {
+        key = "/Light" + std::to_string(i) + "/color";
+        JsonManager::Load(path, key, lightData_.lights[i].color);
+        key = "/Light" + std::to_string(i) + "/intensity";
+        JsonManager::Load(path, key, lightData_.lights[i].intensity);
+        key = "/Light" + std::to_string(i) + "/direction";
+        JsonManager::Load(path, key, lightData_.lights[i].direction);
+        key = "/Light" + std::to_string(i) + "/spotCos";
+        JsonManager::Load(path, key, lightData_.lights[i].spotCos);
+        key = "/Light" + std::to_string(i) + "/position";
+        JsonManager::Load(path, key, lightData_.lights[i].position);
+        key = "/Light" + std::to_string(i) + "/range";
+        JsonManager::Load(path, key, lightData_.lights[i].range);
+        key = "/Light" + std::to_string(i) + "/position";
+        JsonManager::Load(path, key, lightData_.lights[i].position);
+        key = "/Light" + std::to_string(i) + "/type";
+        JsonManager::Load(path, key, lightData_.lights[i].type);
+    }
+
+    return true;
+}
+
+void SikouteiDevelopPhase::SaveLightData()
+{
+    std::string path = "assets/application/json/StageData/Lights.json";
+    std::string key = "/Count";
+	JsonManager::AddParam(path, key, lightData_.LightCount);
+	key = "/ambientColor";
+	JsonManager::AddParam(path, key, lightData_.ambientColor);
+
+	for (int32_t i = 0; i < lightData_.LightCount; i++)
+	{
+		key = "/Light" + std::to_string(i) + "/color";
+		JsonManager::AddParam(path, key, lightData_.lights[i].color);
+		key = "/Light" + std::to_string(i) + "/intensity";
+		JsonManager::AddParam(path, key, lightData_.lights[i].intensity);
+		key = "/Light" + std::to_string(i) + "/direction";
+		JsonManager::AddParam(path, key, lightData_.lights[i].direction);
+		key = "/Light" + std::to_string(i) + "/spotCos";
+		JsonManager::AddParam(path, key, lightData_.lights[i].spotCos);
+		key = "/Light" + std::to_string(i) + "/position";
+		JsonManager::AddParam(path, key, lightData_.lights[i].position);
+		key = "/Light" + std::to_string(i) + "/range";
+		JsonManager::AddParam(path, key, lightData_.lights[i].range);
+		key = "/Light" + std::to_string(i) + "/type";
+		JsonManager::AddParam(path, key, lightData_.lights[i].type);
+	}
 	JsonManager::Save(path);
 }
 

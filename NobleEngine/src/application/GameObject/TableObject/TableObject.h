@@ -32,6 +32,7 @@ public:
 
     void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
 	Vector3 GetTranslate() const { return transform_.translate; };
+	EulerTransforms GetTransform() const { return transform_; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
 
 	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; };

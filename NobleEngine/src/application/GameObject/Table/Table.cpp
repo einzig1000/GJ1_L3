@@ -57,48 +57,63 @@ void Table::Draw()
 
 void Table::DrawImGui()
 {
-	ImGui::Begin("GameObj");
+	//ImGui::Begin("GameObj");
+	//
+	//if (ImGui::TreeNode("Table"))
+	//{
+	//
+	//	static Vector3 vel;
+	//	ImGui::SliderFloat3("velocity", &vel.x, 0.0f, 10.0f);
+	//	//物理ボディ
+	//	if (ImGui::TreeNode("PhysicsBody"))
+	//	{
+	//		if (!comCollider_.colliders.empty())
+	//		{
+	//			auto& collider = comCollider_.colliders.at(0);
+	//			auto  phyB = collider->GetPhysicsBody();
+	//			float mass = phyB.mass;
+	//			/*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
+	//			ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
+	//
+	//			collider->SetMass(phyB.mass);
+	//
+	//			if (ImGui::Button("Shot"))
+	//			{
+	//				collider->SetVelocity(vel);
+	//			}
+	//
+	//			ImGui::TreePop();
+	//		}
+	//
+	//	}
+	//
+	//	if (ImGui::TreeNode(("Instance")))
+	//	{
+	//		ImGui::DragFloat3("Scale", &transform_.scale.x, 0.01f);
+	//		ImGui::DragFloat3("Rotate", &transform_.rotate.x, 0.01f);
+	//		ImGui::DragFloat3("Translate", &transform_.translate.x, 0.01f);
+	//		ImGui::ColorEdit4("Color", &color_.x);
+	//		ImGui::TreePop();
+	//	}
+	//
+	//	ImGui::TreePop();
+	//}
+	//
+	//
+	//ImGui::End();
+
+
+	ImGui::Begin("Material");
 
 	if (ImGui::TreeNode("Table"))
 	{
-
-		static Vector3 vel;
-		ImGui::SliderFloat3("velocity", &vel.x, 0.0f, 10.0f);
-		//物理ボディ
-		if (ImGui::TreeNode("PhysicsBody"))
-		{
-			if (!comCollider_.colliders.empty())
-			{
-				auto& collider = comCollider_.colliders.at(0);
-				auto  phyB = collider->GetPhysicsBody();
-				float mass = phyB.mass;
-				/*        ImGui::SliderFloat3("velocity", &phyB.velocity.x, -1000.0f, 1000.0f);*/
-				ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-
-				collider->SetMass(phyB.mass);
-
-				if (ImGui::Button("Shot"))
-				{
-					collider->SetVelocity(vel);
-				}
-
-				ImGui::TreePop();
-			}
-
-		}
-
-		if (ImGui::TreeNode(("Instance")))
-		{
-			ImGui::DragFloat3("Scale", &transform_.scale.x, 0.01f);
-			ImGui::DragFloat3("Rotate", &transform_.rotate.x, 0.01f);
-			ImGui::DragFloat3("Translate", &transform_.translate.x, 0.01f);
-			ImGui::ColorEdit4("Color", &color_.x);
-			ImGui::TreePop();
-		}
+		ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
+		ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
+		ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
+		ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
 
 		ImGui::TreePop();
 	}
-
 
 	ImGui::End();
 }

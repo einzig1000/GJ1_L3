@@ -6,8 +6,6 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
-
-//衝突判定テスト用フェーズ
 #include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
 
 GameManager::GameManager() 
