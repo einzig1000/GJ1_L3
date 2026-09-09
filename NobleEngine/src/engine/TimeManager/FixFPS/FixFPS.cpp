@@ -52,14 +52,21 @@ void FixFPS::Update()
     // 待機を含めた経過時間からFPSを計算
     elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - previousTime_);
     deltaMs = std::chrono::duration<double, std::milli>(elapsedTime).count();
+    // ロード等で1フレームが極端に長くなった場合、ゲームへ渡すデルタタイムには上限をかける
+    // (std::min)としているのは windows.h の min マクロと衝突させないため
+    deltaMs = (std::min)(deltaMs, static_cast<double>(kMaxDeltaMs));
     clampedDeltaMs_ = static_cast<float>(deltaMs);
     clampedFPS_ = static_cast<float>(1000.0 / deltaMs);
+
+
+
 
     // 前回時間を更新
     previousTime_ = currentTime;
 
     // フレームカウント更新
-    frameCount_++;
+    elapsedFrameTime_++;
+	elapsedSecTime_ += clampedDeltaMs_ * 0.001f;
 }
 
 void FixFPS::SetFPSCap(int32_t fpsCap)

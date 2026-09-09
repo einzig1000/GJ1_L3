@@ -161,6 +161,12 @@ void SimpleObstaclePlacementFlow::SetPieceLocalPosition(int32_t index, const Vec
     pieces_[index].transform.translate = position;
 }
 
+void SimpleObstaclePlacementFlow::RemovePiece(int32_t index)
+{
+    pieces_[index] = std::move(pieces_.back());
+    pieces_.pop_back();
+}
+
 void SimpleObstaclePlacementFlow::Initialize()
 {
     pieces_.clear();

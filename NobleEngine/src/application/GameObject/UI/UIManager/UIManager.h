@@ -15,6 +15,9 @@ public:
     void Draw();
     void DebugImGui();
 
+	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
+    int32_t GetRenderTextureID() const { return renderTextureID_; }
+
 private:
     struct modelIDs {
         int32_t model_ = -1;

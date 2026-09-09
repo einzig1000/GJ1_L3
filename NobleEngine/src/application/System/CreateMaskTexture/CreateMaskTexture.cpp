@@ -16,6 +16,8 @@ CreateMaskTexture::CreateMaskTexture()
 	cameraID_ = Game::Camera::AddCamera("MaskTextureCamera");
 	Game::Camera::Setter::SetPhiTarget(0.24f, 0.0f, EaseType::IN_BACK, cameraID_);
 	Game::Camera::Setter::SetDistanceTarget(1.2f, 0.0f, EaseType::IN_BACK, cameraID_);
+
+	stage = 0;
 }
 
 CreateMaskTexture::~CreateMaskTexture()
@@ -23,7 +25,8 @@ CreateMaskTexture::~CreateMaskTexture()
 
 void CreateMaskTexture::Initialize()
 {
-	counter_.SetTargetFrame(50);
+	counter_.Initialize(50);
+	counter2_.Initialize(-1);
 	transforms_.translate = { 0.0f, 0.0f, 0.0f };
 	transforms_.rotate = { 0.0f, 0.0f, 0.0f };
 	transforms_.scale = { 1.0f, 1.0f, 1.0f };
@@ -33,13 +36,11 @@ void CreateMaskTexture::Initialize()
 void CreateMaskTexture::Update()
 {
 	Game::Camera::Update(cameraID_);
-	counter_.CountUp();
-	if (stage > 0) counter2_.CountUp();
 
 	if (stage == 0 && counter_.GetProgress() >= 1.0f)
 	{
 		stage++;
-		counter2_.SetTargetFrame(50);
+		counter2_.Initialize(50);
 	}
 	if (stage == 1 && counter2_.GetProgress() >= 1.0f)
 	{

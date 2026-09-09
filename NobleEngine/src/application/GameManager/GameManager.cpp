@@ -6,35 +6,31 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
+#include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
+#include <GameManager/Phase/ResultPhase/ResultPhase.h>
+#include <GameManager/Phase/Tutorial/TutorialPhase.h>
+
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
 GameManager::GameManager() 
 {
 	JsonManager::LoadAll("assets/application/json");
 
-	phaseMap_[Phase::Phase_Title] = std::make_unique<TitlePhase>();
-	phaseMap_[Phase::Phase_Title]->SetContext(&phaseContext_);
-	phaseMap_[Phase::Phase_GameScene] = std::make_unique<GameScenePhase>();
-	phaseMap_[Phase::Phase_GameScene]->SetContext(&phaseContext_);
-	phaseMap_[Phase::Phase_Test] = std::make_unique<TestPhase>();
-	phaseMap_[Phase::Phase_Test]->SetContext(&phaseContext_);
-	phaseMap_[Phase::Phase_SikouteiDevelop] = std::make_unique<SikouteiDevelopPhase>();
-	phaseMap_[Phase::Phase_SikouteiDevelop]->SetContext(&phaseContext_);
 
-	phaseMap_[Phase::Phase_Result] = std::make_unique<ResultPhase>();
-	phaseMap_[Phase::Phase_Result]->SetContext(&phaseContext_);
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 
+	maskTextureCreator_ = std::make_unique<CreateMaskTexture>();
+	maskTextureCreator_->Initialize();
+	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
 	Phase startUpPhase = Phase::Phase_SikouteiDevelop;
-	currentPhase_ = phaseMap_[startUpPhase].get();
+	currentPhase_ = CreatePhase(startUpPhase);
+	currentPhase_->SetContext(&phaseContext_);
+
 	currentPhase_->Initialize();
 
 	currentRenderTargetID_ = phaseContext_.renderTargetIDs[static_cast<size_t>(startUpPhase)];
 	targetRenderTargetID_ = currentRenderTargetID_;
 
-	maskTextureCreator_ = std::make_unique<CreateMaskTexture>();
-	maskTextureCreator_->Initialize();
-	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
 
 
@@ -55,18 +51,21 @@ void GameManager::Update()
 	Phase nextPhase = currentPhase_->GetNextPhase();
 	if (nextPhase != Phase::Phase_None)
 	{
+		previousPhase_ = std::move(currentPhase_);
+
+		currentPhase_ = CreatePhase(nextPhase);
+		currentPhase_->SetContext(&phaseContext_);
+		currentPhase_->Initialize();
+
+
 		// タイマー開始
-		counterSec_.SetTargetTime(10.0f);
+		counterSec_.Initialize(10.0f);
 		// フラグ乱立
 		phaseChanging_ = true;
-
-		previousPhase_ = currentPhase_;
 
 
 		maskTextureCreator_->Initialize();
 
-		currentPhase_ = phaseMap_[nextPhase].get();
-		currentPhase_->Initialize();
 
 		targetRenderTargetID_ = phaseContext_.renderTargetIDs[static_cast<size_t>(nextPhase)];
 	}
@@ -77,16 +76,15 @@ void GameManager::Update()
 	{
 		previousPhase_->Update();
 		maskTextureCreator_->Update();
+		maskTextureCreator_->Draw();
 
-		if (counterSec_.CountUp())
+		if (counterSec_.GetProgress() >= 1.0f)
 		{
 			phaseChanging_ = false;
 			currentRenderTargetID_ = targetRenderTargetID_;
 		}
 	}
 
-	maskTextureCreator_->Draw();
-	maskTextureCreator_->DrawImGui();
 
 	if (Game::IO::Key::IsJustPressed(VK_F11))
 	{
@@ -125,9 +123,26 @@ void GameManager::DrawImGui()
 	ImGui::End();
 }
 
-
-
-void GameManager::ChangePhase(Phase phase)
+std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
 {
-	currentPhase_ = phaseMap_[phase].get();
+	switch (phase)
+	{
+	case Phase::Phase_Test:
+		return std::make_unique<TestPhase>();
+		break;
+	case Phase::Phase_Title:
+		return std::make_unique<TitlePhase>();
+		break;
+	case Phase::Phase_SikouteiDevelop:
+		return std::make_unique<SikouteiDevelopPhase>();
+		break;
+	case Phase::Phase_Result:
+		return std::make_unique<ResultPhase>();
+		break;
+	case Phase::Phase_Tutorial:
+		return std::make_unique<TutorialPhase>();
+		break;
+	default:
+		break;
+	}
 }

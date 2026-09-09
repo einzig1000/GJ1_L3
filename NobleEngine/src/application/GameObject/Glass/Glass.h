@@ -52,6 +52,7 @@ public:
 
 	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
+    void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
 private:
 	LightDataForGPU* lightData_;
     //

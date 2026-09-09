@@ -68,10 +68,18 @@ void TableObject::Update(const int32_t cameraID)
 
     material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
     material_.alpha = color_.w;
+
+
+	if (deathCounter_.GetProgress() >= 1.0f) isBroken_ = true;
+
 }
 
 void TableObject::Draw(int32_t renderTargetID)
 {
+    glassParticle_->Draw(renderTargetID);
+
+    if (deathCounter_.GetProgress() >= 0.1f) return;
+
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     glassObj_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos_);
@@ -80,7 +88,6 @@ void TableObject::Draw(int32_t renderTargetID)
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
     glassObj_->Draw(renderTargetID);
-    glassParticle_->Draw(renderTargetID);
 }
 
 void TableObject::DrawImGui()
@@ -304,9 +311,9 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
                 transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
                 //パーティクルを出現させる 反発方向にセットする
                 glassParticle_->Emit(transform_.translate, comCollider_.colliders.at(0)->GetPhysicsBody().velocity);
+                // 死亡まで残り1秒
+				deathCounter_.Initialize(1.0f);
             }
-
-
             });
     }
 }
