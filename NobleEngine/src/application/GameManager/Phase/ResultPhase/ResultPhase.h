@@ -253,7 +253,7 @@ private:
 	bool isResultRayTurnedOn_ = false;
 
 	void Initialize_ResultRayModel();
-	void Update_ResultRayAnimation(float deltaTime);
+	void Update_ResultRayAnimation(float scaledDeltaTime);
 	void Update_ResultRayModel();
 	void Draw_ResultRayModel();
 
@@ -263,7 +263,7 @@ private:
 	int32_t c_main_ = -1;
 
 	// ========================================
-	// Win演出後のカメラ（値はここで調整可能）
+	// Win / Lose演出後のカメラ（値はここで調整可能）
 	// ========================================
 
 	// 看板前に置くカクテルの位置。
@@ -281,10 +281,21 @@ private:
 	// 中央へ近づいた後に残す距離
 	static constexpr float kResultCameraStopDistance_ = 0.5f;
 
+	// LoseでSpaceを押した後、Liquidの正面で直進を始める距離
+	static constexpr float kLoseLiquidCameraStraightStartDistance_ = 16.0f;
+	// 現在位置からLiquid正面へ、X軸方向に放物線を描いて移動する時間とふくらみ
+	static constexpr float kLoseLiquidCameraArcDuration_ = 0.75f;
+	static constexpr float kLoseLiquidCameraArcXOffset_ = 5.0f;
+	// Liquid正面から0.5f手前まで直進する時間
+	static constexpr float kLoseLiquidCameraStraightDuration_ = 0.65f;
+	static constexpr float kLoseLiquidCameraStopDistance_ = 0.5f;
+
 	enum class ResultCameraState {
 		WaitingForInput,
 		Orbiting,
 		Diving,
+		LoseArcToFront,
+		LoseStraight,
 		Finished,
 	};
 
@@ -293,11 +304,16 @@ private:
 	float resultCameraStartTheta_ = 0.0f;
 	float resultCameraStartPhi_ = 0.0f;
 	float resultCameraStartDistance_ = 1.0f;
+	Vector3 loseLiquidCameraArcStartPosition_{};
+	Vector3 loseLiquidCameraArcStartFocus_{};
+	Vector3 loseLiquidCameraStraightStartPosition_{};
+	Vector3 loseLiquidCameraEndPosition_{};
 
 	static float EaseInOut01(float value);
 	void AimCameraFromPosition(const Vector3& cameraPosition, const Vector3& target);
 	void Start_ResultCameraAnimation();
-	void Update_ResultCameraAnimation(float deltaTime);
+	void Start_LoseLiquidCameraAnimation();
+	void Update_ResultCameraAnimation(float scaledDeltaTime);
 
 	// ライト用定数バッファ
 	LightBuffer lightBuffer_{};
@@ -306,6 +322,7 @@ private:
 	Model signboardModel_;
 	Model cocktailModel_;
 	Model cocktailWaterModel_;
+	Model liquidModel_;
 
 	WaterWaveBuffer waterWaveBuffer_{};
 	WaterCameraBuffer waterCameraBuffer_{};
@@ -313,11 +330,33 @@ private:
 	WaterLightingBuffer waterLightingBuffer_{};
 	float cocktailWaterAnimationTime_ = 0.0f;
 
+	// ========================================
+	// 看板へ付着するLiquid
+	// ========================================
+
+	WaterWaveBuffer liquidWaveBuffer_{};
+	WaterCameraBuffer liquidCameraBuffer_{};
+	WaterColorBuffer liquidColorBuffer_{};
+	WaterLightingBuffer liquidLightingBuffer_{};
+	float liquidAnimationTime_ = 0.0f;
+	float liquidAppearElapsedTime_ = 0.0f;
+	static constexpr float kLiquidAppearDuration_ = 0.30f;
+
+	// 衝突位置を基準に調整する値。モデルの向きや大きさに合わせて変更できる。
+	Vector3 liquidPositionOffset_ = Vector3(0.0f, 0.0f, 0.0f);
+	Vector3 liquidRotation_ = Vector3(0.0f, std::numbers::pi_v<float> / 2.0f, 0.0f);
+	Vector3 liquidTargetScale_ = Vector3(2.0f, 2.0f, 2.0f);
+	Vector3 liquidPosition_{};
+	bool isCocktailVisible_ = true;
+	bool isLiquidVisible_ = false;
+
 	void Initialize_LightModel(Model& model);
 	void Update_LightModel(Model& model);
 	void Initialize_LightBuffer();
 	void Initialize_CocktailWaterModel();
-	void Update_CocktailWaterModel(float deltaTime);
+	void Update_CocktailWaterModel(float scaledDeltaTime);
+	void Initialize_LiquidModel();
+	void Update_LiquidModel(float scaledDeltaTime);
 
 	// ========================================
 	// Man（スキニングアニメーション）
@@ -339,14 +378,17 @@ private:
 
 	static constexpr float kManWalkSpeed_ = 10.0f;
 	static constexpr float kManTurnDuration_ = 0.75f;
-	static constexpr float kManGoodEndTime_ = 1.999f;
+	// man.gltfのGood終端は1.833333...秒。終端を越えると先頭へループするため少し手前で停める。
+	static constexpr float kManGoodEndTime_ = 1.833f;
 
 	// Lose演出用
-	static constexpr float kManBadEndTime_ = 2.540f;
-	static constexpr float kManCatchEndTime_ = 1.165f;
-	static constexpr float kManThrowEndTime_ = 4.499f;
-	static constexpr float kManBadWaitDuration_ = 2.0f;
+	// man.gltf内の各クリップの実際の終了時刻より少しだけ手前で止める
+	static constexpr float kManBadEndTime_ = 2.374f;
+	static constexpr float kManCatchEndTime_ = 1.916f;
+	static constexpr float kManThrowEndTime_ = 1.624f;
 	static constexpr float kManBadApproachDistance_ = 5.0f;
+	// Catch終了後、Throwを始める前に看板へ体を向ける時間（秒）
+	static constexpr float kManThrowTurnDuration_ = 0.35f;
 
 	enum class ManWinState {
 		Walking,
@@ -360,8 +402,8 @@ private:
 	enum class ManLoseState {
 		Walking,
 		PlayingBad,
-		WaitingAfterBad,
 		PlayingCatch,
+		TurningToSignboard,
 		PlayingThrow,
 		HoldingThrow,
 	};
@@ -371,11 +413,40 @@ private:
 	float manTurnElapsedTime_ = 0.0f;
 	float manTurnStartY_ = 0.0f;
 	float manTurnTargetY_ = 0.0f;
-	float manLoseWaitElapsedTime_ = 0.0f;
 	Vector3 manBadStartPosition_{};
 	Vector3 manBadTargetPosition_{};
 	float manBadStartRotationY_ = 0.0f;
 	float manBadTargetRotationY_ = 0.0f;
+	float manThrowTurnStartY_ = 0.0f;
+	float manThrowTurnTargetY_ = 0.0f;
+	float manThrowTurnElapsedTime_ = 0.0f;
+
+	// ========================================
+	// Lose時のカクテルグラス追従・投擲
+	// ========================================
+
+	// man.gltf内で左手に使われているジョイント名
+	static constexpr const char* kManLeftHandJointName_ = "Hand_IK_L_end";
+	// 左手ジョイント基準でのグラス位置調整値。
+	// 手首ではなく手のひらへ合わせたい場合は、この値を微調整する。
+	Vector3 loseGlassHandLocalOffset_ = Vector3(0.1f, 0.0f, 0.0f);
+	// Hand_Lが見つからなかった場合だけ使用するMan原点基準の予備位置
+	Vector3 loseGlassFallbackOffset_ = Vector3(-4.0f, 16.0f, 1.0f);
+	// 看板へグラスが衝突する位置
+	Vector3 loseGlassSignboardHitPosition_ = Vector3(-74.0f, 10.0f, -2.0f);
+	// Throw開始から左手の追従を解除するまでの時間（秒）
+	static constexpr float kLoseGlassReleaseTime_ = 0.30f;
+	// 左手から看板へ到達するまでの時間（秒）
+	static constexpr float kLoseGlassFlightDuration_ = 0.45f;
+	// 投擲軌道の高さ
+	static constexpr float kLoseGlassThrowArcHeight_ = 3.0f;
+
+	int32_t manLeftHandJointIndex_ = -1;
+	Vector3 loseGlassTablePosition_{};
+	Vector3 loseGlassThrowStartPosition_{};
+	Vector3 cocktailRotation_{};
+	bool isLoseGlassReleased_ = false;
+	bool hasLoseGlassHitSignboard_ = false;
 
 	std::unique_ptr<RenderObject> manObject_;
 	std::unique_ptr<ComputeObject> manAnimationCompute_;
@@ -390,9 +461,11 @@ private:
 	const ModelData* manModelData_ = nullptr;
 
 	void Initialize_Man();
-	void Update_Man();
+	void Update_Man(bool updateAnimationPose = true);
 	void Update_WinMan();
 	void Update_LoseMan();
+	Vector3 GetLoseGlassLeftHandPosition();
+	void Update_LoseGlassAnimation();
 	void Draw_Man();
 	void DrawImGui_Models();
 
