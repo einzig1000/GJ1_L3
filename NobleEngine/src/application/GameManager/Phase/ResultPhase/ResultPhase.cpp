@@ -13,9 +13,12 @@ ResultPhase::ResultPhase() {
 
 	// モデル
 	barModel_.ID = Game::Asset::Model::Load("assets/application/model/Bar/Bar.obj");
+	signboardModel_.ID = Game::Asset::Model::Load("assets/application/model/Signboard/Signboard.obj");
+	resultRayModel_.ID = Game::Asset::Model::Load("assets/application/model/Title_Select/TitleRay.obj");
 
 	// テクスチャ
 	barModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Bar/Bar.png");
+	signboardModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Signboard/Signboard.png");
 
 	// Manモデル・テクスチャ・アニメーション
 	manModelID_ = Game::Asset::Model::Load("assets/application/model/Man/man.gltf");
@@ -81,6 +84,72 @@ void ResultPhase::Initialize_LightModel(Model& model) {
 	model.colors_.resize(model.instanceCount_, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	model.textureIndices_.resize(model.instanceCount_, model.textureID_);
+}
+
+void ResultPhase::Initialize_ResultRayModel() {
+	resultRayModel_.Models_ = std::make_unique<RenderObject>();
+	resultRayModel_.Models_->psoConfig_.vs = "assets/shaders/SpotLightRay/SpotLightRay.VS.hlsl";
+	resultRayModel_.Models_->psoConfig_.ps = "assets/shaders/SpotLightRay/SpotLightRay.PS.hlsl";
+	resultRayModel_.Models_->SetupFromShaders();
+
+	resultRayModel_.Models_->modelID_ = resultRayModel_.ID;
+	resultRayModel_.Models_->instanceNum_ = 1;
+	resultRayModel_.transforms_.resize(1, EulerTransforms());
+	resultRayModel_.worldMatrices_.resize(1, Matrix4x4());
+
+	resultRayModel_.transforms_[0] = EulerTransforms(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), resultRayPosition_);
+
+	// TitlePhaseのTitleRayと同じ見た目を使う
+	resultRayMaterialBuffer_.color = Vector4(0.74f, 0.28f, 0.39f, 0.20f);
+	resultRayMaterialBuffer_.intensity = 2.5f;
+	resultRayMaterialBuffer_.tipRadius = 0.4f;
+	resultRayMaterialBuffer_.endRadius = 5.0f;
+	resultRayMaterialBuffer_.coneLength = 16.0f;
+	resultRayMaterialBuffer_.reveal = 1.0f;
+	resultRayMaterialBuffer_.revealSoftness = 0.08f;
+	resultRayMaterialBuffer_.density = 1.0f;
+	resultRayMaterialBuffer_.centerBrightness = 1.5f;
+	resultRayMaterialBuffer_.edgeSoftness = 0.25f;
+	resultRayMaterialBuffer_.distanceFade = 0.35f;
+	resultRayMaterialBuffer_.stepCount = 48;
+	resultRayMaterialBuffer_.padding = 0.0f;
+}
+
+void ResultPhase::Update_ResultRayModel() {
+	if (resultRayModel_.Models_ == nullptr || resultRayModel_.transforms_.empty()) {
+		return;
+	}
+
+	// ヘッダーまたはImGuiで変更した位置を毎フレーム反映する
+	resultRayModel_.transforms_[0].translate = resultRayPosition_;
+	resultRayModel_.worldMatrices_[0] = resultRayModel_.transforms_[0].GetWorldMatrix();
+
+	resultRayCameraBuffer_.viewProjection = Game::Camera::Getter::GetViewProjectionMatrix(c_main_);
+	resultRayCameraBuffer_.cameraPositionWS = Game::Camera::Getter::GetWorldPosition(c_main_);
+	resultRayCameraBuffer_.padding = 0.0f;
+
+	resultRayObjectBuffer_.world = resultRayModel_.worldMatrices_[0];
+
+	// ResultRayは回転なし・等倍なので、平行移動を反転して逆行列を作る
+	const EulerTransforms inverseResultRayTransform(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-resultRayPosition_.x, -resultRayPosition_.y, -resultRayPosition_.z));
+	resultRayObjectBuffer_.worldToObject = inverseResultRayTransform.GetWorldMatrix();
+
+	resultRayModel_.Models_->SetCBufferData(0, ShaderType::VertexShader, &resultRayCameraBuffer_);
+	resultRayModel_.Models_->SetCBufferData(1, ShaderType::VertexShader, &resultRayObjectBuffer_);
+	resultRayModel_.Models_->SetCBufferData(2, ShaderType::VertexShader, &resultRayMaterialBuffer_);
+
+	resultRayModel_.Models_->SetCBufferData(0, ShaderType::PixelShader, &resultRayCameraBuffer_);
+	resultRayModel_.Models_->SetCBufferData(1, ShaderType::PixelShader, &resultRayObjectBuffer_);
+	resultRayModel_.Models_->SetCBufferData(2, ShaderType::PixelShader, &resultRayMaterialBuffer_);
+}
+
+void ResultPhase::Draw_ResultRayModel() {
+	if (resultRayModel_.Models_ == nullptr) {
+		return;
+	}
+
+	// 半透明の光線なので、通常モデルを描いた後に重ねる
+	resultRayModel_.Models_->Draw();
 }
 
 void ResultPhase::Update_LightModel(Model& model) {
@@ -318,6 +387,13 @@ void ResultPhase::DrawImGui_Models() {
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("Signboard")) {
+		ImGui::DragFloat3("Scale##Signboard", &signboardModel_.transforms_[0].scale.x, 0.01f);
+		ImGui::DragFloat3("Rotate##Signboard", &signboardModel_.transforms_[0].rotate.x, 0.01f);
+		ImGui::DragFloat3("Translate##Signboard", &signboardModel_.transforms_[0].translate.x, 0.01f);
+		ImGui::TreePop();
+	}
+
 	if (ImGui::TreeNode("Man")) {
 		ImGui::DragFloat3("Scale##Man", &manTransform_.scale.x, 0.01f);
 		ImGui::DragFloat3("Rotate##Man", &manTransform_.rotate.x, 0.01f);
@@ -332,6 +408,14 @@ void ResultPhase::DrawImGui_Models() {
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("ResultRay")) {
+		ImGui::DragFloat3("Position##ResultRay", &resultRayPosition_.x, 0.1f);
+		ImGui::DragFloat("Intensity##ResultRay", &resultRayMaterialBuffer_.intensity, 0.05f, 0.0f);
+		ImGui::DragFloat("Tip Radius##ResultRay", &resultRayMaterialBuffer_.tipRadius, 0.05f, 0.0f);
+		ImGui::DragFloat("End Radius##ResultRay", &resultRayMaterialBuffer_.endRadius, 0.05f, 0.0f);
+		ImGui::TreePop();
+	}
+
 	ImGui::End();
 }
 
@@ -341,11 +425,16 @@ void ResultPhase::InitializeCommon() {
 	Game::Time::SetTimeScale(1.0f);
 
 	Initialize_LightModel(barModel_);
+	Initialize_LightModel(signboardModel_);
 	Initialize_LightBuffer();
 	Initialize_Man();
+	Initialize_ResultRayModel();
 
 	// TitlePhaseのBarと同じく、初期トランスフォームは単位行列
 	barModel_.transforms_[0] = EulerTransforms(Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
+
+	// SignboardをZ=0.0fへ配置する
+	signboardModel_.transforms_[0] = EulerTransforms(Vector3(0.5f, 0.5f, 0.5f), Vector3(0.0f, 0.0f, 0.0f), Vector3(-75.0f, 17.0f, -5.0f));
 }
 
 void ResultPhase::InitializeWin() {
@@ -368,6 +457,8 @@ void ResultPhase::InitializeLose() {
 void ResultPhase::UpdateCommon() {
 	Game::Camera::Update(c_main_);
 	Update_LightModel(barModel_);
+	Update_LightModel(signboardModel_);
+	Update_ResultRayModel();
 }
 
 void ResultPhase::UpdateWin() { Update_WinMan(); }
@@ -380,7 +471,9 @@ void ResultPhase::UpdateLose() {
 
 void ResultPhase::DrawCommon() {
 	barModel_.Models_->Draw();
+	signboardModel_.Models_->Draw();
 	Draw_Man();
+	Draw_ResultRayModel();
 }
 
 void ResultPhase::DrawWin() {}

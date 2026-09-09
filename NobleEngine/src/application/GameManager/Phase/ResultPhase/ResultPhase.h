@@ -165,19 +165,23 @@ private:
 		Vector4 ambientGround;
 	};
 
-	struct alignas(16) TitleRayCameraBuffer {
+	// ========================================
+	// ResultRay（ResultPhase用ボリュームライト）
+	// ========================================
+
+	struct alignas(16) ResultRayCameraBuffer {
 		Matrix4x4 viewProjection;
 		Vector3 cameraPositionWS;
 		float padding;
 	};
 
-	struct alignas(16) TitleRayObjectBuffer {
+	struct alignas(16) ResultRayObjectBuffer {
 		Matrix4x4 world;
 		Matrix4x4 worldToObject;
 	};
 
-	struct alignas(16) TitleRayMaterialBuffer {
-		// TitleRayの光の色
+	struct alignas(16) ResultRayMaterialBuffer {
+		// ResultRayの光の色
 		// RGB：光の色
 		// A：通常の透明度ではなく、最終的な光量へ掛ける強度倍率
 		Vector4 color;
@@ -195,7 +199,7 @@ private:
 		float endRadius;
 
 		// 円錐状の光が伸びる長さ
-		// TitleRayのローカル座標における-Y方向へ伸びる
+		// ResultRayのローカル座標における-Y方向へ伸びる
 		float coneLength;
 
 		// 光を先端からどこまで表示するか
@@ -232,6 +236,18 @@ private:
 		float padding;
 	};
 
+	Model resultRayModel_;
+	ResultRayCameraBuffer resultRayCameraBuffer_{};
+	ResultRayObjectBuffer resultRayObjectBuffer_{};
+	ResultRayMaterialBuffer resultRayMaterialBuffer_{};
+
+	// ResultRayの位置
+	Vector3 resultRayPosition_ = Vector3(-70.0f, 19.0f, -5.0f);
+
+	void Initialize_ResultRayModel();
+	void Update_ResultRayModel();
+	void Draw_ResultRayModel();
+
 	// 現在はWin演出を先に実装しているため、単体確認時はWinを既定にする
 	bool isWin_ = true;
 
@@ -242,6 +258,7 @@ private:
 	LightBuffer lightBuffer_{};
 
 	Model barModel_;
+	Model signboardModel_;
 
 	void Initialize_LightModel(Model& model);
 	void Update_LightModel(Model& model);
@@ -259,7 +276,7 @@ private:
 	int32_t manCurrentAnimationID_ = -1;
 
 	// ManはZ=-60から歩き始め、Z=-10で停止する
-	static constexpr float kManStartZ_ = -85.0f;
+	static constexpr float kManStartZ_ = -105.0f;
 	static constexpr float kManTargetZ_ = -15.0f;
 
 	static constexpr float kManWalkSpeed_ = 10.0f;
