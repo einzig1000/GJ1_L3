@@ -26,7 +26,8 @@ GameManager::GameManager()
 	phaseMap_[Phase::Phase_SikouteiDevelop]->SetContext(&phaseContext_);
 	phaseMap_[Phase::Phase_CollisionTest] = std::make_unique<CollisionTestPhase>();
 	phaseMap_[Phase::Phase_CollisionTest]->SetContext(&phaseContext_);
-  
+	phaseMap_[Phase::Phase_Result] = std::make_unique<ResultPhase>();
+	phaseMap_[Phase::Phase_Result]->SetContext(&phaseContext_);
 
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 
