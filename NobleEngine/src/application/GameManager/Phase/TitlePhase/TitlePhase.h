@@ -1,7 +1,6 @@
 #pragma once
 
 #include <GameManager/Phase/IPhase.h>
-#include <chrono>
 #include <cstdint>
 #include <numbers>
 
@@ -550,9 +549,6 @@ private:
 	Vector3 iceTransferCameraStartFocus_{};
 	Vector3 ginCameraStartFocus_{};
 
-	std::chrono::steady_clock::time_point previousAnimationTime_{};
-	std::chrono::steady_clock::time_point previousSelectionAnimationTime_{};
-
 	Model barModel_;
 	Model glassModel_;
 	Model iceModel_[kMaxIceCount_];
@@ -581,11 +577,11 @@ private:
 	void Initialize_IceTransforms();
 	void Initialize_PresentationIce();
 	void Update_IceSourceTransform(const Vector3& position, float rotationX);
-	void Update_PresentationIce(float deltaTime, bool updatePhysics);
-	void Update_PresentationIcePhysics(float deltaTime);
+	void Update_PresentationIce(float scaledDeltaTime, bool updatePhysics);
+	void Update_PresentationIcePhysics(float scaledDeltaTime);
 	void Apply_CocktailGlassCollision(IcePresentationState& ice);
-	void Apply_IceSeparation(float deltaTime);
-	void Update_IceFloat(IcePresentationState& ice, int32_t iceIndex, float deltaTime);
+	void Apply_IceSeparation(float scaledDeltaTime);
+	void Update_IceFloat(IcePresentationState& ice, int32_t iceIndex, float scaledDeltaTime);
 	void Update_IceWave(IcePresentationState& ice, int32_t iceIndex);
 	void Sync_IceModelsFromPresentation();
 	static float Clamp01(float value);
