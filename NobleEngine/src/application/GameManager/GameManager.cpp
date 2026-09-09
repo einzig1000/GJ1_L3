@@ -20,6 +20,8 @@ GameManager::GameManager()
 	phaseMap_[Phase::Phase_SikouteiDevelop] = std::make_unique<SikouteiDevelopPhase>();
 	phaseMap_[Phase::Phase_SikouteiDevelop]->SetContext(&phaseContext_);
 
+	phaseMap_[Phase::Phase_Result] = std::make_unique<ResultPhase>();
+	phaseMap_[Phase::Phase_Result]->SetContext(&phaseContext_);
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 
 
