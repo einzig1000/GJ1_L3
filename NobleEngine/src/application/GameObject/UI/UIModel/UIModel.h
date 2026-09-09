@@ -14,13 +14,17 @@ private:
     EulerTransforms transform_;
     Matrix4x4 worldMatrix_;
     Vector4 color_;
-
+    //親行列
+    Matrix4x4* parent_ = nullptr;
 public:
     UIModel();
     ~UIModel();
+    Matrix4x4* GetWorldMatrixPtr() { return &worldMatrix_; };
     void SetStencil(const DepthStencilID id);
-    void Initialize(const int32_t modelID,const int32_t textureID, const Vector3& position, const Vector3& rotation = { 0.0f,0.0f,0.0f }, const Vector3& scale = { 1.0f,1.0f,1.0f });
+    void Initialize(const int32_t modelID,const int32_t textureID, const EulerTransforms& transform,Matrix4x4* parent = nullptr);
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(const int32_t renderTexture);
+    void DebugUI(const int id);
+    void SetRotateX(const float rotate);
 };
 
