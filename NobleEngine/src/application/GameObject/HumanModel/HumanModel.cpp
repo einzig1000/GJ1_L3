@@ -10,8 +10,8 @@ HumanModel::HumanModel()
     animationIDs_["Idle"] = Game::Asset::Animation::Load(filePath, "Idle");
     animationIDs_["Walk"] = Game::Asset::Animation::Load(filePath, "Walk");
     // テクスチャ
-	textureID_ = Game::Asset::Texture::Load(directory + "texture_body.png");
-    texture_ = Game::Asset::Texture::Load(directory + "texture.png");
+	textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
+    //texture_ = Game::Asset::Texture::Load(directory + "texture.png");
 }
 
 HumanModel::~HumanModel()
