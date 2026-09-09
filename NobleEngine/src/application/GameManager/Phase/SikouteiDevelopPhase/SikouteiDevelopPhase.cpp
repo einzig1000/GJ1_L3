@@ -223,6 +223,7 @@ SikouteiDevelopPhase::~SikouteiDevelopPhase()
 void SikouteiDevelopPhase::Initialize()
 {
 
+
     isShot_ = false;
 	nextPhase_ = Phase::Phase_None;
     context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_SikouteiDevelop)] = renderTargetID_;
@@ -233,8 +234,6 @@ void SikouteiDevelopPhase::Initialize()
 	cocktailWater_->Initialize();
     //予測オブジェクト
     prediction_->Initialize();
-    //UI管理
-    uiManager_->Initialize();
 
     for (int32_t i = 0; i < 3; i++)
     {
@@ -267,10 +266,21 @@ void SikouteiDevelopPhase::Initialize()
     glassPos.y = 1.28f;
     glass_->SetTranslate(glassPos);
     glass_->SetVelocity(Vector3{});
+
+
+    //UI管理 ゲームタイマー
+    uiManager_->Initialize();
+
 }
 
 void SikouteiDevelopPhase::Update()
 {
+
+
+    if (uiManager_->GetTimer() <= 0.0f) {
+        //フェーズ
+        nextPhase_ = Phase::Phase_Result;
+    }
 
     Game::Camera::Update(c_main_);
 
@@ -283,6 +293,7 @@ void SikouteiDevelopPhase::Update()
 		glass_->ResetBroken();
         glass_->SetTranslate(glassPos);
         glass_->SetVelocity(Vector3{});
+        uiManager_->Initialize();
     }
 
 	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;

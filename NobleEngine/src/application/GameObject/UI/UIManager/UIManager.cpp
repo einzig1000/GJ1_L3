@@ -37,15 +37,10 @@ UIManager::UIManager()
     Game::Asset::Model::Load("assets/application/model/Yen/yen.obj") ,
     white1x1
     };
-
-
     modelIds_["time"] = {
     Game::Asset::Model::Load("assets/application/model/Time/time.obj") ,
     white1x1
     };
-
-
-
 
     const uint32_t windowWidthSize =Game::Window::GetWidth();
     const uint32_t windowHeightSize = Game::Window::GetHeight();
@@ -60,7 +55,8 @@ UIManager::~UIManager()
 
 void UIManager::Initialize()
 {
-
+    //60.0f
+    gameTimer_ = 60.0f;
 
     float pi = 3.14159265358979f;
     float range = 8.0f;
@@ -100,6 +96,10 @@ void UIManager::Initialize()
 
 void UIManager::Update()
 {
+    //ゲームタイマー
+    gameTimer_ -= Game::Time::GetScaledDeltaTimeMs()*0.001f;
+    timeMesh_->SetValue(gameTimer_);
+
     //Game::Camera::Setter::SetCenter();
     Game::Camera::Update(uiCameraID_);
     //破壊判定オブジェクト

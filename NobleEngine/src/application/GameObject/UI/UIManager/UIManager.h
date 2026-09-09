@@ -14,6 +14,7 @@ public:
     void Update();
     void Draw();
     void DebugImGui();
+    float GetTimer() { return gameTimer_; };
 
 	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
     int32_t GetRenderTextureID() const { return renderTextureID_; }
@@ -24,7 +25,7 @@ private:
         int32_t texture_ = -1;
     };
 
-
+    float gameTimer_ = 0.0f;
 
     int32_t renderTextureID_ = -1;
     //UIのcamera
