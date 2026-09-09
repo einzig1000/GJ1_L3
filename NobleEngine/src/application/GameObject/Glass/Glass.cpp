@@ -129,7 +129,7 @@ void Glass::Update(const int32_t cameraID)
    
 }
 
-void Glass::Draw()
+void Glass::Draw(int32_t renderTargetID)
 {
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
@@ -139,9 +139,9 @@ void Glass::Draw()
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
     if (isBroken_) {
-        glassParticle_->Draw();
+        glassParticle_->Draw(renderTargetID);
     } else {
-        glassObj_->Draw();
+        glassObj_->Draw(renderTargetID);
     }
 }
 

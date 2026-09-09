@@ -74,11 +74,11 @@ void CollisionTestPhase::DrawGameObj()
 {
 
     //テーブルの描画
-    table_->Draw();
+    table_->Draw(0);
     //人間モデル
-    humanModel_->Draw();
+    humanModel_->Draw(0);
     //グラスは半透明なので後に描画する
-    glass_->Draw();
+    glass_->Draw(0);
 
     //コライダーデバック描画
     collisionManager_->DebugDraw();

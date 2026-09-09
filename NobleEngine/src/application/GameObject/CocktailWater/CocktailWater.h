@@ -91,7 +91,7 @@ public:
 	~CocktailWater();
 	void Initialize();
 	void Update(int32_t cameraID);
-	void Draw();
+	void Draw(int32_t renderTargetID);
 	void DrawImGui();
 
 	void SetTranslate(const Vector3& translate) { waterTransform_.translate = translate; }

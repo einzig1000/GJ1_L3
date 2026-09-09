@@ -15,57 +15,6 @@ class UIManager;
 
 
 
-class CounterSec
-{
-private:
-	float progressSec_ = 0.0f;
-	float target_ = 0.0f;
-
-public:
-
-	void SetTargetTime(float target)
-	{
-		progressSec_ = 0.0f;
-		target_ = target;
-	}
-
-	bool CountUp(float dtMs)
-	{
-		progressSec_ += dtMs;
-		if (progressSec_ > target_)
-		{
-			return true;
-		}
-		return false;
-	}
-};
-
-class CounterF
-{
-private:
-	int32_t progressFrame_ = 0;
-	int32_t target_ = 0;
-
-public:
-
-	void SetTargetFrame(int32_t target)
-	{
-		progressFrame_ = 0;
-		target_ = target;
-	}
-
-	bool CountUp()
-	{
-		progressFrame_++;
-		if (progressFrame_ > target_)
-		{
-			return true;
-		}
-		return false;
-	}
-};
-
-
 enum class CameraPhase
 {
 	// 盤面確認中。Theta/Phiともにマウス操作可能
@@ -101,6 +50,10 @@ private:
 	bool LoadLightData();
 	void SaveLightData();
 
+
+	int32_t s_GameScene_ = 0;
+	std::vector<int32_t> s_GameScene_PlayIDs_;
+	float volume = 0.0f;
 
 	LightDataForGPU lightData_;
 

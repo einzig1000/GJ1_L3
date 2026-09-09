@@ -1,7 +1,6 @@
 #pragma once
 
 #include <GameManager/Phase/IPhase.h>
-#include <System/CreateMaskTexture/CreateMaskTexture.h>
 #include <chrono>
 #include <cstdint>
 #include <numbers>
@@ -19,9 +18,11 @@ public:
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
 
 private:
-	static constexpr int32_t kMaxLightCount_ = 20;
+	int32_t s_TitleScene_ = 0;
+	std::vector<int32_t> s_TitleScene_PlayIDs_;
+	float volume = 0.0f;
 
-	std::unique_ptr<CreateMaskTexture> maskTextureCreator_;
+	static constexpr int32_t kMaxLightCount_ = 20;
 
 	// ========================================
 	// Light
@@ -598,6 +599,7 @@ private:
 	void Update_WaterModel();
 	void Update_TitleRayModel();
 	void Update_Animation();
+	void Update_Sound();
 	void AimCameraFromFixedPosition(const Vector3& cameraPosition, const Vector3& target);
 	void Start_CocktailCameraAnimation();
 	void Start_GinCameraAnimation();

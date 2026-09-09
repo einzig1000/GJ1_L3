@@ -35,7 +35,6 @@ void CollisionManager::Finalize()
     CollisionTag::SaveTagNames();
 }
 
-#ifdef USE_IMGUI
 namespace Collision {
 
     void CheckAABB(AABB& aabb, const char* label)
@@ -407,7 +406,6 @@ namespace Collision {
     //    }
     //}
 }
-#endif //USE_IMGUI
 void CollisionManager::DebugImGui()
 {
 #ifdef USE_IMGUI

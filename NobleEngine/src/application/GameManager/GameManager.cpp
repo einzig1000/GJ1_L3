@@ -12,11 +12,43 @@
 
 GameManager::GameManager() 
 {
-	currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);
-	currentPhase_->SetContext(&phaseContext_);
+	JsonManager::LoadAll("assets/application/json");
+
+
+	phaseMap_[Phase::Phase_Title] = std::make_unique<TitlePhase>();
+	phaseMap_[Phase::Phase_Title]->SetContext(&phaseContext_);
+	phaseMap_[Phase::Phase_GameScene] = std::make_unique<GameScenePhase>();
+	phaseMap_[Phase::Phase_GameScene]->SetContext(&phaseContext_);
+	phaseMap_[Phase::Phase_Test] = std::make_unique<TestPhase>();
+	phaseMap_[Phase::Phase_Test]->SetContext(&phaseContext_);
+	phaseMap_[Phase::Phase_SikouteiDevelop] = std::make_unique<SikouteiDevelopPhase>();
+	phaseMap_[Phase::Phase_SikouteiDevelop]->SetContext(&phaseContext_);
+	phaseMap_[Phase::Phase_CollisionTest] = std::make_unique<CollisionTestPhase>();
+	phaseMap_[Phase::Phase_CollisionTest]->SetContext(&phaseContext_);
+
+	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
+
+
+
+	Phase startUpPhase = Phase::Phase_Title;
+	currentPhase_ = phaseMap_[startUpPhase].get();
 	currentPhase_->Initialize();
 
-	JsonManager::LoadAll("assets/application/json");
+	currentRenderTargetID_ = phaseContext_.renderTargetIDs[static_cast<size_t>(startUpPhase)];
+	targetRenderTargetID_ = currentRenderTargetID_;
+
+	maskTextureCreator_ = std::make_unique<CreateMaskTexture>();
+	maskTextureCreator_->Initialize();
+	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
+
+
+
+
+	renderObject_ = std::make_unique<RenderObject>();
+	renderObject_->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
+	renderObject_->psoConfig_.ps = "assets/shaders/FullScreen/Mask.PS.hlsl";
+	renderObject_->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
+	renderObject_->SetupFromShaders();
 }
 
 GameManager::~GameManager()
@@ -25,13 +57,41 @@ GameManager::~GameManager()
 
 void GameManager::Update()
 {
-	if (currentPhase_->GetNextPhase() != Phase::Phase_None)
+	Phase nextPhase = currentPhase_->GetNextPhase();
+	if (nextPhase != Phase::Phase_None)
 	{
-		currentPhase_ = CreatePhase(currentPhase_->GetNextPhase());
-		currentPhase_->SetContext(&phaseContext_);
+		// タイマー開始
+		counterSec_.SetTargetTime(10.0f);
+		// フラグ乱立
+		phaseChanging_ = true;
+
+		previousPhase_ = currentPhase_;
+
+
+		maskTextureCreator_->Initialize();
+
+		currentPhase_ = phaseMap_[nextPhase].get();
 		currentPhase_->Initialize();
+
+		targetRenderTargetID_ = phaseContext_.renderTargetIDs[static_cast<size_t>(nextPhase)];
 	}
+
+
 	currentPhase_->Update();
+	if (phaseChanging_)
+	{
+		previousPhase_->Update();
+		maskTextureCreator_->Update();
+
+		if (counterSec_.CountUp())
+		{
+			phaseChanging_ = false;
+			currentRenderTargetID_ = targetRenderTargetID_;
+		}
+	}
+
+	maskTextureCreator_->Draw();
+	maskTextureCreator_->DrawImGui();
 
 	if (Game::IO::Key::IsJustPressed(VK_F11))
 	{
@@ -42,33 +102,37 @@ void GameManager::Update()
 void GameManager::Draw()
 {
 	currentPhase_->Draw();
+	if (phaseChanging_)
+	{
+		previousPhase_->Draw();
+	}
 
+	Vector3 keyColor = { 1.0f, 1.0f, 0.0f };
+	float keyThreshold = 0.01f;
+
+	renderObject_->SetCBufferData(0, ShaderType::PixelShader, &currentRenderTargetID_);
+	renderObject_->SetCBufferData(1, ShaderType::PixelShader, &targetRenderTargetID_);
+	renderObject_->SetCBufferData(2, ShaderType::PixelShader, &maskRenderTargetID_);
+	renderObject_->SetCBufferData(3, ShaderType::PixelShader, &keyColor);
+	renderObject_->SetCBufferData(4, ShaderType::PixelShader, &keyThreshold);
+	renderObject_->SetCBufferData(5, ShaderType::PixelShader, &maskUV);
+	renderObject_->Draw(-1, phaseContext_.renderTargetIDs);
 }
 
 void GameManager::DrawImGui()
 {
 	currentPhase_->DrawImGui();
 
+	ImGui::Begin("GameManager");
+	ImGui::DragFloat2("scale", &maskUV.scale.x, 0.01f);
+	ImGui::DragFloat2("translate", &maskUV.translate.x, 0.01f);
+	ImGui::DragFloat("rotate", &maskUV.rotate, 0.01f);
+	ImGui::End();
 }
 
 
-std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
+
+void GameManager::ChangePhase(Phase phase)
 {
-	switch (phase)
-	{
-	case Phase::Phase_Test:
-		return std::make_unique<TestPhase>();
-	case Phase::Phase_Title:
-		return std::make_unique<TitlePhase>();
-	case Phase::Phase_GameScene:
-		return std::make_unique<GameScenePhase>();
-	case Phase::Phase_CollisionTest:
-		return std::make_unique<CollisionTestPhase>();
-	case Phase::Phase_SikouteiDevelop:
-		return std::make_unique<SikouteiDevelopPhase>();
-	default:
-		Log("Error : 該当するフェーズクラスが存在しません");
-		assert(false);
-		return nullptr;
-	}
+	currentPhase_ = phaseMap_[phase].get();
 }

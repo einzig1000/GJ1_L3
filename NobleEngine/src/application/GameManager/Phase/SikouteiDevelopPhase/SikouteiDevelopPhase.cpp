@@ -121,6 +121,12 @@ namespace
 
 SikouteiDevelopPhase::SikouteiDevelopPhase()
 {
+    // レンダーターゲット
+    renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "SikouteiDevelop");
+
+    // サウンド
+	s_GameScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/GameScene.mp3");
+
     // カメラ
     c_main_ = Game::Camera::AddCamera("SikouteiDevelopPhase");
 
@@ -185,6 +191,9 @@ SikouteiDevelopPhase::~SikouteiDevelopPhase()
 
 void SikouteiDevelopPhase::Initialize()
 {
+	nextPhase_ = Phase::Phase_None;
+    context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_SikouteiDevelop)] = renderTargetID_;
+
 	// オブジェクト初期化
     table_->Initialize();
     glass_->Initialize();
@@ -209,9 +218,20 @@ void SikouteiDevelopPhase::Initialize()
 
 	LoadLightData();
 
+    volume = 0.0f;
+    s_GameScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_GameScene_, true, volume));
+
 
     cameraSpherical_.theta = Game::Math::Converter::DegreeToRadian(humanRotateDegree[0]);
     Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.2f, EaseType::OUT_BACK, c_main_);
+
+
+    cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
+    ChangeCameraPhase(CameraPhase::CatchFollowing);
+    Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
+    glassPos.y = 1.28f;
+    glass_->SetTranslate(glassPos);
+    glass_->SetVelocity(Vector3{});
 }
 
 void SikouteiDevelopPhase::Update()
@@ -227,6 +247,10 @@ void SikouteiDevelopPhase::Update()
         glass_->SetTranslate(glassPos);
         glass_->SetVelocity(Vector3{});
     }
+
+	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
+	volume = std::clamp(volume, 0.0f, 1.0f);
+	Game::Audio::SetAudioVolume(s_GameScene_PlayIDs_[0], volume);
 
     // テーブル外判定
     Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
@@ -365,7 +389,7 @@ void SikouteiDevelopPhase::Draw()
 
     for (int32_t i = 0; i < 3; i++)
     {
-        human_[i]->Draw();
+        human_[i]->Draw(renderTargetID_);
     }
     for (int32_t i = 0; i < 6; i++)
     {
@@ -377,7 +401,7 @@ void SikouteiDevelopPhase::Draw()
         markers_[i]->SetCBufferData(1, ShaderType::VertexShader, &world);
         markers_[i]->SetCBufferData(0, ShaderType::PixelShader, &color);
         markers_[i]->SetCBufferData(1, ShaderType::PixelShader, &white1x1);
-        markers_[i]->Draw();
+        markers_[i]->Draw(renderTargetID_);
     }
     {
         Matrix4x4 world = barTransforms_.GetWorldMatrix();
@@ -390,25 +414,25 @@ void SikouteiDevelopPhase::Draw()
         bar_->SetCBufferData(1, ShaderType::PixelShader, &lightData_);
         bar_->SetCBufferData(2, ShaderType::PixelShader, &barMaterial_);
         bar_->SetCBufferData(3, ShaderType::PixelShader, &barTextureID_);
-		bar_->Draw();
+		bar_->Draw(renderTargetID_);
     }
 
     //テーブルの描画
-    table_->Draw();
+    table_->Draw(renderTargetID_);
 
     if (cameraPhase_ == CameraPhase::ShotAngleSetup)
     {
-        prediction_->Draw();
+        prediction_->Draw(renderTargetID_);
     }
 
 	// 障害物の描画
     for (int32_t i = 0; i < obstacleCount; i++)
 	{
-		obstacles_[i]->Draw();
+		obstacles_[i]->Draw(renderTargetID_);
 	}
-	cocktailWater_->Draw();
+	cocktailWater_->Draw(renderTargetID_);
     //グラスは半透明なので後に描画する
-    glass_->Draw();
+    glass_->Draw(renderTargetID_);
 
     //コライダーデバック描画
     if (isDebugDraw_) collisionManager_->DebugDraw();
@@ -871,16 +895,6 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
         const Vector2 mouseDelta = Game::IO::Mouse::Get2DPositionDelta();
         constexpr float limit = 60.0f;
 
-        //// phiをマウスで操作
-        //cameraSpherical_.phi += mouseDelta.y * mouseInsensitivity_;
-        //cameraSpherical_.phi = std::clamp(cameraSpherical_.phi, 0.0f, limit);
-        //Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.0f, EaseType::OUT_BACK, c_main_);
-
-		// thetaをマウスで操作
-        //cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
-        //if (cameraSpherical_.theta > humanRotateDegree[currentGlassUserIndex_] + limit) cameraSpherical_.theta = humanRotateDegree[currentGlassUserIndex_] + limit;
-        //if (cameraSpherical_.theta < humanRotateDegree[currentGlassUserIndex_] - limit) cameraSpherical_.theta = humanRotateDegree[currentGlassUserIndex_] - limit;
-        //Game::Camera::Setter::SetThetaTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.theta), 0.0f, EaseType::OUT_BACK, c_main_);
 
         // centerをグラスで固定
         Game::Camera::Setter::SetCenter(glass_->GetTranslate(), 0.0f, EaseType::OUT_BACK, c_main_);
@@ -898,18 +912,6 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
 
         cameraSpherical_.theta -= mouseDelta.x * mouseInsensitivity_;
 
-        //cameraSpherical_.theta -= Game::Math::Converter::DegreeToRadian(mouseDelta.x * mouseInsensitivity_);
-        //cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
-        //float thetaPlusLimit = Game::Math::Converter::DegreeToRadian(humanRotateDegree[currentGlassUserIndex_] + limit);
-        //float thetaMinusLimit = Game::Math::Converter::DegreeToRadian(humanRotateDegree[currentGlassUserIndex_] - limit);
-        //if (cameraSpherical_.theta > thetaPlusLimit)
-        //{
-        //    cameraSpherical_.theta = thetaPlusLimit;
-        //}
-        //if (cameraSpherical_.theta < thetaMinusLimit)
-        //{
-        //    cameraSpherical_.theta = thetaMinusLimit;
-        //}
         Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.0f, EaseType::OUT_BACK, c_main_);
 
 		// centerをグラスで固定
@@ -936,7 +938,7 @@ void SikouteiDevelopPhase::UpdateCameraPhase()
     }
     case CameraPhase::CatchFollowing:
     {
-        if (cameraPhaseCounter_.CountUp(Game::Time::GetScaledDeltaTimeMs() * 0.001f))
+        if (cameraPhaseCounter_.CountUp())
         {
             ableDrag_ = true;
             ChangeCameraPhase(CameraPhase::Free);

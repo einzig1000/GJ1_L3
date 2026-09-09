@@ -10,7 +10,7 @@ public:
 
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };

@@ -70,7 +70,7 @@ void TableObject::Update(const int32_t cameraID)
     material_.alpha = color_.w;
 }
 
-void TableObject::Draw()
+void TableObject::Draw(int32_t renderTargetID)
 {
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
@@ -79,8 +79,8 @@ void TableObject::Draw()
     glassObj_->SetCBufferData(2, ShaderType::PixelShader, &material_);
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
-    glassObj_->Draw();
-    glassParticle_->Draw();
+    glassObj_->Draw(renderTargetID);
+    glassParticle_->Draw(renderTargetID);
 }
 
 void TableObject::DrawImGui()

@@ -7,10 +7,14 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 #include <string>
+
 TitlePhase::TitlePhase() {
 
 	// レンダーターゲット
 	renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "Title");
+
+	// サウンド
+	s_TitleScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/TitleScene.mp3");
 
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
@@ -51,8 +55,6 @@ TitlePhase::TitlePhase() {
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		titleSelectModels_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
 	}
-
-	maskTextureCreator_ = std::make_unique<CreateMaskTexture>();
 }
 
 TitlePhase::~TitlePhase() {}
@@ -60,13 +62,18 @@ TitlePhase::~TitlePhase() {}
 void TitlePhase::Initialize() {
 	// フェーズ初期化
 	nextPhase_ = Phase::Phase_None;
+	context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_Title)] = renderTargetID_;
 
 	Initialize_LightModels();
+
+	volume = 0.0f;
+	s_TitleScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_TitleScene_, true, volume));
 }
 
 void TitlePhase::Update() {
 	Game::Camera::Update(c_main_);
 
+	Update_Sound();
 	Update_Animation();
 	Update_TitleSelect();
 	Update_LightModels();
@@ -1306,6 +1313,13 @@ void TitlePhase::Update_Animation() {
 	}
 }
 
+void TitlePhase::Update_Sound()
+{
+	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
+	volume = std::clamp(volume, 0.0f, 1.0f);
+	Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+}
+
 void TitlePhase::Start_CocktailCameraAnimation() {
 	// ここで氷投入開始時の実際のカメラ位置を保存する。
 	// Update_Animation側はこのZ値を変えず、X・Yと注視角だけを補間する。
@@ -1498,8 +1512,13 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 
 	// 第2段階：正面位置から真上へ、少し高く膨らむ放物線を描いて移動する。
 	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
-	if (topMoveT > 1.0f) {
+	if (topMoveT > 1.0f)
+	{
 		topMoveT = 1.0f;
+		ChangePhase(Phase::Phase_SikouteiDevelop);
+		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+		if (volume < 0.0f) Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
+		Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
 	}
 	const float smoothTopMoveT = EaseInOut01(topMoveT);
 
@@ -1515,6 +1534,7 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 
 	// 放物線上の現在位置から毎フレーム角度を求め、常にカクテルへ視線を追従させる。
 	AimCameraFromFixedPosition(currentCameraPosition, currentCocktailFocus);
+
 }
 
 void TitlePhase::Update_Model(Model& model) {

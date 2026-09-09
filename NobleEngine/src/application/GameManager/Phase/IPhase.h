@@ -8,6 +8,7 @@
 // フェーズ間
 struct PhaseContext
 {
+	std::vector<int32_t> renderTargetIDs;
 };
 
 class IPhase
