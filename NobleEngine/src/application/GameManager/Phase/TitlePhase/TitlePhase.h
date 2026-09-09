@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GameManager/Phase/IPhase.h>
+#include <chrono>
 #include <cstdint>
 #include <numbers>
 
@@ -20,6 +21,15 @@ private:
 	int32_t s_TitleScene_ = 0;
 	std::vector<int32_t> s_TitleScene_PlayIDs_;
 	float volume = 0.0f;
+
+	// ========================================
+	// Space長押しによる倍速
+	// ========================================
+	static constexpr float kSpaceFastForwardHoldTime_ = 2.0f;
+	std::chrono::steady_clock::time_point spaceHoldStartTime_{};
+	bool isSpaceHoldTracking_ = false;
+	bool isSpaceFastForward_ = false;
+	void Update_SpaceTimeScale();
 
 	static constexpr int32_t kMaxLightCount_ = 20;
 
