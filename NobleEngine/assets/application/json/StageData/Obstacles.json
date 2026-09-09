@@ -43,7 +43,7 @@
     }
   },
   "Stage1": {
-    "Count": 1,
+    "Count": 3,
     "Human": {
       "RotateDeg": {
         "x": 90.0,
@@ -56,9 +56,111 @@
       "translate": {
         "x": 0.0,
         "y": 1.2799999713897705,
-        "z": 0.0
+        "z": 0.7099999785423279
       },
       "type": "Bottle"
+    },
+    "Obstacle1": {
+      "translate": {
+        "x": 0.699999988079071,
+        "y": 1.2799999713897705,
+        "z": 0.0
+      },
+      "type": "Champagne"
+    },
+    "Obstacle2": {
+      "translate": {
+        "x": -0.699999988079071,
+        "y": 1.2799999713897705,
+        "z": 0.0
+      },
+      "type": "Champagne"
+    }
+  },
+  "Stage2": {
+    "Count": 3,
+    "Human": {
+      "RotateDeg": {
+        "x": 90.0,
+        "y": 210.0,
+        "z": 330.0
+      },
+      "Scale": 60.0
+    },
+    "Obstacle0": {
+      "translate": {
+        "x": 0.0,
+        "y": 1.2799999713897705,
+        "z": 0.7099999785423279
+      },
+      "type": "Bottle"
+    },
+    "Obstacle1": {
+      "translate": {
+        "x": 0.699999988079071,
+        "y": 1.2799999713897705,
+        "z": 0.0
+      },
+      "type": "Champagne"
+    },
+    "Obstacle2": {
+      "translate": {
+        "x": -0.699999988079071,
+        "y": 1.2799999713897705,
+        "z": 0.0
+      },
+      "type": "Champagne"
+    }
+  },
+  "Stage3": {
+    "Count": 5,
+    "Human": {
+      "RotateDeg": {
+        "x": 90.0,
+        "y": 210.0,
+        "z": 330.0
+      },
+      "Scale": 60.0
+    },
+    "Obstacle0": {
+      "translate": {
+        "x": 1.5,
+        "y": 1.2799999713897705,
+        "z": 0.0
+      },
+      "type": "Plumwine"
+    },
+    "Obstacle1": {
+      "translate": {
+        "x": -1.5,
+        "y": 1.2799999713897705,
+        "z": 0.0
+      },
+      "type": "Plumwine"
+    },
+    "Obstacle2": {
+      "translate": {
+        "x": 0.0,
+        "y": 1.2799999713897705,
+        "z": -1.5
+      },
+      "type": "Plumwine"
+    },
+    "Obstacle3": {
+      "translate": {
+        "x": -1.0,
+        "y": 1.2799999713897705,
+        "z": 0.8999999761581421
+      },
+      "type": "Plumwine"
+    },
+    "Obstacle4": {
+      "translate": {
+        "x": 1.0,
+        "y": 1.2799999713897705,
+        "z": 0.8999999761581421
+      },
+      "type": "Plumwine"
     }
   }
 }

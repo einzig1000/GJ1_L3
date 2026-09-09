@@ -36,7 +36,7 @@ private:
 	void SaveLightData();
 
 	int32_t talkCount_ = 0;
-	bool ableControl_ = false;
+	bool ableControl_ = true;
 	CounterSec nextTalkWaitCounter_;
 
 

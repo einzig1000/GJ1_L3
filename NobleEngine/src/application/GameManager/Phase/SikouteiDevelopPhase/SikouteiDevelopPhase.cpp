@@ -275,8 +275,6 @@ void SikouteiDevelopPhase::Initialize()
 
 void SikouteiDevelopPhase::Update()
 {
-
-
     if (uiManager_->GetTimer() <= 0.0f) {
         //フェーズ
         nextPhase_ = Phase::Phase_Result;
@@ -322,6 +320,8 @@ void SikouteiDevelopPhase::Update()
                 uiManager_->GetBreakEvaluation()->SetMaxBreakCount(maxBreakableObstacleCount_);
                 uiManager_->GetBreakEvaluation()->SetBreakCount(maxBreakableObstacleCount_ - obstacleCount);
 				uiManager_->AddScore(maxBreakableObstacleCount_ - obstacleCount);
+
+                LoadObstacleData(Game::Math::Rand::RandInt(0, stageSum));
                 break;
             }
         }
@@ -345,6 +345,9 @@ void SikouteiDevelopPhase::Update()
         obstacles_[deleteIndex] = std::move(obstacles_[obstacleCount - 1]);
         simpleObstaclePlacementFlow_->RemovePiece(deleteIndex);
         obstacleCount--;
+		//obstacles_[deleteIndex] = std::make_unique<TableObject>();
+        obstacles_[deleteIndex]->Initialize();
+        //obstacles_[deleteIndex]->SetLightData(&lightData_);
         deleteIndex = -1;
     }
 
@@ -815,6 +818,17 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
 
     simpleObstaclePlacementFlow_->HideAllPieces();
     simpleObstaclePlacementFlow_->StartPlacement();
+
+    int32_t y = 0;
+    while (true)
+    {
+        key = "/Stage" + std::to_string(y) + "/Count";
+        int32_t t;
+        bool success = JsonManager::Load(path, key, t);
+        if (!success) break;
+        y++;
+    }
+	stageSum = y;
 
 	return true;
 }

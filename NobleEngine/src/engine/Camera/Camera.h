@@ -67,7 +67,7 @@ private:
 	std::string name_ = "Camera";
 
     // 操作可能か
-    bool enableControl_;
+    bool enableControl_ = false;
 
 	// カメラ位置
     Coordinate_spherical sphericalEye_ = {20.0f, 1.57f, -1.57f};

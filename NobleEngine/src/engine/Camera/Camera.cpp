@@ -14,7 +14,7 @@
 
 Camera::Camera()
 {
-	enableControl_ = true;
+	enableControl_ = false;
 
 	fovY_ = 0.65f;
 

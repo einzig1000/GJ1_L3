@@ -39,6 +39,8 @@ private:
 
 	int32_t rt_3D_ = -1;
 
+	int32_t stageSum = 0;
+
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
 

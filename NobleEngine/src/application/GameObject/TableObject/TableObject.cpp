@@ -31,6 +31,8 @@ void TableObject::Initialize()
 {
     //床との当たり判定
     isHitFloor_ = false;
+    isBroken_ = false;
+	deathCounter_.Initialize(-1.0f);
 
     transform_.translate.y = 1.28f;
 }
