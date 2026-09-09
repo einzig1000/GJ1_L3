@@ -44,7 +44,7 @@ void Table::Update(const int32_t cameraID)
 	material_.alpha = color_.w;
 }
 
-void Table::Draw()
+void Table::Draw(int32_t renderTargetID)
 {
 	obj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
 	obj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
@@ -52,7 +52,7 @@ void Table::Draw()
 	obj_->SetCBufferData(1, ShaderType::PixelShader, lightData_);
 	obj_->SetCBufferData(2, ShaderType::PixelShader, &material_);
 	obj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
-	obj_->Draw();
+	obj_->Draw(renderTargetID);
 }
 
 void Table::DrawImGui()

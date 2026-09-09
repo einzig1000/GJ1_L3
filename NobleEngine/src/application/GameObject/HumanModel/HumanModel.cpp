@@ -73,7 +73,7 @@ void HumanModel::Update(const int32_t cameraID)
 	animationCompute_->SetSBufferData(0, Game::Resource::GetSRV(skinInstance_.paletteHandle));
 }
 
-void HumanModel::Draw()
+void HumanModel::Draw(int32_t renderTargetID)
 {
 	animation_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
 	animation_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
@@ -82,7 +82,7 @@ void HumanModel::Draw()
 	animation_->SetCBufferData(2, ShaderType::PixelShader, &material_);
 	animation_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
-	animation_->Draw();
+	animation_->Draw(renderTargetID);
 	animationCompute_->Dispatch();
 }
 

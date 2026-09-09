@@ -13,7 +13,7 @@ public:
 
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
 
     void SetTranslate(const Vector3& translate) { emitter_.translate = translate; };

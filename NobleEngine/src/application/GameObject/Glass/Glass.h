@@ -26,7 +26,7 @@ public:
 
     void Initialize();
     void Update(const int32_t cameraID);
-    void Draw();
+    void Draw(int32_t renderTargetID);
     void DrawImGui();
     /// @brief グラスタイプを持たせるか基底クラスにするかは考える
     /// @param type 

@@ -124,12 +124,12 @@ void GlassParticle::Update(int32_t cameraID)
 
 }
 
-void GlassParticle::Draw()
+void GlassParticle::Draw(int32_t renderTargetID)
 {
 	for (int i = 0; i < maxParticle_; ++i) {
 		emitComputes_[i]->Dispatch();
 		updateComputes_[i]->Dispatch();
-		particles_[i]->Draw();
+		particles_[i]->Draw(renderTargetID);
 	}
 }
 void GlassParticle::DebugImGui(int32_t id){

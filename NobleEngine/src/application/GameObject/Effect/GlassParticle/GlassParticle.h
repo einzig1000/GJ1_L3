@@ -40,7 +40,7 @@ public:
 	~GlassParticle();
 	void Initialize();
 	void Update(int32_t cameraID);
-	void Draw();
+	void Draw(int32_t renderTargetID);
 
 	void DebugImGui(int32_t id);
 	void SetEmitColor(const Vector4& color);

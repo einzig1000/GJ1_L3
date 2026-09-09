@@ -8,6 +8,8 @@
 #include <DrawSystem/RenderData/RenderObject.h>
 #include <ComputeSystem/ComputeObject/ComputeObject.h>
 
+
+
 /// <summary>
 /// ファサードクラス
 /// </summary>
@@ -811,4 +813,69 @@ namespace Game
 	}
 
 	void quit();
+};
+
+class CounterSec
+{
+private:
+	float progressSec_ = 0.0f;
+	float target_ = 0.001f;
+
+public:
+
+	void SetTargetTime(float target)
+	{
+		progressSec_ = 0.0f;
+		target_ = target;
+	}
+
+	//// GetErapsTimeMsを作ればCountUpはいらない
+
+	bool CountUp()
+	{
+		progressSec_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+		if (progressSec_ > target_)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	// 0.0f ~ 1.0f
+	float GetProgress() const
+	{
+		if (target_ == 0.0f) return 0.0f;
+		return progressSec_ / target_;
+	}
+};
+
+class CounterF
+{
+private:
+	int32_t progressFrame_ = 0;
+	int32_t target_ = 0;
+
+public:
+
+	void SetTargetFrame(int32_t target)
+	{
+		progressFrame_ = 0;
+		target_ = target;
+	}
+
+	bool CountUp()
+	{
+		progressFrame_++;
+		if (progressFrame_ > target_)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	float GetProgress() const
+	{
+		if (target_ == 0) return 0;
+		return static_cast<float>(progressFrame_) / static_cast<float>(target_);
+	}
 };

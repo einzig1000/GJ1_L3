@@ -202,14 +202,14 @@ void CocktailWater::Update(int32_t cameraID)
 	waterCameraCB_.cameraPositionWS = Game::Camera::Getter::GetWorldPosition(cameraID);
 }
 
-void CocktailWater::Draw()
+void CocktailWater::Draw(int32_t renderTargetID)
 {
 	water_->SetCBufferData(0, ShaderType::VertexShader, &waterTransformCB_);
 	water_->SetCBufferData(1, ShaderType::VertexShader, &waterWaveCB_);
 	water_->SetCBufferData(0, ShaderType::PixelShader, &waterCameraCB_);
 	water_->SetCBufferData(1, ShaderType::PixelShader, &waterColorCB_);
 	water_->SetCBufferData(2, ShaderType::PixelShader, &waterLightingCB_);
-	water_->Draw();
+	water_->Draw(renderTargetID);
 }
 
 void CocktailWater::DrawImGui()

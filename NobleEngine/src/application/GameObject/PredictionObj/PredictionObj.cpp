@@ -146,11 +146,11 @@ void PredictionObj::Update(const int32_t cameraID)
     UpdateForDrawPrediction(cameraID);
 }
 
-void PredictionObj::Draw()
+void PredictionObj::Draw(int32_t renderTargetID)
 {
     if (emitter_.velocity.Length() > 0.0f) {
         //速度アリの時は描画する
-        drawObj_->Draw();
+        drawObj_->Draw(renderTargetID);
     }
   
 }

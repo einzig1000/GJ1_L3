@@ -19,6 +19,8 @@ enum class Phase
 	//仮に衝突テストフェーズを作成する
 	Phase_CollisionTest,
     Phase_Result,
+
+	Phase_Max,
 };
 
 
