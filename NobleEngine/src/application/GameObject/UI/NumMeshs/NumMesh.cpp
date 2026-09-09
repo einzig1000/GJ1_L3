@@ -19,7 +19,7 @@ NumMeshs::~NumMeshs()
 
 void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transform, Matrix4x4* parent)
 {  //最初はマイナス値にしてみる
-    isMinus_ = true;
+
 
     for (int i = 0; i < maxDigit; ++i) {
 
@@ -33,10 +33,9 @@ void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transf
 
 void NumMeshs::Update(const int32_t cameraID)
 {
+    isMinus_ = value_ < 0.0f;
 
     if (isUpdateValue_) {
-
-        isMinus_ = value_ < 0.0f;
 
         int32_t tempBenefit = std::abs(value_);
 

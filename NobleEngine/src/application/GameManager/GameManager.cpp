@@ -10,8 +10,6 @@
 //衝突判定テスト用フェーズ
 #include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
 
-
-
 GameManager::GameManager() 
 {
 	currentPhase_ = CreatePhase(Phase::Phase_SikouteiDevelop);
