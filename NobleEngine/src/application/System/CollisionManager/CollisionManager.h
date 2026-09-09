@@ -55,7 +55,7 @@ class CollisionManager {
 public:
 
     void Load();
-
+    ~CollisionManager();
     /// @brief コライダーを追加する
     /// @param collider コライダー
     void AddCollider(Collider* collider) {

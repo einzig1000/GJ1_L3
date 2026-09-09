@@ -119,6 +119,8 @@
     <ClCompile Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.cpp" />
     <ClCompile Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.cpp" />
     <ClCompile Include="src\application\System\CreateMaskTexture\CreateMaskTexture.cpp" />
+    <ClCompile Include="src\application\GameObject\Bartender\Bartender.cpp" />
+    <ClCompile Include="src\application\GameObject\Customer\Customer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -401,6 +403,8 @@
     <ClInclude Include="src\application\GameManager\Phase\ResultPhase\ResultPhase.h" />
     <ClInclude Include="src\application\GameObject\UI\BreakEvaluation\BreakEvaluation.h" />
     <ClInclude Include="src\application\System\CreateMaskTexture\CreateMaskTexture.h" />
+    <ClInclude Include="src\application\GameObject\Bartender\Bartender.h" />
+    <ClInclude Include="src\application\GameObject\Customer\Customer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />

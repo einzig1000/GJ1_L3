@@ -6,12 +6,10 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
-#include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
 
 GameManager::GameManager() 
 {
 	JsonManager::LoadAll("assets/application/json");
-
 
 	phaseMap_[Phase::Phase_Title] = std::make_unique<TitlePhase>();
 	phaseMap_[Phase::Phase_Title]->SetContext(&phaseContext_);
@@ -21,14 +19,11 @@ GameManager::GameManager()
 	phaseMap_[Phase::Phase_Test]->SetContext(&phaseContext_);
 	phaseMap_[Phase::Phase_SikouteiDevelop] = std::make_unique<SikouteiDevelopPhase>();
 	phaseMap_[Phase::Phase_SikouteiDevelop]->SetContext(&phaseContext_);
-	phaseMap_[Phase::Phase_CollisionTest] = std::make_unique<CollisionTestPhase>();
-	phaseMap_[Phase::Phase_CollisionTest]->SetContext(&phaseContext_);
 
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 
 
-
-	Phase startUpPhase = Phase::Phase_Title;
+	Phase startUpPhase = Phase::Phase_SikouteiDevelop;
 	currentPhase_ = phaseMap_[startUpPhase].get();
 	currentPhase_->Initialize();
 
