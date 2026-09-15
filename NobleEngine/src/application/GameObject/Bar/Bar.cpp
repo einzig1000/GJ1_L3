@@ -23,10 +23,9 @@ void Bar::Initialize()
 
 }
 
-void Bar::Update(const int cameraID,const LightDataForGPU& lightData)
+void Bar::Update(const int cameraID)
 {
     const Matrix4x4 viewPro = Game::Camera::Getter::GetViewProjectionMatrix(cameraID);
-    const int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
     const Vector3 cameraPos = Game::Camera::Getter::GetWorldPosition(cameraID);
 
     Matrix4x4 world = barTransforms_.GetWorldMatrix();
@@ -36,7 +35,7 @@ void Bar::Update(const int cameraID,const LightDataForGPU& lightData)
     bar_->SetCBufferData(0, ShaderType::VertexShader, &wvp);
     bar_->SetCBufferData(1, ShaderType::VertexShader, &world);
     bar_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos);
-    bar_->SetCBufferData(1, ShaderType::PixelShader, &lightData);
+    bar_->SetCBufferData(1, ShaderType::PixelShader, lightData_);
     bar_->SetCBufferData(2, ShaderType::PixelShader, &barMaterial_);
     bar_->SetCBufferData(3, ShaderType::PixelShader, &barTextureID_);
 }

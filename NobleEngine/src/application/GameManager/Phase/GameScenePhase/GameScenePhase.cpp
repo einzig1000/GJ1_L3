@@ -10,12 +10,14 @@
 
 
 #include <GameObject/PredictionObj/PredictionObj.h>
-#include <GameObject/SimpleObstaclePlacementFlow/SimpleObstaclePlacementFlow.h>
 
 #include <GameObject/UI/UIManager/UIManager.h>
 #include <GameObject/UI/BreakEvaluation/BreakEvaluation.h>
+//ゲームライト
+#include<GameObject/GameLight/GameLight.h>
 
 #include <System/CollisionManager/CollisionManager.h>
+
 #include <Utilities/Json/JsonManager.h>
 
 #include <externals/MagicEnum/magic_enum.hpp>
@@ -144,7 +146,6 @@ GameScenePhase::GameScenePhase()
     drawForMain_[0]->SetupFromShaders();
     drawForMain_[0]->SetCBufferData(0, ShaderType::PixelShader, &rt_3D_);
 
-
     drawForMain_[1] = std::make_unique<RenderObject>();
     drawForMain_[1]->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
     drawForMain_[1]->psoConfig_.ps = "assets/shaders/FullScreen/CopyImage.PS.hlsl";
@@ -163,19 +164,16 @@ GameScenePhase::GameScenePhase()
     collisionManager_->Load();
     collisionManager_ = std::make_unique<CollisionManager>();
 
+    //ゲームライトの実体生成 ここで管理する
+    gameLight_ = std::make_unique<GameLight>();
 
     // オブジェクト実体生成
     cocktailWater_ = std::make_unique<CocktailWater>();
     table_ = std::make_unique<Table>();
-    table_->SetLightData(&lightData_);
+    table_->SetLightData(&gameLight_->GetLightData());
     glass_ = std::make_unique<Glass>();
-    glass_->SetLightData(&lightData_);
-    //for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
-    //{
-    //    obstacles_[i] = std::make_unique<TableObject>();
-    //    obstacles_[i]->Initialize();
-    //    obstacles_[i]->SetLightData(&lightData_);
-    //}
+
+    glass_->SetLightData(&gameLight_->GetLightData());
 
     markerAngles_.resize(6);
     for (int32_t i = 0; i < 6; i++)
@@ -198,21 +196,20 @@ GameScenePhase::GameScenePhase()
         }
 
         human_[i]->Load();
-        human_[i]->SetLightData(&lightData_);
+        human_[i]->SetLightData(&gameLight_->GetLightData());
     }
 
- 
 
     prediction_ = std::make_unique<PredictionObj>();
     prediction_->SetCollisionManager(collisionManager_.get());
-    prediction_->SetLightData(&lightData_);
+    prediction_->SetLightData(&gameLight_->GetLightData());
 
+    //配置用に使うつもりの残骸　もしかしたら後で参考にするかも
     //simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
-
 
     //バー
     bar_ = std::make_unique<Bar>();
-    
+    bar_->SetLightData(&gameLight_->GetLightData());
 }
 
 GameScenePhase::~GameScenePhase() {}
@@ -238,17 +235,11 @@ void GameScenePhase::Initialize()
     //バー初期化（今は中身なし）
     bar_->Initialize();
 
-    //EulerTransforms spawnTransform;
-    //spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
-    //spawnTransform.rotate = Vector3(0.0f, 0.0f, 0.0f);
-    //spawnTransform.scale = Vector3(1.0f, 1.0f, 1.0f);
-    //simpleObstaclePlacementFlow_->SetSpawnPoint(spawnTransform);
-
     volume = 0.0f;
     s_GameScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_GameScene_, true, volume));
 
-
-    LoadLightData();
+    //ゲームライトのロード
+    gameLight_->Load();
 
     LoadObstacleData(0);
 
@@ -257,15 +248,12 @@ void GameScenePhase::Initialize()
     cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
     Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.2f, EaseType::OUT_BACK, c_main_);
 
-
     ChangeCameraPhase(CameraPhase::CatchFollowing);
     Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
     glassPos.y = 1.28f;
     glass_->SetTranslate(glassPos);
     glass_->SetVelocity(Vector3{});
     
-
-
     //UI管理 ゲームタイマー
     uiManager_->Initialize();
 }
@@ -432,8 +420,12 @@ void GameScenePhase::Update()
     }
 
 
+    //バーの更新
+    bar_->Update(c_main_);
+
 
     UpdateCameraPhase();
+
 
     //UI管理
     uiManager_->Update();
@@ -443,8 +435,6 @@ void GameScenePhase::Update()
 void GameScenePhase::Draw()
 {
 
-    //バーの更新
-    bar_->Update(c_main_, lightData_);
     //バーの描画
     bar_->Draw(rt_3D_);
 
@@ -562,7 +552,7 @@ void GameScenePhase::DrawImGui()
         {
             obstacles_.push_back(std::make_unique<TableObject>());
             obstacles_.back()->Initialize();
-            obstacles_.back()->SetLightData(&lightData_);
+            obstacles_.back()->SetLightData(&gameLight_->GetLightData());
             obstacles_.back()->SetGlassTypeAndLoadModels(glassType);
             Vector3 pos = { position.x, 1.28f, position.y };
             obstacles_.back()->SetTranslate(pos);
@@ -638,49 +628,10 @@ void GameScenePhase::DrawImGui()
         ImGui::TreePop();
     }
 
-    // ライト
-    if (ImGui::TreeNode("LightData"))
-    {
-        if (ImGui::Button("Load", ImVec2(40, 20))) LoadLightData();
-        ImGui::SameLine();
-        if (ImGui::Button("Save", ImVec2(40, 20))) SaveLightData();
-
-        ImGui::DragInt("LightCount", &lightData_.LightCount, 1, 0, 4);
-        ImGui::ColorEdit3("ambientColor", &lightData_.ambientColor.x);
-        for (int i = 0; i < lightData_.LightCount; ++i)
-        {
-
-            std::string lightNodeName = "Light" + std::to_string(i);
-            if (ImGui::TreeNode(lightNodeName.c_str()))
-            {
-                ImGui::SeparatorText("Common");
-                ImGui::ColorEdit3("color", &lightData_.lights[i].color.x);
-                ImGui::DragFloat("intensity", &lightData_.lights[i].intensity, 0.01f);
-
-                ImGui::SeparatorText("type");
-                ImGui::DragInt("type", &lightData_.lights[i].type, 1, 0, 2);
-
-                ImGui::SeparatorText("Directional");
-                ImGui::DragFloat3("direction", &lightData_.lights[i].direction.x, 0.01f);
-
-                ImGui::SeparatorText("Spot");
-                ImGui::DragFloat("spotCos", &lightData_.lights[i].spotCos, 0.01f);
-
-                ImGui::SeparatorText("Point / Spot");
-                ImGui::DragFloat3("position", &lightData_.lights[i].position.x, 0.01f);
-                ImGui::DragFloat("range", &lightData_.lights[i].range, 0.01f);
-
-                ImGui::TreePop();
-            }
-        }
-
-        ImGui::TreePop();
-    }
-
-
-    //simpleObstaclePlacementFlow_->DrawImGui();
+    gameLight_->DrawImGui();
 
     ImGui::End();
+
 
 }
 
@@ -742,7 +693,7 @@ bool GameScenePhase::LoadObstacleData(int32_t stage)
         obstacles_[i]->SetTranslate(translate);
 
 
-        obstacles_[i]->SetLightData(&lightData_);
+        obstacles_[i]->SetLightData(&gameLight_->GetLightData());
     }
 
     key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
@@ -817,71 +768,6 @@ void GameScenePhase::SaveObstacleData(int32_t stage)
 
     JsonManager::Save(path);
 }
-
-
-bool GameScenePhase::LoadLightData()
-{
-    std::string path = "assets/application/json/StageData/Lights.json";
-    std::string key = "/Count";
-    bool success = JsonManager::Load(path, key, lightData_.LightCount);
-    if (!success) return false;
-
-    key = "/ambientColor";
-    success = JsonManager::Load(path, key, lightData_.ambientColor);
-    if (!success) return false;
-
-    for (int32_t i = 0; i < lightData_.LightCount; i++)
-    {
-        key = "/Light" + std::to_string(i) + "/color";
-        JsonManager::Load(path, key, lightData_.lights[i].color);
-        key = "/Light" + std::to_string(i) + "/intensity";
-        JsonManager::Load(path, key, lightData_.lights[i].intensity);
-        key = "/Light" + std::to_string(i) + "/direction";
-        JsonManager::Load(path, key, lightData_.lights[i].direction);
-        key = "/Light" + std::to_string(i) + "/spotCos";
-        JsonManager::Load(path, key, lightData_.lights[i].spotCos);
-        key = "/Light" + std::to_string(i) + "/position";
-        JsonManager::Load(path, key, lightData_.lights[i].position);
-        key = "/Light" + std::to_string(i) + "/range";
-        JsonManager::Load(path, key, lightData_.lights[i].range);
-        key = "/Light" + std::to_string(i) + "/position";
-        JsonManager::Load(path, key, lightData_.lights[i].position);
-        key = "/Light" + std::to_string(i) + "/type";
-        JsonManager::Load(path, key, lightData_.lights[i].type);
-    }
-
-    return true;
-}
-
-void GameScenePhase::SaveLightData()
-{
-    std::string path = "assets/application/json/StageData/Lights.json";
-    std::string key = "/Count";
-    JsonManager::AddParam(path, key, lightData_.LightCount);
-    key = "/ambientColor";
-    JsonManager::AddParam(path, key, lightData_.ambientColor);
-
-    for (int32_t i = 0; i < lightData_.LightCount; i++)
-    {
-        key = "/Light" + std::to_string(i) + "/color";
-        JsonManager::AddParam(path, key, lightData_.lights[i].color);
-        key = "/Light" + std::to_string(i) + "/intensity";
-        JsonManager::AddParam(path, key, lightData_.lights[i].intensity);
-        key = "/Light" + std::to_string(i) + "/direction";
-        JsonManager::AddParam(path, key, lightData_.lights[i].direction);
-        key = "/Light" + std::to_string(i) + "/spotCos";
-        JsonManager::AddParam(path, key, lightData_.lights[i].spotCos);
-        key = "/Light" + std::to_string(i) + "/position";
-        JsonManager::AddParam(path, key, lightData_.lights[i].position);
-        key = "/Light" + std::to_string(i) + "/range";
-        JsonManager::AddParam(path, key, lightData_.lights[i].range);
-        key = "/Light" + std::to_string(i) + "/type";
-        JsonManager::AddParam(path, key, lightData_.lights[i].type);
-    }
-    JsonManager::Save(path);
-}
-
-
 
 void GameScenePhase::ChangeCameraPhase(CameraPhase phase)
 {

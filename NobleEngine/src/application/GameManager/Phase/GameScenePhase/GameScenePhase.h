@@ -2,7 +2,7 @@
 #include <GameManager/Phase/IPhase.h>
 #include <memory>
 #include <definition/constexprs.h>
-#include<vector>
+
 class Glass;
 class TableObject;
 class Table;
@@ -13,9 +13,7 @@ class SimpleObstaclePlacementFlow;
 class HumanModel;
 class Bar;//バークラスの追加
 class UIManager;
-
-
-
+class GameLight;//ライト
 
 class GameScenePhase :
 	public IPhase
@@ -41,25 +39,16 @@ public:
 
 private:
 
-	void CheckColliders();
-
 	std::unique_ptr<RenderObject> drawForMain_[2];
-
 	int32_t rt_3D_ = -1;
-
 	int32_t stageSum = 0;
 
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
 
-	bool LoadLightData();
-	void SaveLightData();
-
 	int32_t s_GameScene_ = 0;
 	std::vector<int32_t> s_GameScene_PlayIDs_;
 	float volume = 0.0f;
-
-	LightDataForGPU lightData_;
 
 	int32_t c_main_ = -1;
 	Coordinate_spherical cameraSpherical_ = { 0.0f, 0.0f, 0.0f };
@@ -69,6 +58,8 @@ private:
 	void UpdateCameraPhase();
 
 	//コリジョン管理
+	void CheckColliders();
+
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 	bool isDebugDraw_ = false;
 
@@ -106,12 +97,11 @@ private:
 
 	//バー
 	std::unique_ptr<Bar>bar_ = nullptr;
-
+	//ゲーム用ライト
+	std::unique_ptr<GameLight> gameLight_ = nullptr;
 	//予測オブジェ
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;
-
 	//UI管理
 	std::unique_ptr<UIManager>uiManager_ = nullptr;
-
 
 };

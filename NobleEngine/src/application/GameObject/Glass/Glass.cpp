@@ -44,7 +44,7 @@ void Glass::Initialize()
         glassObj_->modelID_,
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
-
+        //ターゲット（バーテン）と障害物とお客様に当たる
         CollisionTag::GetTag("Target") |
         CollisionTag::GetTag("Obstacles")|
         CollisionTag::GetTag("Customer")

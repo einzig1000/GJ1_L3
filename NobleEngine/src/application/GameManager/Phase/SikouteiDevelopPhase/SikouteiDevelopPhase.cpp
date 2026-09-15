@@ -259,7 +259,6 @@ void SikouteiDevelopPhase::Initialize()
     cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
     Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.2f, EaseType::OUT_BACK, c_main_);
 
-
     ChangeCameraPhase(CameraPhase::CatchFollowing);
     Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
     glassPos.y = 1.28f;
