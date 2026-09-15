@@ -6,11 +6,10 @@
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
 #include <GameManager/Phase/TestPhase/TestPhase.h>
 #include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
-#include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
 #include <GameManager/Phase/Tutorial/TutorialPhase.h>
-
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
+
 GameManager::GameManager() 
 {
 	JsonManager::LoadAll("assets/application/json");
@@ -22,7 +21,7 @@ GameManager::GameManager()
 	maskTextureCreator_->Initialize();
 	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
-	Phase startUpPhase = Phase::Phase_Title;
+	Phase startUpPhase = Phase::Phase_GameScene;
 	currentPhase_ = CreatePhase(startUpPhase);
 	currentPhase_->SetContext(&phaseContext_);
 
@@ -30,9 +29,6 @@ GameManager::GameManager()
 
 	currentRenderTargetID_ = phaseContext_.renderTargetIDs[static_cast<size_t>(startUpPhase)];
 	targetRenderTargetID_ = currentRenderTargetID_;
-
-
-
 
 
 	renderObject_ = std::make_unique<RenderObject>();
@@ -142,6 +138,8 @@ std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
 	case Phase::Phase_Tutorial:
 		return std::make_unique<TutorialPhase>();
 		break;
+	case Phase::Phase_GameScene:
+		return  std::make_unique<GameScenePhase>();
 	default:
 		break;
 	}

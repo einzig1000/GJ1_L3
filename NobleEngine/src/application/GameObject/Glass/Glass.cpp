@@ -10,7 +10,7 @@ namespace
 Glass::Glass()
 {
     //カクテルをロードする
-    SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
+    SetGlassTypeAndLoadModels();
 
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 
@@ -71,15 +71,14 @@ void Glass::Initialize()
 
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Customer")) {
              
-                    //顧客と最初に当たった時を得る
-                    isHitCustomer_ = true;
+                //顧客と最初に当たった時を得る
+                isHitCustomer_ = true;
                 
             }
 
             if (isCollisionResponse) {
                 transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
             }
-
 
             });
     }
@@ -155,45 +154,13 @@ void Glass::Draw(int32_t renderTargetID)
 
 void Glass::DrawImGui()
 {
-    //ImGui::Begin("GameObj");
-    //
-    //if (ImGui::TreeNode("Glass"))
-    //{
-    //    static Vector3 vel;
-    //    ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
-    //    //物理ボディ
-    //    if (ImGui::TreeNode("PhysicsBody")) {
-    //        if (!comCollider_.colliders.empty()) {
-    //            auto& collider = comCollider_.colliders.at(0);
-    //            auto  phyB = collider->GetPhysicsBody();
-    //            float mass = phyB.mass;
-    //
-    //            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-    //
-    //            collider->SetMass(phyB.mass);
-    //
-    //            if (ImGui::Button("Shot"))
-    //            {
-    //                collider->SetVelocity(vel);
-    //            }
-    //        }
-    //
-    //        ImGui::Checkbox("isHitFloor", &isHitFloor_);
-    //
-    //        ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
-    //        ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
-    //        ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-    //        ImGui::ColorEdit4("Color##", &color_.x);
-    //
-    //        ImGui::TreePop();
-    //    }
-    //
-    //
-    //
-    //    ImGui::TreePop();
-    //}
-    //
-    //ImGui::End();
+    ImGui::Begin("glass");
+
+    Vector3 glassVel = GetVelocity();
+    Vector3 glassVel2dNormalized = Vector3(glassVel.x, 0.0f, glassVel.z).Normalized();
+    Vector3 yawPttch = Game::Math::YawPitchFromDirection(glassVel2dNormalized);
+    ImGui::Text("glass yawPitch: %f, %f, %f", yawPttch.x, yawPttch.y, yawPttch.z);
+    ImGui::End();
 
     ImGui::Begin("Material");
 
@@ -210,25 +177,12 @@ void Glass::DrawImGui()
     ImGui::End();
 
 
-    //glassParticle_->DebugImGui();
 }
 
-void Glass::SetGlassTypeAndLoadModels(const GlassType type)
+void Glass::SetGlassTypeAndLoadModels()
 {
-
-    std::string filePath;
+    std::string filePath = "assets/application/model/Cocktail/Cocktail.obj";
     std::string textureFilePath = "assets/engine/texture/white1x1.png";
-
-    switch (type)
-    {
-    case Glass::GLASS_COCKTAIL:
-        filePath = "assets/application/model/Cocktail/Cocktail.obj";
-        break;
-    default:
-        //デフォルトはカクテル
-        filePath = "assets/application/model/Cocktail/Cocktail.obj";
-        break;
-    }
 
     //モデルとテクスチャIDをセットする
     modelID_ = Game::Asset::Model::Load(filePath);

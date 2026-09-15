@@ -507,7 +507,7 @@ void SikouteiDevelopPhase::DrawImGui()
     table_->DrawImGui();
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
-    uiManager_->DebugImGui();
+    uiManager_->DrawImGui();
     human_[2]->DrawImGui();
     ImGui::Begin("glass");
 

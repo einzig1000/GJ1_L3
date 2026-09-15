@@ -30,9 +30,6 @@ private:
 	std::unique_ptr<IPhase> CreatePhase(Phase phase);
 	PhaseContext phaseContext_;
 	
-
-
-
 	bool phaseChanging_ = false;
 
 

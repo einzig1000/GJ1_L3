@@ -449,7 +449,7 @@ void TutorialPhase::DrawImGui()
     table_->DrawImGui();
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
-    uiManager_->DebugImGui();
+    uiManager_->DrawImGui();
 
     ImGui::Begin("glass");
 

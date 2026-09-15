@@ -8,12 +8,7 @@ class GlassParticle;
 
 class Glass
 {
-public:
-    enum GlassType
-    {
-        GLASS_COCKTAIL,
-        GLASS_MAX,
-    };
+
 public:
     Glass();
     ~Glass();
@@ -30,9 +25,8 @@ public:
     void Update(const int32_t cameraID);
     void Draw(int32_t renderTargetID);
     void DrawImGui();
-    /// @brief グラスタイプを持たせるか基底クラスにするかは考える
-    /// @param type 
-    void SetGlassTypeAndLoadModels(const GlassType type);
+
+    void SetGlassTypeAndLoadModels();
 
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
 	void AddTranslate(const Vector3& translate) { transform_.translate += translate; };
@@ -47,7 +41,6 @@ public:
     float GetRadius() { return transform_.scale.x * 1.0f; };
 
     //コライダーをゲットする
-
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 
 	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };

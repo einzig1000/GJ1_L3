@@ -13,7 +13,6 @@
     <ClCompile Include="src\application\System\CollisionTag\CollisionTag.cpp" />
     <ClCompile Include="src\application\System\Collider\Collider.cpp" />
     <ClCompile Include="src\application\System\CollisionManager\CollisionManager.cpp" />
-    <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp" />
     <ClCompile Include="src\application\GameObject\Glass\Glass.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\TestPhase\TestPhase.cpp" />
     <ClCompile Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.cpp" />
@@ -122,6 +121,7 @@
     <ClCompile Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.cpp" />
     <ClCompile Include="src\application\GameObject\Bartender\Bartender.cpp" />
     <ClCompile Include="src\application\GameObject\Customer\Customer.cpp" />
+    <ClCompile Include="src\application\GameObject\Bar\Bar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -136,7 +136,6 @@
     <ClInclude Include="src\application\System\CollisionTag\CollisionTag.h" />
     <ClInclude Include="src\application\System\Collider\Collider.h" />
     <ClInclude Include="src\application\System\CollisionManager\CollisionManager.h" />
-    <ClInclude Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.h" />
     <ClInclude Include="src\application\GameObject\Glass\Glass.h" />
     <ClInclude Include="src\application\GameManager\Phase\TestPhase\TestPhase.h" />
     <ClInclude Include="src\engine\AssetManager\Model\ModelHelper\ModelHelper.h" />
@@ -407,6 +406,7 @@
     <ClInclude Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.h" />
     <ClInclude Include="src\application\GameObject\Bartender\Bartender.h" />
     <ClInclude Include="src\application\GameObject\Customer\Customer.h" />
+    <ClInclude Include="src\application\GameObject\Bar\Bar.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
@@ -435,9 +435,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\System\CollisionManager\CollisionManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application\GameManager\Phase\CollisionTestPhase\CollisionTestPhase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\application\GameObject\Glass\Glass.cpp">

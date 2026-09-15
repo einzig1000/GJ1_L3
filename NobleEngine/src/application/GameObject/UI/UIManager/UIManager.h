@@ -20,7 +20,7 @@ public:
     void Initialize();
     void Update();
     void Draw();
-    void DebugImGui();
+    void DrawImGui();
     float GetTimer() { return gameTimer_; };
 
 	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
