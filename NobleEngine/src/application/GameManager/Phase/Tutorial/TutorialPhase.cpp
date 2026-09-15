@@ -173,7 +173,6 @@ TutorialPhase::TutorialPhase()
 
     prediction_ = std::make_unique<PredictionObj>();
     prediction_->SetCollisionManager(collisionManager_.get());
-    prediction_->SetObstacleArray(obstacles_);
     prediction_->SetLightData(&lightData_);
 
 
@@ -347,10 +346,11 @@ void TutorialPhase::Update()
             }
 
             Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-            prediction_->SetObstacleCount(obstacleCount);
+   
             prediction_->SetVelocity(velocity);
             prediction_->SetTranslate(glass_->GetTranslate());
-            prediction_->Update(c_main_);
+            //一旦コメントアウトする
+         /*   prediction_->Update(c_main_);*/
         }
         if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
         {

@@ -1539,7 +1539,7 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		spaceHoldStartTime_ = std::chrono::steady_clock::time_point{};
 		isSpaceHoldTracking_ = false;
 		isSpaceFastForward_ = false;
-		ChangePhase(Phase::Phase_SikouteiDevelop);
+		ChangePhase(Phase::Phase_GameScene);
 		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.01f;
 		if (volume < 0.0f) Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
 		else Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);

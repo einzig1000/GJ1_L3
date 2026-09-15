@@ -2,7 +2,7 @@
 #include <GameManager/Phase/IPhase.h>
 #include <memory>
 #include <definition/constexprs.h>
-
+#include<vector>
 class Glass;
 class TableObject;
 class Table;
@@ -83,8 +83,7 @@ private:
 	bool dragging_ = false;	// ドラッグ中かどうか
 
 	// 障害物
-	std::unique_ptr<TableObject> obstacles_[Constexprs::kMaxObstacleCount];
-	int32_t obstacleCount = 0;
+	std::vector<std::unique_ptr<TableObject>> obstacles_;
 	int32_t deleteIndex = -1;
 	// そのステージで壊せる最大数
 	int32_t maxBreakableObstacleCount_ = 0;
@@ -103,7 +102,6 @@ private:
 	EulerTransforms markerTransforms_[6];
 	std::vector<float> markerAngles_;					// マーカーがテーブルから見てどの角度にいるか
 
-
 	GlassType glassType = GlassType::Champagne;
 
 	//バー
@@ -111,8 +109,7 @@ private:
 
 	//予測オブジェ
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;
-	//配置開始までのシステム
-	std::unique_ptr<SimpleObstaclePlacementFlow>simpleObstaclePlacementFlow_ = nullptr;
+
 	//UI管理
 	std::unique_ptr<UIManager>uiManager_ = nullptr;
 

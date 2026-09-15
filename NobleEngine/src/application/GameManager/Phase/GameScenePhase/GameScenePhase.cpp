@@ -170,12 +170,12 @@ GameScenePhase::GameScenePhase()
     table_->SetLightData(&lightData_);
     glass_ = std::make_unique<Glass>();
     glass_->SetLightData(&lightData_);
-    for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
-    {
-        obstacles_[i] = std::make_unique<TableObject>();
-        obstacles_[i]->Initialize();
-        obstacles_[i]->SetLightData(&lightData_);
-    }
+    //for (int32_t i = 0; i < Constexprs::kMaxObstacleCount; i++)
+    //{
+    //    obstacles_[i] = std::make_unique<TableObject>();
+    //    obstacles_[i]->Initialize();
+    //    obstacles_[i]->SetLightData(&lightData_);
+    //}
 
     markerAngles_.resize(6);
     for (int32_t i = 0; i < 6; i++)
@@ -205,10 +205,9 @@ GameScenePhase::GameScenePhase()
 
     prediction_ = std::make_unique<PredictionObj>();
     prediction_->SetCollisionManager(collisionManager_.get());
-    prediction_->SetObstacleArray(obstacles_);
     prediction_->SetLightData(&lightData_);
 
-    simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
+    //simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
 
 
     //バー
@@ -239,11 +238,11 @@ void GameScenePhase::Initialize()
     //バー初期化（今は中身なし）
     bar_->Initialize();
 
-    EulerTransforms spawnTransform;
-    spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
-    spawnTransform.rotate = Vector3(0.0f, 0.0f, 0.0f);
-    spawnTransform.scale = Vector3(1.0f, 1.0f, 1.0f);
-    simpleObstaclePlacementFlow_->SetSpawnPoint(spawnTransform);
+    //EulerTransforms spawnTransform;
+    //spawnTransform.translate = Vector3(0.0f, 10.0f, -5.0f); // 空中の発射場所
+    //spawnTransform.rotate = Vector3(0.0f, 0.0f, 0.0f);
+    //spawnTransform.scale = Vector3(1.0f, 1.0f, 1.0f);
+    //simpleObstaclePlacementFlow_->SetSpawnPoint(spawnTransform);
 
     volume = 0.0f;
     s_GameScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_GameScene_, true, volume));
@@ -316,6 +315,7 @@ void GameScenePhase::Update()
                 glass_->SetTranslate(glassPos);
                 glass_->SetVelocity(Vector3{});
                 uiManager_->GetBreakEvaluation()->SetMaxBreakCount(maxBreakableObstacleCount_);
+                int32_t obstacleCount = obstacles_.size();
                 uiManager_->GetBreakEvaluation()->SetBreakCount(maxBreakableObstacleCount_ - obstacleCount);
                 uiManager_->AddScore(maxBreakableObstacleCount_ - obstacleCount);
 
@@ -338,12 +338,11 @@ void GameScenePhase::Update()
         }
     }
 
+
     if (deleteIndex >= 0)
     {
-        obstacles_[deleteIndex] = std::move(obstacles_[obstacleCount - 1]);
-        simpleObstaclePlacementFlow_->RemovePiece(deleteIndex);
-        obstacleCount--;
-        obstacles_[deleteIndex]->Initialize();
+        obstacles_[deleteIndex] = std::move(obstacles_.back());
+        obstacles_.pop_back();
         deleteIndex = -1;
     }
 
@@ -352,16 +351,17 @@ void GameScenePhase::Update()
     table_->Update(c_main_);
     cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
     cocktailWater_->Update(c_main_);
-    simpleObstaclePlacementFlow_->Update();
-    for (int32_t i = 0; i < obstacleCount; i++)
+
+    for (int32_t i = 0; i < obstacles_.size(); ++i)
     {
-        obstacles_[i]->SetTranslate(simpleObstaclePlacementFlow_->GetPieces(i).transform.translate);
         obstacles_[i]->Update(c_main_);
         if (obstacles_[i]->IsBroken())
         {
             deleteIndex = i;
         }
     }
+
+
     for (int32_t i = 0; i < 3; i++)
     {
         human_[i]->SetIsShot(isShot_);
@@ -407,10 +407,9 @@ void GameScenePhase::Update()
             }
 
             Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-            prediction_->SetObstacleCount(obstacleCount);
             prediction_->SetVelocity(velocity);
             prediction_->SetTranslate(glass_->GetTranslate());
-            prediction_->Update(c_main_);
+            prediction_->Update(c_main_, obstacles_);
         }
         if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
         {
@@ -464,10 +463,11 @@ void GameScenePhase::Draw()
     }
 
     // 障害物の描画
-    for (int32_t i = 0; i < obstacleCount; i++)
+    for (auto& obstacle : obstacles_)
     {
-        obstacles_[i]->Draw(rt_3D_);
+        obstacle->Draw(rt_3D_);
     }
+
     cocktailWater_->Draw(rt_3D_);
 
     //グラスは半透明なので後に描画する
@@ -486,7 +486,7 @@ void GameScenePhase::DrawImGui()
 {
     glass_->DrawImGui();
     cocktailWater_->DrawImGui();
-    obstacles_[0]->DrawImGui();
+    //obstacles_[0]->DrawImGui();
     table_->DrawImGui();
     prediction_->DrawImGui();
 
@@ -560,12 +560,12 @@ void GameScenePhase::DrawImGui()
 
         if (ImGui::Button("Add"))
         {
-            obstacles_[obstacleCount]->Initialize();
-            obstacles_[obstacleCount]->SetGlassTypeAndLoadModels(glassType);
+            obstacles_.push_back(std::make_unique<TableObject>());
+            obstacles_.back()->Initialize();
+            obstacles_.back()->SetLightData(&lightData_);
+            obstacles_.back()->SetGlassTypeAndLoadModels(glassType);
             Vector3 pos = { position.x, 1.28f, position.y };
-            obstacles_[obstacleCount]->SetTranslate(pos);   //ここで読み込む
-            simpleObstaclePlacementFlow_->ReadObstaclePlacement(obstacles_[obstacleCount]->GetTransform());
-            obstacleCount++;
+            obstacles_.back()->SetTranslate(pos);
         }
 
         ImGui::TreePop();
@@ -574,7 +574,7 @@ void GameScenePhase::DrawImGui()
     // 障害物リスト
     if (ImGui::TreeNode("List"))
     {
-        for (size_t i = 0; i < obstacleCount; ++i)
+        for (size_t i = 0; i < obstacles_.size(); ++i)
         {
             ImGui::PushID(static_cast<int32_t>(i));
             if (ImGui::TreeNode("Obstacle", "Obstacle %d", static_cast<int32_t>(i)))
@@ -586,7 +586,7 @@ void GameScenePhase::DrawImGui()
                 {
                     Vector3 newPos = { pos2D.x, pos.y, pos2D.y };
                     obstacles_[i]->SetTranslate(newPos);
-                    simpleObstaclePlacementFlow_->SetPieceLocalPosition(static_cast<int32_t>(i), newPos);
+            
                 }
 
                 if (ImGui::Button("Delete"))
@@ -678,7 +678,7 @@ void GameScenePhase::DrawImGui()
     }
 
 
-    simpleObstaclePlacementFlow_->DrawImGui();
+    //simpleObstaclePlacementFlow_->DrawImGui();
 
     ImGui::End();
 
@@ -695,9 +695,9 @@ void GameScenePhase::CheckColliders()
         collisionManager_->AddCollider(collider.get());
     }
 
-    for (int32_t i = 0; i < obstacleCount; i++)
+    for (auto& obstacle : obstacles_)
     {
-        for (auto& collider : obstacles_[i]->GetColliders())
+        for (auto& collider : obstacle->GetColliders())
         {
             collisionManager_->AddCollider(collider.get());
         }
@@ -715,17 +715,20 @@ void GameScenePhase::CheckColliders()
 
 bool GameScenePhase::LoadObstacleData(int32_t stage)
 {
+    int32_t count = 0;
     std::string path = "assets/application/json/StageData/Obstacles.json";
     std::string key = "/Stage" + std::to_string(stage) + "/Count";
-    bool success = JsonManager::Load(path, key, obstacleCount);
+    bool success = JsonManager::Load(path, key, count);
     if (!success) return false;
 
-    maxBreakableObstacleCount_ = obstacleCount;
+    maxBreakableObstacleCount_ = count;
 
-    simpleObstaclePlacementFlow_->Initialize();
+    obstacles_.clear();
+    obstacles_.resize(count);
 
-    for (int32_t i = 0; i < obstacleCount; i++)
+    for (int32_t i = 0; i < count; i++)
     {
+        obstacles_[i] = std::make_unique<TableObject>();
         obstacles_[i]->Initialize();
 
         key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
@@ -736,17 +739,10 @@ bool GameScenePhase::LoadObstacleData(int32_t stage)
         key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/translate";
         Vector3 translate;
         JsonManager::Load(path, key, translate);
-        /*	obstacles_[i]->SetTranslate(translate);*/
+        obstacles_[i]->SetTranslate(translate);
 
-            //後で回転対応させる
-        EulerTransforms tempTransform = {
-            .scale = {1.0f,1.0f,1.0f},
-             .rotate = {0.0f,0.0f,0.0f},
-            .translate = translate
-        };
 
-        //ここで読み込む
-        simpleObstaclePlacementFlow_->ReadObstaclePlacement(tempTransform);
+        obstacles_[i]->SetLightData(&lightData_);
     }
 
     key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
@@ -782,9 +778,6 @@ bool GameScenePhase::LoadObstacleData(int32_t stage)
     }
 
 
-    simpleObstaclePlacementFlow_->HideAllPieces();
-    simpleObstaclePlacementFlow_->StartPlacement();
-
     int32_t y = 0;
     while (true)
     {
@@ -803,8 +796,11 @@ void GameScenePhase::SaveObstacleData(int32_t stage)
 {
     std::string path = "assets/application/json/StageData/Obstacles.json";
     std::string key = "/Stage" + std::to_string(stage) + "/Count";
-    JsonManager::AddParam(path, key, obstacleCount);
-    for (int32_t i = 0; i < obstacleCount; i++)
+
+    int32_t count = static_cast<int32_t>(obstacles_.size());
+
+    JsonManager::AddParam(path, key, count);
+    for (int32_t i = 0; i < count; i++)
     {
         key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
         JsonManager::AddParam(path, key, magic_enum::enum_name(obstacles_[i]->GetGlassType()));

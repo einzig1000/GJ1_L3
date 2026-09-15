@@ -12,7 +12,7 @@ public:
     ~PredictionObj();
 
     void Initialize();
-    void Update(const int32_t cameraID);
+    void Update(const int32_t cameraID, std::vector<std::unique_ptr<TableObject>>& tebleObjects);
     void Draw(int32_t renderTargetID);
     void DrawImGui();
 
@@ -20,8 +20,6 @@ public:
     void SetVelocity(const Vector3& normal) { emitter_.velocity = normal; };
 
 	void SetCollisionManager(CollisionManager* collisionManager) { collisionManager_ = collisionManager; };
-	void SetObstacleCount(int32_t count) { obstacleCount_ = count; };
-    void SetObstacleArray(std::unique_ptr<TableObject>* obstacles) { obstacles_ = obstacles; };
 
     //コライダーをゲットする
     //std::vector<std::unique_ptr<Collider>>& GetColliders() { return colliders_; };
@@ -36,11 +34,11 @@ public:
 
 private:
     LightDataForGPU* lightData_;
-    void CheckColliders();
+    void CheckColliders(std::vector<std::unique_ptr<TableObject>>& tebleObjects);
 
     // 予測用の仮想衝突が実際の障害物コライダーの物理状態(速度・めり込み量)を
     // 書き換えてしまうため、シミュレーション前後で退避・復元する
-    void SnapshotObstaclePhysics();
+    void SnapshotObstaclePhysics(std::vector<std::unique_ptr<TableObject>>& tebleObjects);
     void RestoreObstaclePhysics();
 
     //描画用
@@ -49,9 +47,7 @@ private:
 
 private:
 	CollisionManager* collisionManager_ = nullptr;
-	int32_t obstacleCount_ = 0;
-    std::unique_ptr<TableObject>* obstacles_ = nullptr;
-
+ 
     //仮に球体のオブジェクトとする
 
     PredictionEmitter emitter_{};
