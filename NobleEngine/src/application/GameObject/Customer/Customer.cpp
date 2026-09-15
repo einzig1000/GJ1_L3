@@ -60,5 +60,6 @@ void Customer::UpdateAnimation()
         if (isEndAnimation_) {
             currentAnimationName_ = "IdleSit";
         }
+        currentAnimationName_ = "Catch";
     }
 }
