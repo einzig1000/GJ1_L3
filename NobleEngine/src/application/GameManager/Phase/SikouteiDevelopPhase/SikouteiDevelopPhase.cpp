@@ -366,7 +366,7 @@ void SikouteiDevelopPhase::Update()
     }
     for (int32_t i = 0; i < 3; i++)
     {
-        human_[i]->SetIsShot(isShot_);
+     
         human_[i]->Update(c_main_);
     }
 
@@ -507,7 +507,7 @@ void SikouteiDevelopPhase::DrawImGui()
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
     uiManager_->DrawImGui();
-    human_[2]->DrawImGui();
+
     ImGui::Begin("glass");
 
     Vector3 glassVel = glass_->GetVelocity();
@@ -797,7 +797,6 @@ bool SikouteiDevelopPhase::LoadObstacleData(int32_t stage)
         Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, humanRotateDegree[i]);
         humanPos.y = 0.0f;
         human_[i]->SetTranslate(humanPos);
-        human_[i]->SetGlassPos(&glass_->GetTranslatePointer());
         human_[i]->SetRotateY(-pi*i);
     }
 

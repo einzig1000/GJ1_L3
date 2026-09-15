@@ -9,24 +9,24 @@ public:
    virtual ~HumanModel();
    virtual void Load();
     void Initialize();
-    void SetGlassPos(Vector3* pos) { glassPos_ = pos; }
     void Update(const int32_t cameraID);
     void Draw(int32_t renderTargetID);
-    void DrawImGui();
+    void DrawImGui(const int32_t id);
     void SetAnimation(const std::string name);
     virtual void UpdateAnimation();
-    void SetIsShot(const bool isShot) { isShot_ = isShot; };
+    static void SetIsShotPtr(bool* isShot) { isShotPtr_ = isShot; };
     //コライダーをゲットする
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 	void SetTranslate(Vector3 translate) { transform_.translate = translate; }
     void SetRotateY(const float rotateY) { transform_.rotate.y = rotateY; }
     void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+    Vector3 GetTranslate() const { return transform_.translate; };
 protected:
     bool isEndAnimation_ = false;
-    bool isShot_ = false;
-    //グラスぽず
-    Vector3* glassPos_ = nullptr;
- 
+    static bool* isShotPtr_;
+    //予測線が当たっているとき
+    bool isHitPrediction_ = false;
+
     LightDataForGPU* lightData_;
     std::unique_ptr<RenderObject>obj_ = nullptr;
     EulerTransforms transform_;

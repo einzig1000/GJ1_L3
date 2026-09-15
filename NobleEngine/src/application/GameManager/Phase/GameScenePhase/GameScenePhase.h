@@ -9,8 +9,7 @@ class Table;
 class CollisionManager;
 class CocktailWater;
 class PredictionObj;
-class SimpleObstaclePlacementFlow;
-class HumanModel;
+class HumanManager;//人間管理
 class Bar;//バークラスの追加
 class UIManager;
 class GameLight;//ライト
@@ -80,21 +79,12 @@ private:
 	int32_t maxBreakableObstacleCount_ = 0;
 
 	// テーブル
-	std::unique_ptr<Table> table_;
-
-	// 人間
-	std::unique_ptr<HumanModel> human_[3];
-	float humanRotateDegree[3] = { 90.0f, 210.0f, 330.0f, };	// 人間がテーブルから見てどの角度にいるか
-	int32_t currentGlassUserIndex_ = 0;					// 現在グラスを持っている人間のインデックス
-	float humansize_ = 30.0f;							// キャッチ出来る角度
-
-	// マーカー(デバッグ描画)
-	std::unique_ptr<RenderObject> markers_[6];
-	EulerTransforms markerTransforms_[6];
-	std::vector<float> markerAngles_;					// マーカーがテーブルから見てどの角度にいるか
+	std::unique_ptr<Table> table_ = nullptr;
 
 	GlassType glassType = GlassType::Champagne;
 
+	//人間管理
+	std::unique_ptr<HumanManager>humanManager_ = nullptr;
 	//バー
 	std::unique_ptr<Bar>bar_ = nullptr;
 	//ゲーム用ライト

@@ -2,6 +2,9 @@
 Bartender::Bartender()
 {
 
+
+
+
 }
 
 Bartender::~Bartender()
@@ -29,36 +32,39 @@ void Bartender::Load()
     //インスタンス1なので0とし行列のコンテナは考えない
     comCollider_.CreateFromModelData(modelID_, worldMatrix_, CollisionTag::GetTag("Target"), CollisionTag::GetTag("Glass") | CollisionTag::GetTag("Table"));
     currentAnimationName_ = "Idle";
+
+
+    if (!comCollider_.colliders.empty()) {
+
+        // 自分のコライダーを変数に保持
+        auto& myCollider = comCollider_.colliders.at(0);
+
+        myCollider->SetOnCollisionCallback([this](Collider* collider) {
+
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
+
+                //予測線と当たった時を得る
+                isHitPrediction_ = true;
+
+            }
+
+         });
+    }
 }
 
 void Bartender::UpdateAnimation()
 {
-    bool isNear = false;
-    if (glassPos_) {
-        Vector3 distance = *glassPos_ - transform_.translate;
-        distance.y = 0.0f;
-        if (distance.Length() < 1.0f) {
-            isNear = true;
-        };
-
+    //アニメーションが終了したら
+    if (isEndAnimation_) {
+        currentAnimationName_ = "Idle";
     }
 
-    if (isShot_) {
-        if (currentAnimationName_ != "ShotGrass") {
-            currentAnimationName_ = "ShotGrass";
-        }
-    } else {
-        if (isNear) {
-            if (currentAnimationName_ == "Idle"|| currentAnimationName_ == "ShotGrass"&& isEndAnimation_) {
-                currentAnimationName_ = "CatchGrass";
-            }
-          
-        } else {
-            if (isEndAnimation_) {
-                currentAnimationName_ = "Idle";
-            }
-      
-        }
+    //前フレームで予測線が当たっており、誰かがショットしてた時等ショット
+    if (isHitPrediction_) {
+        currentAnimationName_ = "CatchGrass";
+     
     }
+
+    isHitPrediction_ = false;
 
 }

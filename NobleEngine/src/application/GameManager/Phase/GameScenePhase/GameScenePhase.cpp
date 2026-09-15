@@ -3,11 +3,9 @@
 #include <GameObject/TableObject/TableObject.h>
 #include <GameObject/Table/Table.h>
 #include <GameObject/CocktailWater/CocktailWater.h>
-#include <GameObject/HumanModel/HumanModel.h>
-#include <GameObject/Bartender/Bartender.h>
-#include <GameObject/Customer/Customer.h>
+//人間管理
+#include<GameObject/HumanManager/HumanManager.h>
 #include<GameObject/Bar/Bar.h>
-
 
 #include <GameObject/PredictionObj/PredictionObj.h>
 
@@ -22,110 +20,7 @@
 
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
-
-namespace
-{
-    /// <summary>
-    /// 大きい円の内壁と小さい円が接触しているかを判定する
-    /// </summary>
-    /// <param name="bigCenter">でかい円の中心</param>
-    /// <param name="bigRadius">でかい円の半径</param>
-    /// <param name="smallCenter">小さい円の中心</param>
-    /// <param name="smallRadius">小さい円の半径</param>
-    /// <returns></returns>
-    bool IsTouchingInnerEdge(
-        const Vector2& bigCenter,
-        float bigRadius,
-        const Vector2& smallCenter,
-        float smallRadius)
-    {
-        float dist = (smallCenter - bigCenter).Length();
-        return (dist + smallRadius) >= bigRadius;
-    }
-
-    /// <summary>
-    /// でかい円から見て小さい円がどの方向にあるかを返す
-    /// </summary>
-    /// <param name="bigCenter">でかい円の中心</param>
-    /// <param name="smallCenter">小さい円の中心</param>
-    /// <returns> 0〜360</returns>
-    float GetContactAngleDeg(const Vector2& bigCenter, const Vector2& smallCenter)
-    {
-        Vector2 dir = smallCenter - bigCenter;
-        if (dir.LengthSq() < 0.0001f)
-        {
-            return 0.0f;
-        }
-
-        float angleRad = std::atan2(dir.y, dir.x);
-        float angleDeg = angleRad * (180.0f / std::numbers::pi_v<float>);
-        if (angleDeg < 0.0f) angleDeg += 360.0f;
-        return angleDeg; // 0〜360
-    }
-
-    // angleDegがfromDegからtoDegの範囲に入っているか
-    bool IsInAngleRange(float angleDeg, float fromDeg, float toDeg)
-    {
-        auto Normalize = [](float a)
-            {
-                a = fmod(a, 360.0f);
-                if (a < 0.0f) a += 360.0f;
-                return a;
-            };
-
-        float a = Normalize(angleDeg);
-        float f = Normalize(fromDeg);
-        float t = Normalize(toDeg);
-
-        if (f <= t)
-        {
-            // 通常の範囲（例：30°～120°）
-            return a >= f && a < t;
-        } else
-        {
-            // 360°を跨ぐ範囲（例：350°～20°）
-            return a >= f || a < t;
-        }
-    }
-
-
-    Vector3 GetPositionOnCircle(const Vector3& center, float radius, float angleDeg)
-    {
-        float angleRad = angleDeg * (std::numbers::pi_v<float> / 180.0f);
-        return Vector3(
-            center.x + radius * std::cos(angleRad),
-            center.y,
-            center.z + radius * std::sin(angleRad)
-        );
-    }
-
-    float NormalizeAngle(float a)
-    {
-        a = std::fmod(a, 360.0f);
-        if (a < 0) a += 360.0f;
-        return a;
-    }
-
-    float AngleDiff(float a, float b)
-    {
-        float diff = NormalizeAngle(a - b);
-        if (diff > 180.0f) diff -= 360.0f;
-        return diff;
-    }
-
-    float ClosestAngle(float target, float base)
-    {
-        float diff = AngleDiff(target, base);
-        return target - diff;
-    }
-
-    // 現在のtheta(ラジアン)から見て、targetDeg(度)と等価な角度のうち最短距離になるものをラジアンで返す
-    float ClosestThetaRadian(float currentThetaRad, float targetDeg)
-    {
-        float currentDeg = Game::Math::Converter::RadianToDegree(currentThetaRad);
-        return Game::Math::Converter::DegreeToRadian(ClosestAngle(currentDeg, targetDeg));
-    }
-}
+#include<System/GameFunction/GameFunction.h>
 
 GameScenePhase::GameScenePhase()
 {
@@ -175,31 +70,12 @@ GameScenePhase::GameScenePhase()
 
     glass_->SetLightData(&gameLight_->GetLightData());
 
-    markerAngles_.resize(6);
-    for (int32_t i = 0; i < 6; i++)
-    {
-        markers_[i] = std::make_unique<RenderObject>();
-        markers_[i]->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
-        markers_[i]->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModel.PS.hlsl";
-        markers_[i]->SetupFromShaders();
-        markers_[i]->modelID_ = Game::Asset::Model::Load("assets/engine/model/cube/cube.obj");
-    }
-    for (int32_t i = 0; i < 3; i++)
-    {
+    //人間管理
+    humanManager_ = std::make_unique<HumanManager>();
+    humanManager_->SetLightData(&gameLight_->GetLightData());
+    humanManager_->SetIsShotPtr(&isShot_);
 
-        if (i == 2) {
-            //インデックスの一番目がカスタマー
-            human_[i] = std::make_unique<Customer>();
-        } else {
-            //バーテンダー
-            human_[i] = std::make_unique<Bartender>();
-        }
-
-        human_[i]->Load();
-        human_[i]->SetLightData(&gameLight_->GetLightData());
-    }
-
-
+    //予測線
     prediction_ = std::make_unique<PredictionObj>();
     prediction_->SetCollisionManager(collisionManager_.get());
     prediction_->SetLightData(&gameLight_->GetLightData());
@@ -227,10 +103,8 @@ void GameScenePhase::Initialize()
     //予測オブジェクト
     prediction_->Initialize();
 
-    for (int32_t i = 0; i < 3; i++)
-    {
-        human_[i]->Initialize();
-    }
+    //人間管理
+    humanManager_->Initialize();
 
     //バー初期化（今は中身なし）
     bar_->Initialize();
@@ -245,11 +119,11 @@ void GameScenePhase::Initialize()
 
     cameraSpherical_.phi = 20.0f;
     Game::Camera::Setter::SetPhiTarget(Game::Math::Converter::DegreeToRadian(cameraSpherical_.phi), 0.2f, EaseType::LINEAR, c_main_);
-    cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
+    cameraSpherical_.theta = GameFunction::ClosestThetaRadian(cameraSpherical_.theta, humanManager_->GetCurrentGlaassUserDegree());
     Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.2f, EaseType::OUT_BACK, c_main_);
 
     ChangeCameraPhase(CameraPhase::CatchFollowing);
-    Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
+    Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanManager_->GetCurrentGlaassUserDegree());
     glassPos.y = 1.28f;
     glass_->SetTranslate(glassPos);
     glass_->SetVelocity(Vector3{});
@@ -260,18 +134,24 @@ void GameScenePhase::Initialize()
 
 void GameScenePhase::Update()
 {
+#ifdef _RELEASE
+    //リリース版ならシーン切り替えする
     if (uiManager_->GetTimer() <= 0.0f) {
         //フェーズ
         nextPhase_ = Phase::Phase_Result;
     }
+#endif
 
     Game::Camera::Update(c_main_);
 
     if (Game::IO::Key::IsJustPressed('R'))
     {
-        cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
+
+        const float currentHumanDegree = humanManager_->GetCurrentGlaassUserDegree();
+        cameraSpherical_.theta = GameFunction::ClosestThetaRadian(cameraSpherical_.theta, currentHumanDegree);
+        
         ChangeCameraPhase(CameraPhase::CatchFollowing);
-        Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
+        Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, currentHumanDegree);
         glassPos.y = 1.28f;
         glass_->ResetBroken();
         glass_->SetTranslate(glassPos);
@@ -286,19 +166,27 @@ void GameScenePhase::Update()
     // テーブル外判定
     Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
     Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
-    if (IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glass_->GetRadius()))
+    if (GameFunction::IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glass_->GetRadius()))
     {
-        float angle = GetContactAngleDeg(tablePos2D, glassPos2D);
+        float angle = GameFunction::GetContactAngleDeg(tablePos2D, glassPos2D);
         for (int i = 0; i < 3; i++)
         {
-            if (IsInAngleRange(angle, markerAngles_[i * 2], markerAngles_[i * 2 + 1]))
-            {
-                currentGlassUserIndex_ = i;
+            humanManager_->GetMarkerAngle(i * 2);
 
-                cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
+            if (GameFunction::IsInAngleRange(
+                angle,
+                humanManager_->GetMarkerAngle(i * 2),
+                humanManager_->GetMarkerAngle(i * 2+1)
+            
+            ))
+            {
+          
+                humanManager_->SetCurrentGlassUserIndex(i);
+                const float humanDegree = humanManager_->GetCurrentGlaassUserDegree();
+                cameraSpherical_.theta = GameFunction::ClosestThetaRadian(cameraSpherical_.theta, humanDegree);
 
                 ChangeCameraPhase(CameraPhase::CatchFollowing);
-                Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
+                Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanDegree);
                 glassPos.y = 1.28f + 0.06f;
                 glass_->SetTranslate(glassPos);
                 glass_->SetVelocity(Vector3{});
@@ -316,9 +204,10 @@ void GameScenePhase::Update()
         glass_->AddTranslate(Vector3{ 0.0f, -0.06f, 0.0f });
         if (glass_->GetIsBroken())
         {
-            cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, humanRotateDegree[currentGlassUserIndex_]);
+            const float humanDegree = humanManager_->GetCurrentGlaassUserDegree();
+            cameraSpherical_.theta = GameFunction::ClosestThetaRadian(cameraSpherical_.theta, humanDegree);
             ChangeCameraPhase(CameraPhase::CatchFollowing);
-            Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
+            Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanDegree);
             glassPos.y = 1.28f;
             glass_->ResetBroken();
             glass_->SetTranslate(glassPos);
@@ -349,14 +238,9 @@ void GameScenePhase::Update()
         }
     }
 
-
-    for (int32_t i = 0; i < 3; i++)
-    {
-        human_[i]->SetIsShot(isShot_);
-        human_[i]->Update(c_main_);
-    }
-
     //人間に発射フラグを渡したら発射を毎フレーム偽にする
+    humanManager_->Update(c_main_);
+
     isShot_ = false;
 
     //コライダー更新
@@ -437,12 +321,8 @@ void GameScenePhase::Draw()
 
     //バーの描画
     bar_->Draw(rt_3D_);
-
-
-    for (int32_t i = 0; i < 3; i++)
-    {
-        human_[i]->Draw(rt_3D_);
-    }
+    //人間の描画
+    humanManager_->Draw(rt_3D_);
  
     //テーブルの描画
     table_->Draw(rt_3D_);
@@ -479,9 +359,10 @@ void GameScenePhase::DrawImGui()
     //obstacles_[0]->DrawImGui();
     table_->DrawImGui();
     prediction_->DrawImGui();
-
     uiManager_->DrawImGui();
-    human_[2]->DrawImGui();
+
+    humanManager_->DrawImGui(glass_.get(), table_.get());
+
     //バー
     bar_->DrawImGui();
 
@@ -591,42 +472,6 @@ void GameScenePhase::DrawImGui()
         ImGui::TreePop();
     }
 
-    // 人間の位置
-    if (ImGui::TreeNode("Human"))
-    {
-        bool edit = false;
-        if (ImGui::DragFloat3("HumanRotate", humanRotateDegree, 1.0f, -360.0f, 720.0f)) edit = true;
-        if (ImGui::DragFloat("HumanScale", &humansize_, 1.0f, 0.0f, 120.0f)) edit = true;
-
-        if (edit)
-        {
-            Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[0]);
-            glassPos.y = 1.28f;
-            glass_->SetTranslate(glassPos);
-
-            for (int32_t i = 0; i < 3; i++)
-            {
-                Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 1.2f, humanRotateDegree[i]);
-                humanPos.y = 1.28f;
-                human_[i]->SetTranslate(humanPos);
-            }
-
-            for (int32_t i = 0; i < 6; i++)
-            {
-                float hugou = i % 2 == 0 ? -1.0f : 1.0f;
-                float angle = humanRotateDegree[(i / 2)] + (hugou * humansize_ * 0.5f);
-                markerAngles_[i] = angle;
-            }
-            for (int32_t i = 0; i < 6; i++)
-            {
-                markerTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, markerAngles_[i]);
-                markerTransforms_[i].translate.y = 1.28f;
-                markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
-            }
-        }
-
-        ImGui::TreePop();
-    }
 
     gameLight_->DrawImGui();
 
@@ -696,38 +541,9 @@ bool GameScenePhase::LoadObstacleData(int32_t stage)
         obstacles_[i]->SetLightData(&gameLight_->GetLightData());
     }
 
-    key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
-    Vector3 humanRotateDeg;
-    JsonManager::Load(path, key, humanRotateDeg);
-    humanRotateDegree[0] = humanRotateDeg.x;
-    humanRotateDegree[1] = humanRotateDeg.y;
-    humanRotateDegree[2] = humanRotateDeg.z;
-    key = "/Stage" + std::to_string(stage) + "/Human/Scale";
-    JsonManager::Load(path, key, humansize_);
-
-    const float pi = std::numbers::pi_v<float>*2.0f / 3.0f;
-    for (int32_t i = 0; i < 3; i++)
-    {
-        Vector3 humanPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, humanRotateDegree[i]);
-        humanPos.y = 0.0f;
-        human_[i]->SetTranslate(humanPos);
-        human_[i]->SetGlassPos(&glass_->GetTranslatePointer());
-        human_[i]->SetRotateY(-pi * i);
-    }
-
-    for (int32_t i = 0; i < 6; i++)
-    {
-        float hugou = i % 2 == 0 ? -1.0f : 1.0f;
-        float angle = humanRotateDegree[(i / 2)] + (hugou * humansize_ * 0.5f);
-        markerAngles_[i] = angle;
-    }
-    for (int32_t i = 0; i < 6; i++)
-    {
-        markerTransforms_[i].translate = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.8f, markerAngles_[i]);
-        markerTransforms_[i].translate.y = 1.28f;
-        markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
-    }
-
+    //人間管理　マーカーも一緒！
+    success = humanManager_->Load(path, stage,table_->GetTranslate(),table_->GetRadius());
+    if (!success) return false;
 
     int32_t y = 0;
     while (true)
@@ -760,11 +576,8 @@ void GameScenePhase::SaveObstacleData(int32_t stage)
         JsonManager::AddParam(path, key, obstacles_[i]->GetTranslate());
     }
 
-    key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
-    Vector3 humanRotateDeg = { humanRotateDegree[0], humanRotateDegree[1], humanRotateDegree[2] };
-    JsonManager::AddParam(path, key, humanRotateDeg);
-    key = "/Stage" + std::to_string(stage) + "/Human/Scale";
-    JsonManager::AddParam(path, key, humansize_);
+    //セーブデータをセットする
+    humanManager_->Save(path,stage);
 
     JsonManager::Save(path);
 }
@@ -847,7 +660,7 @@ void GameScenePhase::UpdateCameraPhase()
         //float theta = std::atan2(-dir.z, -dir.x); // 進行方向の逆(背後)
         float targetDeg = Game::Math::Converter::RadianToDegree(std::atan2(-dir.z, -dir.x));
 
-        cameraSpherical_.theta = ClosestThetaRadian(cameraSpherical_.theta, targetDeg);
+        cameraSpherical_.theta = GameFunction::ClosestThetaRadian(cameraSpherical_.theta, targetDeg);
 
         // thetaをグラス後方で固定
         Game::Camera::Setter::SetThetaTarget(cameraSpherical_.theta, 0.5f, EaseType::OUT_BACK, c_main_);

@@ -109,11 +109,11 @@ void UIManager::Update()
     //}
     const float hPi = std::numbers::pi_v<float>*0.5f;
     Game::Camera::Setter::SetPhiTarget(hPi, 0.0f, EaseType::LINEAR, uiCameraID_);
-    Game::Camera::Setter::SetCenter({ 0.0f,-1.3,11.9f }, 0, EaseType::LINEAR, uiCameraID_);
+    Game::Camera::Setter::SetCenter({ 0.0f,-1.3f,11.9f }, 0.0f, EaseType::LINEAR, uiCameraID_);
     Game::Camera::Update(uiCameraID_);
     //ゲームタイマー
     gameTimer_ -= Game::Time::GetScaledDeltaTimeMs()*0.001f;
-    timeMesh_->SetValue(gameTimer_);
+    timeMesh_->SetValue(static_cast<int32_t>(gameTimer_));
   /*  Game::Camera::Update(uiCameraID_);*/
     //Game::Camera::Setter::SetCenter();
 

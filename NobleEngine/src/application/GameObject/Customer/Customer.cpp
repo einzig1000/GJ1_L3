@@ -24,42 +24,46 @@ void Customer::Load()
 	// テクスチャ
 	textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
 	//インスタンス1なので0とし行列のコンテナは考えない
-	comCollider_.CreateFromModelData(modelID_, worldMatrix_, CollisionTag::GetTag("Target") | CollisionTag::GetTag("Customer"), CollisionTag::GetTag("Glass"));
+	comCollider_.CreateFromModelData(modelID_, worldMatrix_,
+        /*CollisionTag::GetTag("Target") |ターゲットとしない*/
+        CollisionTag::GetTag("Customer"),
+        CollisionTag::GetTag("Glass")
+    );
 
 	currentAnimationName_ = "IdleSit";
 
+    if (!comCollider_.colliders.empty()) {
+
+        // 自分のコライダーを変数に保持
+        auto& myCollider = comCollider_.colliders.at(0);
+
+        myCollider->SetOnCollisionCallback([this](Collider* collider) {
+
+            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
+
+                //予測線と当たった時を得る
+                isHitPrediction_ = true;
+
+            }
+
+            });
+    }
 }
 
 void Customer::UpdateAnimation()
 {
-    transform_.translate.y = 0.5f;
 
-    bool isNear = false;
-    if (glassPos_) {
-        Vector3 distance = *glassPos_ - transform_.translate;
-        distance.y = 0.0f;
-        if (distance.Length() < 1.0f) {
-            isNear = true;
-        };
-
+    //アニメーションが終了したら
+    if (isEndAnimation_) {
+        currentAnimationName_ = "IdleSit";
     }
 
-    if (isNear) {
-
-        if (currentAnimationName_ == "IdleSit") {
-            currentAnimationName_ = "Catch";
-        } else {
-            if (isEndAnimation_) {
-                currentAnimationName_ = "IdleSit";
-            }
-
-        }
-
-
-    } else {
-        if (isEndAnimation_) {
-            currentAnimationName_ = "IdleSit";
-        }
+    //前フレームで予測線が当たっており、誰かがショットしてた時等ショット
+    if (isHitPrediction_) {
         currentAnimationName_ = "Catch";
+ 
     }
+
+    isHitPrediction_ = false;
+
 }
