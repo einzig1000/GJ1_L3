@@ -7,8 +7,7 @@ class GlassManager;//グラス総括管理
 class TableObject;
 class Table;
 class CollisionManager;
-
-class PredictionObj;
+class PredictionObj;//予測オブジェ
 class HumanManager;//人間管理
 class Bar;//バークラスの追加
 class UIManager;
@@ -40,14 +39,21 @@ public:
 
 private:
 
-	//ゲーム画面　
-	std::unique_ptr<GameScreen>gameScreen_ = nullptr;
 	void DrawMainScreen(const int32_t renderTexture);
-
-	int32_t stageSum = 0;
-
+	//データ保存
 	bool LoadObstacleData(int32_t stage);
 	void SaveObstacleData(int32_t stage);
+	//プレイヤー操作
+	void PlayerControl();
+	//コリジョン管理
+	void CheckColliders();
+	//テーブル内イベント
+	void InnerTableEvent();
+
+	//ゲーム画面　
+	std::unique_ptr<GameScreen>gameScreen_ = nullptr;
+
+	int32_t stageSum = 0;
 
 	int32_t s_GameScene_ = 0;
 	std::vector<int32_t> s_GameScene_PlayIDs_;
@@ -56,9 +62,6 @@ private:
 	std::unique_ptr<GameCameraManager> gameCameraManager_ = nullptr;
 
 	std::unique_ptr<GlassManager>glassManager_ = nullptr;
-
-	//プレイヤー操作
-	void PlayerControl();
 
 	GlassType glassType = GlassType::Champagne;
 	// 障害物
@@ -69,7 +72,6 @@ private:
 
 	// テーブル
 	std::unique_ptr<Table> table_ = nullptr;
-
 	//人間管理
 	std::unique_ptr<HumanManager>humanManager_ = nullptr;
 	//バー
@@ -79,9 +81,7 @@ private:
 	//UI管理
 	std::unique_ptr<UIManager>uiManager_ = nullptr;
 
-	//コリジョン管理
-	void CheckColliders();
-
-	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 	bool isDebugDraw_ = false;
+	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
+
 };
