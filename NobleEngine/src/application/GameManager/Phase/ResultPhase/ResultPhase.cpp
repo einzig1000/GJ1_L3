@@ -29,14 +29,14 @@ ResultPhase::ResultPhase() {
 	cocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
 
 	// Manモデル・テクスチャ・アニメーション
-	manModelID_ = Game::Asset::Model::Load("assets/application/model/Man/man.gltf");
-	manTextureID_ = Game::Asset::Texture::Load("assets/application/model/Man/texture_body.png");
-	manIdleAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Idle");
-	manWalkAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Walk");
-	manGoodAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Good");
-	manBadAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Bad");
-	manCatchAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Catch");
-	manThrowAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Man/man.gltf", "Throw");
+	manModelID_ = Game::Asset::Model::Load("assets/application/model/Bartender/bartender.gltf");
+	manTextureID_ = Game::Asset::Texture::Load("assets/application/model/Bartender/texture_body.png");
+	manIdleAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Bartender/bartender.gltf", "Idle");
+	manWalkAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Bartender/bartender.gltf", "Walk");
+	manGoodAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Bartender/bartender.gltf", "Good");
+	manBadAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Bartender/bartender.gltf", "Bad");
+	manCatchAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Bartender/bartender.gltf", "Catch");
+	manThrowAnimationID_ = Game::Asset::Animation::Load("assets/application/model/Bartender/bartender.gltf", "Throw");
 }
 ResultPhase::~ResultPhase() {}
 void ResultPhase::Initialize() {

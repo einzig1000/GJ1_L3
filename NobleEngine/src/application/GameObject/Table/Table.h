@@ -25,7 +25,7 @@ public:
     void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
 private:
-    LightDataForGPU* lightData_;
+    LightDataForGPU* lightData_ = nullptr;
 
     //グラス
     std::unique_ptr<RenderObject> obj_ = nullptr;
