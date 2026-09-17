@@ -12,8 +12,6 @@ class BreakEvaluation;
 
 class UIManager
 {
-
-
 public:
     UIManager();
     ~UIManager();

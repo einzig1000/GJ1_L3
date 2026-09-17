@@ -26,8 +26,6 @@
 
 GameScenePhase::GameScenePhase()
 {
-    //UI管理
-    uiManager_ = std::make_unique<UIManager>();
 
     //ゲーム画面
     gameScreen_ = std::make_unique<GameScreen>();
@@ -39,17 +37,19 @@ GameScenePhase::GameScenePhase()
         Vector4{ 0.0f,0.0f,0.0f,0.0f }
     );
 
+    //UI管理
+    uiManager_ = std::make_unique<UIManager>();
+
     // サウンド
     s_GameScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/GameScene.mp3");
     //カメラ管理
     gameCameraManager_ = std::make_unique<GameCameraManager>();
+    //ゲームライトの実体生成 ここで管理する
+    gameLight_ = std::make_unique<GameLight>();
 
     //コリジョン管理
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->SetTag();
-
-    //ゲームライトの実体生成 ここで管理する
-    gameLight_ = std::make_unique<GameLight>();
 
     // オブジェクト実体生成
     cocktailWater_ = std::make_unique<CocktailWater>();
