@@ -20,7 +20,7 @@ public:
     UIModel();
     ~UIModel();
     Matrix4x4* GetWorldMatrixPtr() { return &worldMatrix_; };
-    void SetStencil(const DepthStencilID id);
+    void SetTranslate(const Vector3 translate);
     void Initialize(const int32_t modelID,const int32_t textureID, const EulerTransforms& transform,Matrix4x4* parent = nullptr);
     void Update(const int32_t cameraID);
     void Draw(const int32_t renderTexture);
@@ -28,5 +28,7 @@ public:
     void SetEulerTransform(const EulerTransforms& transform) {
         transform_ = transform;
     };
+
+    void SetColor(Vector4 color) { color_ = color; };
 };
 

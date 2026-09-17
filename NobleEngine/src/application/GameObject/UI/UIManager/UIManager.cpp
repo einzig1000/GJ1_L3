@@ -57,8 +57,11 @@ void UIManager::Initialize()
 {
     //60.0f
     gameTimer_ = 60.0f;
+    aniTimer_ = 0.0f;
+    isDown_ = true;
 
-    float pi = 3.14159265358979f;
+    const float pi = std::numbers::pi_v<float>;
+    const float hPi = pi *0.5f;
     float range = 8.0f;
 
     timeAndMoneySignboard_->Initialize(
@@ -89,12 +92,9 @@ void UIManager::Initialize()
 
     benefitMesh_->Initialize(6, { { 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, {-0.28f,0.4f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
     timeMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
-    
-    isInitializeCamera_ = false;
-    Game::Camera::Setter::SetEnableControl(false, uiCameraID_);
- 
 
-    const float hPi = std::numbers::pi_v<float>*0.5f;
+    Game::Camera::Setter::SetEnableControl(false, uiCameraID_);
+
     Game::Camera::Setter::SetDistanceTarget(12.0f, 0.0f, EaseType::LINEAR, uiCameraID_);
     Game::Camera::Setter::SetThetaTarget(hPi, 0.0f, EaseType::LINEAR, uiCameraID_);
     Game::Camera::Setter::SetPhiTarget(0.16f, 0.0f, EaseType::LINEAR, uiCameraID_);
@@ -106,13 +106,23 @@ void UIManager::Initialize()
 void UIManager::Update()
 {
 
-     Game::Camera::Update(uiCameraID_);
-  
- 
     //ゲームタイマー
-    gameTimer_ -= Game::Time::GetScaledDeltaTimeMs()*0.001f;
+    gameTimer_ -= Game::Time::GetScaledDeltaTimeMs() * 0.001f;
     timeMesh_->SetValue(static_cast<int32_t>(gameTimer_));
 
+    //アニメーションタイマー
+    aniTimer_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+
+    if (aniTimer_>= 0.5f) {
+        aniTimer_ = 0.0f;
+        //トグルする
+        isDown_ = !isDown_;
+        float offset = 0.25f* powf(-1.0f,isDown_);
+        Game::Camera::Setter::SetCenter({ 0.0f, -3.0f+ offset, 9.0f}, 0.5f, EaseType::LINEAR, uiCameraID_);
+    }
+
+     Game::Camera::Update(uiCameraID_);
+    
     //破壊判定オブジェクト
     breakEvaluation_->Update(uiCameraID_);
 

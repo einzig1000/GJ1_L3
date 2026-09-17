@@ -16,9 +16,9 @@ UIModel::~UIModel()
 {
 }
 
-void UIModel::SetStencil(const DepthStencilID id)
+void UIModel::SetTranslate(const Vector3 translate)
 {
-    obj_->psoConfig_.depthStencilID = id;
+    transform_.translate = translate;
 }
 
 void UIModel::Initialize(const int32_t modelID, const int32_t textureID, const EulerTransforms& transform, Matrix4x4* parent)

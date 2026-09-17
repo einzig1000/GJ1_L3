@@ -27,13 +27,16 @@ public:
     void AddScore(float score);
     int32_t GetScore() const;
 
+    void SetCameraPhasePtr(CameraPhase* cameraPhase);
 private:
-
-    bool isInitializeCamera_ = false;
+    CameraPhase* cameraPhasePtr_ = nullptr;
     struct modelIDs {
         int32_t model_ = -1;
         int32_t texture_ = -1;
     };
+
+    bool isDown_ = true;
+    float aniTimer_ = 0.0f;
 
     float gameTimer_ = 0.0f;
     //UIのcamera

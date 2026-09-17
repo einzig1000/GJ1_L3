@@ -1,29 +1,33 @@
 #include "GameScenePhase.h"
-
-#include <GameObject/TableObject/TableObject.h>
+//テーブル
 #include <GameObject/Table/Table.h>
+//テーブル上の障害物
+#include <GameObject/TableObject/TableObject.h>
 //グラス総括管理
 #include<GameObject/GlassManager/GlassManager.h>
-
 //人間管理
 #include<GameObject/HumanManager/HumanManager.h>
+//背景のバー
 #include<GameObject/Bar/Bar.h>
-
-
+//UI
 #include <GameObject/UI/UIManager/UIManager.h>
+//破壊数カウント
 #include <GameObject/UI/BreakEvaluation/BreakEvaluation.h>
 //ゲームライト
 #include<GameObject/GameLight/GameLight.h>
 //ゲームカメラ
 #include<GameObject/GameCameraManager/GameCameraManager.h>
+//当たり判定管理システム
 #include <System/CollisionManager/CollisionManager.h>
-
+//ゲームに使用する関数
+#include<System/GameFunction/GameFunction.h>
+//ゲーム画面
+#include<GameObject/GameScreen/GameScreen.h>
+//Json
 #include <Utilities/Json/JsonManager.h>
 
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
-#include<System/GameFunction/GameFunction.h>
-#include<GameObject/GameScreen/GameScreen.h>
 
 GameScenePhase::GameScenePhase()
 {
@@ -31,18 +35,12 @@ GameScenePhase::GameScenePhase()
     //ゲーム画面
     gameScreen_ = std::make_unique<GameScreen>();
 
-
-    // ======================================
-    // レンダーターゲットの設定
-    // ======================================
     renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(
         Game::Window::GetWidth(),
         Game::Window::GetHeight(),
         "gameScene",
         Vector4{ 0.0f,0.0f,0.0f,0.0f }
     );
-
-    context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_GameScene)] = renderTargetID_;
 
     //UI管理
     uiManager_ = std::make_unique<UIManager>();
@@ -90,6 +88,12 @@ void GameScenePhase::Initialize()
     // 次のフェーズ
     // ======================================
     nextPhase_ = Phase::Phase_None;
+
+    // ======================================
+    // レンダーターゲットの設定
+    // ======================================
+    context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_GameScene)] = renderTargetID_;
+
     // ======================================
     // オブジェクト初期化
     // ======================================
@@ -154,22 +158,10 @@ void GameScenePhase::Update()
     //Rキーを押したらリスタート
     if (Game::IO::Key::IsJustPressed('R'))
     {
-
-        const float currentHumanDegree = humanManager_->GetCurrentGlassUserDegree();
-        //ゲームカメラ管理
-        gameCameraManager_->SetClosestThetaRadian(currentHumanDegree);
-        gameCameraManager_->ChangeCameraPhase(CameraPhase::CatchFollowing);
-
-        //初期化を呼んでみる
-        glassManager_->Initialize();
-        glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(), currentHumanDegree, 1.28f);
-
-        uiManager_->Initialize();
+        ResetGame();
     }
-
-    volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
-    volume = std::clamp(volume, 0.0f, 1.0f);
-    Game::Audio::SetAudioVolume(s_GameScene_PlayIDs_[0], volume);
+    //BGMの更新
+    UpdateBGM();
 
     //テーブル内の出来事
     InnerTableEvent();
@@ -188,9 +180,15 @@ void GameScenePhase::Update()
     for (int32_t i = 0; i < obstacles_.size(); ++i)
     {
         obstacles_[i]->Update(gameCameraManager_->GetCameraID());
+    }
+
+    for (int32_t i = 0; i < obstacles_.size(); ++i)
+    {
         if (obstacles_[i]->IsBroken())
         {
             deleteIndex = i;
+            //ここってブレーク必要かも？
+            break;
         }
     }
 
@@ -217,6 +215,9 @@ void GameScenePhase::Update()
         glassManager_->GetMouseInsensitivity()
     );
 
+    bool isSetUp = gameCameraManager_->GetCameraPhase() == CameraPhase::ShotAngleSetup;
+    //UIで破壊カウントの看板を上にする
+    uiManager_->GetBreakEvaluation()->SetIsUp(isSetUp);
     //UI管理
     uiManager_->Update();
 
@@ -254,6 +255,8 @@ void GameScenePhase::DrawImGui()
     bar_->DrawImGui();
 
     ImGui::Begin("Editor");
+
+    ImGui::Checkbox("canControll", &canControll_);
 
     ImGui::Checkbox("DebugDraw", &isDebugDraw_);
 
@@ -470,9 +473,32 @@ void GameScenePhase::InnerTableEvent()
 
 void GameScenePhase::PlayerControl()
 {
-
+    if (!canControll_) {
+        return;
+    }
     glassManager_->PlayerControl(gameCameraManager_.get(), obstacles_);
 
+}
+
+void GameScenePhase::UpdateBGM()
+{
+    volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
+    volume = std::clamp(volume, 0.0f, 1.0f);
+    Game::Audio::SetAudioVolume(s_GameScene_PlayIDs_[0], volume);
+}
+
+void GameScenePhase::ResetGame()
+{
+    const float currentHumanDegree = humanManager_->GetCurrentGlassUserDegree();
+    //ゲームカメラ管理
+    gameCameraManager_->SetClosestThetaRadian(currentHumanDegree);
+    gameCameraManager_->ChangeCameraPhase(CameraPhase::CatchFollowing);
+
+    //初期化を呼んでみる
+    glassManager_->Initialize();
+    glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(), currentHumanDegree, 1.28f);
+
+    uiManager_->Initialize();
 }
 
 void GameScenePhase::DrawMainScreen(const int32_t renderTexture)

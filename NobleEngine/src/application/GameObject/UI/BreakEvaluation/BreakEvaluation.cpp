@@ -2,8 +2,8 @@
 #include<GameObject/UI/NumMeshs/NumMeshs.h>
 #include<GameObject/UI/UIModel/UIModel.h>
 #include<numbers>
-
-BreakEvaluation::BreakEvaluation()
+#include<algorithm>
+ BreakEvaluation::BreakEvaluation()
 {
     currentCountMesh_ = std::make_unique<NumMeshs>();
 
@@ -62,7 +62,13 @@ BreakEvaluation::~BreakEvaluation()
 }
 
 void BreakEvaluation::Initialize()
-{    //破壊数
+{    
+    
+    isUp_ = false;
+    isPreUp_ = false;
+    boardAnimationTimer_ = 0.0f;
+
+    //破壊数
     breakCount_ = 0;
     evaluationString_ = "unKnown";
 
@@ -90,12 +96,16 @@ void BreakEvaluation::Initialize()
         breakSignboard_->GetWorldMatrixPtr()
     );
 
+    evaluations_["Bad"]->SetColor({ 0.0f,0.0f,0.0f,1.0f });
+
     evaluations_["Good"]->Initialize(
         modelIds_["Good"].model_,
         modelIds_["Good"].texture_,
         transformKey_["start"].transform_,
         breakSignboard_->GetWorldMatrixPtr()
     );
+
+    evaluations_["Good"]->SetColor({ 0.5f,1.0f,0.0f,1.0f });
 
     evaluations_["Great"]->Initialize(
         modelIds_["Great"].model_,
@@ -104,6 +114,8 @@ void BreakEvaluation::Initialize()
         breakSignboard_->GetWorldMatrixPtr()
     );
 
+    evaluations_["Great"]->SetColor({ 0.75f,1.0f,0.0f,1.0f });
+
     evaluations_["Parfect"]->Initialize(
         modelIds_["Parfect"].model_,
         modelIds_["Parfect"].texture_,
@@ -111,12 +123,34 @@ void BreakEvaluation::Initialize()
         breakSignboard_->GetWorldMatrixPtr()
     );
 
+    evaluations_["Parfect"]->SetColor({ 1.0f,1.0f,0.0f,1.0f });
+
     currentCountMesh_->Initialize(2, transformKey_["start"].transform_, breakSignboard_->GetWorldMatrixPtr());
 
 }
 
 void BreakEvaluation::Update(const int32_t uiCameraId)
 {
+
+    if (!isPreUp_ && isUp_|| isPreUp_ && !isUp_) {
+        //アップした瞬間またはアップ終了をしゅとくする　
+        boardAnimationTimer_ = 0.0f;
+    }
+
+    isPreUp_ = isUp_;
+
+    boardAnimationTimer_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+    boardAnimationTimer_ = std::clamp(boardAnimationTimer_, 0.0f, 1.0f);
+    float posY = { 0.0f };
+
+    if (isUp_) {
+        posY = Game::Math::Ease::Easing(0.0f,4.0f,EaseType::IN_BACK, boardAnimationTimer_);
+    } else {
+        posY = Game::Math::Ease::Easing(4.0f, 0.0f, EaseType::OUT_BACK, boardAnimationTimer_);
+    }
+
+    breakSignboard_->SetTranslate({ 0.0f,posY,0.0f });
+
     BreakJudgement();
 
     if (isAnimation_) {
@@ -165,7 +199,7 @@ void BreakEvaluation::DebugImGui()
     //破壊数
     ImGui::DragInt("breakCount", &breakCount_);
     ImGui::DragInt("maxBreakCount", &maxBreakCount_);
-
+    ImGui::Checkbox("isUp", &isUp_);
     if (ImGui::Button("AnimationStart")) {
         SetBreakCount(breakCount_);
     }

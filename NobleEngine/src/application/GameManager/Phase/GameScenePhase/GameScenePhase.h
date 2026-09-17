@@ -38,7 +38,9 @@ public:
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
 
 private:
-
+	void UpdateBGM();
+	void ResetGame();
+	
 	void DrawMainScreen(const int32_t renderTexture);
 	//データ保存
 	bool LoadObstacleData(int32_t stage);
@@ -84,4 +86,6 @@ private:
 	bool isDebugDraw_ = false;
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 
+
+	bool canControll_ = true;
 };

@@ -95,7 +95,8 @@ public:
 	void DrawImGui();
 
 	void SetTranslate(const Vector3& translate) { waterTransform_.translate = translate; }
-
+	//カラーブレンド値を知る
+	float GetBlendWidth() { return waterColorCB_.colorBlendWidth; }
 private:
 	std::unique_ptr<RenderObject> water_;
 	EulerTransforms waterTransform_;

@@ -24,12 +24,18 @@ public:
     void SetBreakCount(const int32_t breakCount);
     //外部から呼び出す
     void SetMaxBreakCount(const int32_t maxBreakCount);
+    //上に上がる
+    void SetIsUp(const bool isUp) { isUp_ = isUp; };
 private:
     void BreakJudgement();
     //カウントが更新されたらアニメーションを開始する
     EulerTransforms AnimationStart(AniTime& aniTime);
     EulerTransforms Easing(const EulerTransforms& start, const EulerTransforms& end, const EaseType type, float time);
 private:
+    float boardAnimationTimer_ = 0.0f;
+    
+    bool isUp_ = false;
+    bool isPreUp_ = false;
     bool isAnimation_ = false;
 
     struct NumKeyframe{
