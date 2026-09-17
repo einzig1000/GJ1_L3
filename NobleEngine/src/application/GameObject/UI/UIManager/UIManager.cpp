@@ -91,10 +91,8 @@ void UIManager::Initialize()
     timeMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
     
     isInitializeCamera_ = false;
-
-
     Game::Camera::Setter::SetEnableControl(false, uiCameraID_);
-    //Game::Camera::Update(uiCameraID_);
+ 
 }
 
 void UIManager::Update()

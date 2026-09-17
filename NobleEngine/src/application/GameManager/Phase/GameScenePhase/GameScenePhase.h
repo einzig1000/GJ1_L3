@@ -13,6 +13,7 @@ class HumanManager;//人間管理
 class Bar;//バークラスの追加
 class UIManager;
 class GameLight;//ライト
+class GameCameraManager;//ゲームカメラ管理
 
 class GameScenePhase :
 	public IPhase
@@ -49,22 +50,11 @@ private:
 	std::vector<int32_t> s_GameScene_PlayIDs_;
 	float volume = 0.0f;
 
-	int32_t c_main_ = -1;
-	Coordinate_spherical cameraSpherical_ = { 0.0f, 0.0f, 0.0f };
-	CameraPhase cameraPhase_ = CameraPhase::Free;
-	CounterSec cameraPhaseCounter_;
-	void ChangeCameraPhase(CameraPhase phase);
-	void UpdateCameraPhase();
-
-	//コリジョン管理
-	void CheckColliders();
-
-	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
-	bool isDebugDraw_ = false;
+	std::unique_ptr<GameCameraManager> gameCameraManager_ = nullptr;
 
 	// グラス
 	bool isShot_ = false;
-	std::unique_ptr<Glass> glass_;
+	std::unique_ptr<Glass> glass_ = nullptr;
 	std::unique_ptr<CocktailWater> cocktailWater_;
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);		// 射出速度
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);	// マウスドラッグ開始位置
@@ -99,4 +89,9 @@ private:
 	//UI管理
 	std::unique_ptr<UIManager>uiManager_ = nullptr;
 
+	//コリジョン管理
+	void CheckColliders();
+
+	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
+	bool isDebugDraw_ = false;
 };
