@@ -14,6 +14,7 @@ class Bar;//バークラスの追加
 class UIManager;
 class GameLight;//ライト
 class GameCameraManager;//ゲームカメラ管理
+class GameScreen;//ゲーム画面
 
 class GameScenePhase :
 	public IPhase
@@ -39,8 +40,10 @@ public:
 
 private:
 
-	std::unique_ptr<RenderObject> drawForMain_[2];
-	int32_t rt_3D_ = -1;
+	//ゲーム画面　
+	std::unique_ptr<GameScreen>gameScreen_ = nullptr;
+	void DrawMainScreen(const int32_t renderTexture);
+
 	int32_t stageSum = 0;
 
 	bool LoadObstacleData(int32_t stage);
@@ -55,7 +58,7 @@ private:
 	// グラス
 	bool isShot_ = false;
 	std::unique_ptr<Glass> glass_ = nullptr;
-	std::unique_ptr<CocktailWater> cocktailWater_;
+	std::unique_ptr<CocktailWater> cocktailWater_ = nullptr;
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);		// 射出速度
 	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);	// マウスドラッグ開始位置
 	bool ableDrag_ = true;
@@ -67,6 +70,7 @@ private:
 	//プレイヤー操作
 	void PlayerControl();
 
+	GlassType glassType = GlassType::Champagne;
 	// 障害物
 	std::vector<std::unique_ptr<TableObject>> obstacles_;
 	int32_t deleteIndex = -1;
@@ -75,17 +79,14 @@ private:
 
 	// テーブル
 	std::unique_ptr<Table> table_ = nullptr;
-
-	GlassType glassType = GlassType::Champagne;
-
+	//予測オブジェ
+	std::unique_ptr<PredictionObj>prediction_ = nullptr;
 	//人間管理
 	std::unique_ptr<HumanManager>humanManager_ = nullptr;
 	//バー
 	std::unique_ptr<Bar>bar_ = nullptr;
 	//ゲーム用ライト
 	std::unique_ptr<GameLight> gameLight_ = nullptr;
-	//予測オブジェ
-	std::unique_ptr<PredictionObj>prediction_ = nullptr;
 	//UI管理
 	std::unique_ptr<UIManager>uiManager_ = nullptr;
 

@@ -19,12 +19,11 @@ public:
     ~UIManager();
     void Initialize();
     void Update();
-    void Draw();
+    void Draw(const int32_t uiRenderTextureID);
     void DrawImGui();
     float GetTimer() { return gameTimer_; };
 
 	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
-    int32_t GetRenderTextureID() const { return renderTextureID_; }
 
     void SetScore(float score);
     void AddScore(float score);
@@ -39,8 +38,6 @@ private:
     };
 
     float gameTimer_ = 0.0f;
-
-    int32_t renderTextureID_ = -1;
     //UIのcamera
     int32_t uiCameraID_ = -1;
 

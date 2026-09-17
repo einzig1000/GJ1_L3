@@ -156,7 +156,7 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
     c_main_ = Game::Camera::AddCamera("SikouteiDevelopPhase");
 
     //コリジョン管理
-    collisionManager_->Load();
+    collisionManager_->SetTag();
     collisionManager_ = std::make_unique<CollisionManager>();
 
 

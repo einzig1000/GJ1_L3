@@ -54,7 +54,7 @@ namespace Collision {
 class CollisionManager {
 public:
 
-    void Load();
+    void SetTag();
     ~CollisionManager();
     /// @brief コライダーを追加する
     /// @param collider コライダー

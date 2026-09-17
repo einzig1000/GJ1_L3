@@ -45,7 +45,7 @@ UIManager::UIManager()
     const uint32_t windowWidthSize =Game::Window::GetWidth();
     const uint32_t windowHeightSize = Game::Window::GetHeight();
 
-    renderTextureID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(),"UIRender");
+
 }
 
 UIManager::~UIManager()
@@ -125,20 +125,20 @@ void UIManager::Update()
 
 }
 
-void UIManager::Draw()
+void UIManager::Draw(const int32_t uiRenderTextureID)
 {
  
-    timeAndMoneySignboard_->Draw(renderTextureID_);
+    timeAndMoneySignboard_->Draw(uiRenderTextureID);
 
-    cockTailSignboard_->Draw(renderTextureID_);
+    cockTailSignboard_->Draw(uiRenderTextureID);
     
-    breakEvaluation_->Draw(renderTextureID_);
+    breakEvaluation_->Draw(uiRenderTextureID);
 
-    yenWorl_->Draw(renderTextureID_);
-    timeWord_->Draw(renderTextureID_);
+    yenWorl_->Draw(uiRenderTextureID);
+    timeWord_->Draw(uiRenderTextureID);
   
-    benefitMesh_->Draw(renderTextureID_);
-    timeMesh_->Draw(renderTextureID_);
+    benefitMesh_->Draw(uiRenderTextureID);
+    timeMesh_->Draw(uiRenderTextureID);
 
 }
 

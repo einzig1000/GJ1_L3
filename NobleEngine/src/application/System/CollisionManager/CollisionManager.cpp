@@ -6,7 +6,7 @@
 
 #include"Game.h"
 
-void CollisionManager::Load()
+void CollisionManager::SetTag()
 {
     Collider::Load();
 

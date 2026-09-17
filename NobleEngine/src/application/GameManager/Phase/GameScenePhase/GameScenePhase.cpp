@@ -22,42 +22,31 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 #include<System/GameFunction/GameFunction.h>
+#include<GameObject/GameScreen/GameScreen.h>
 
 GameScenePhase::GameScenePhase()
 {
+    //UI管理
     uiManager_ = std::make_unique<UIManager>();
 
-    // レンダーターゲット
-    rt_3D_ = Game::Asset::RenderTexture::CreateRenderTexture(
-        Game::Window::GetWidth(), Game::Window::GetHeight(),
-        "gameScene_3D", Vector4{ 0.0f,0.0f,0.0f,0.0f });
+    //ゲーム画面
+    gameScreen_ = std::make_unique<GameScreen>();
 
     renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(
-        Game::Window::GetWidth(), Game::Window::GetHeight(), "gameScene", Vector4{ 0.0f,0.0f,0.0f,0.0f });
-
-    drawForMain_[0] = std::make_unique<RenderObject>();
-    drawForMain_[0]->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
-    drawForMain_[0]->psoConfig_.ps = "assets/shaders/FullScreen/CopyImage.PS.hlsl";
-    drawForMain_[0]->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
-    drawForMain_[0]->SetupFromShaders();
-    drawForMain_[0]->SetCBufferData(0, ShaderType::PixelShader, &rt_3D_);
-
-    drawForMain_[1] = std::make_unique<RenderObject>();
-    drawForMain_[1]->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
-    drawForMain_[1]->psoConfig_.ps = "assets/shaders/FullScreen/CopyImage.PS.hlsl";
-    drawForMain_[1]->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
-    drawForMain_[1]->SetupFromShaders();
-    int32_t rtID = uiManager_->GetRenderTextureID();
-    drawForMain_[1]->SetCBufferData(0, ShaderType::PixelShader, &rtID);
+        Game::Window::GetWidth(),
+        Game::Window::GetHeight(),
+        "gameScene",
+        Vector4{ 0.0f,0.0f,0.0f,0.0f }
+    );
 
     // サウンド
     s_GameScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/GameScene.mp3");
-
+    //カメラ管理
     gameCameraManager_ = std::make_unique<GameCameraManager>();
 
     //コリジョン管理
-    collisionManager_->Load();
     collisionManager_ = std::make_unique<CollisionManager>();
+    collisionManager_->SetTag();
 
     //ゲームライトの実体生成 ここで管理する
     gameLight_ = std::make_unique<GameLight>();
@@ -271,38 +260,14 @@ void GameScenePhase::Update()
 
 void GameScenePhase::Draw()
 {
-
-    //バーの描画
-    bar_->Draw(rt_3D_);
-    //人間の描画
-    humanManager_->Draw(rt_3D_);
- 
-    //テーブルの描画
-    table_->Draw(rt_3D_);
-
-    if (gameCameraManager_->GetCameraPhase() == CameraPhase::ShotAngleSetup)
-    {
-        prediction_->Draw(rt_3D_);
-    }
-
-    // 障害物の描画
-    for (auto& obstacle : obstacles_)
-    {
-        obstacle->Draw(rt_3D_);
-    }
-
-    cocktailWater_->Draw(rt_3D_);
-
-    //グラスは半透明なので後に描画する
-    glass_->Draw(rt_3D_);
-
+    //メイン画面描画
+    DrawMainScreen(gameScreen_->GetRenderTextureID(GameScreen::MAIN_SCREEN));
+    //UIなので一番最後に描画する
+    uiManager_->Draw(gameScreen_->GetRenderTextureID(GameScreen::UI_SCREEN));
     //コライダーデバック描画
     if (isDebugDraw_) collisionManager_->DebugDraw();
-    //UIなので一番最後に描画する
-    uiManager_->Draw();
-
-    drawForMain_[0]->Draw(renderTargetID_, { rt_3D_ });
-    drawForMain_[1]->Draw(renderTargetID_, { uiManager_->GetRenderTextureID() });
+    //実際に見せるゲーム画面の描画
+    gameScreen_->Draw(renderTargetID_);
 }
 
 void GameScenePhase::DrawImGui()
@@ -520,6 +485,35 @@ void GameScenePhase::PlayerControl()
             }
         }
     }
+
+}
+
+void GameScenePhase::DrawMainScreen(const int32_t renderTexture)
+{
+
+    //バーの描画
+    bar_->Draw(renderTexture);
+    //人間の描画
+    humanManager_->Draw(renderTexture);
+    //テーブルの描画
+    table_->Draw(renderTexture);
+
+    //ショットアングルセットアップ時に描画する
+    if (gameCameraManager_->GetCameraPhase() == CameraPhase::ShotAngleSetup)
+    {
+        prediction_->Draw(renderTexture);
+    }
+
+    // 障害物の描画
+    for (auto& obstacle : obstacles_)
+    {
+        obstacle->Draw(renderTexture);
+    }
+
+    //カクテル液体の描画
+    cocktailWater_->Draw(renderTexture);
+    //グラスは半透明なので後に描画する
+    glass_->Draw(renderTexture);
 
 }
 
