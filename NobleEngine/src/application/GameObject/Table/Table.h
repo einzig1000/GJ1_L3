@@ -16,6 +16,10 @@ public:
 
     float GetRadius() { return transform_.scale.x * 2.8f; };
     Vector3 GetTranslate() { return transform_.translate; };
+
+
+
+
     EulerTransforms GetEulerTransforms() { return transform_; };
 
     void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };

@@ -79,10 +79,8 @@ void HumanManager::Draw(const int32_t renderTexture3D)
     customer_->Draw(renderTexture3D);
 }
 
-void HumanManager::DrawImGui(Glass* glass, Table* table)
+bool HumanManager::DrawImGui(const Vector3& tableCenter, const float tableRadius)
 {
-
-
 
     for (int32_t i = 0; i < 3; i++) {
         human_[i]->DrawImGui(i);
@@ -92,26 +90,27 @@ void HumanManager::DrawImGui(Glass* glass, Table* table)
 
     ImGui::Begin("Editor");
 
+    bool edit = false;
+
     // 人間の位置
     if (ImGui::TreeNode("Human"))
     {
-        bool edit = false;
+
         if (ImGui::DragFloat("CustomerRotateDegree", &customerRotateDegree_, 1.0f, -360.0f, 720.0f)) edit = true;
         if (ImGui::DragFloat3("HumanRotate", humanRotateDegree, 1.0f, -360.0f, 720.0f)) edit = true;
         if (ImGui::DragFloat("HumanScale", &humanCatchSize_, 1.0f, 0.0f, 120.0f)) edit = true;
 
+
         if (edit)
         {
-            Vector3 glassPos = GameFunction::GetPositionOnCircle(table->GetTranslate(), table->GetRadius() * 0.5f, humanRotateDegree[0]);
-            glassPos.y = 1.28f;
-            glass->SetTranslate(glassPos);
 
             for (int32_t i = 0; i < 3; i++)
             {
-                Vector3 humanPos = GameFunction::GetPositionOnCircle(table->GetTranslate(), table->GetRadius() * 1.2f, humanRotateDegree[i]);
+                Vector3 humanPos = GameFunction::GetPositionOnCircle(tableCenter, tableRadius * 1.2f, humanRotateDegree[i]);
                 humanPos.y = 1.28f;
                 human_[i]->SetTranslate(humanPos);
             }
+
 
             for (int32_t i = 0; i < 6; i++)
             {
@@ -119,12 +118,16 @@ void HumanManager::DrawImGui(Glass* glass, Table* table)
                 float angle = humanRotateDegree[(i / 2)] + (hugou * humanCatchSize_ * 0.5f);
                 markerAngles_[i] = angle;
             }
+
+
             for (int32_t i = 0; i < 6; i++)
             {
-                markerTransforms_[i].translate = GameFunction::GetPositionOnCircle(table->GetTranslate(), table->GetRadius() * 0.8f, markerAngles_[i]);
+                markerTransforms_[i].translate = GameFunction::GetPositionOnCircle(tableCenter, tableRadius * 0.8f, markerAngles_[i]);
                 markerTransforms_[i].translate.y = 1.28f;
                 markerTransforms_[i].scale = Vector3{ 0.1f,0.1f,0.1f };
             }
+
+
         }
 
         ImGui::TreePop();
@@ -132,9 +135,19 @@ void HumanManager::DrawImGui(Glass* glass, Table* table)
 
     ImGui::End();
 
+    return edit;
 
 
+}
 
+float HumanManager::GetHumanRotateDegree(const int32_t index)
+{
+    if (index > 2) {
+        Log("ここまで来たら角度の範囲外参照しようとしているよ");
+        return 0.0f;
+    }
+
+    return humanRotateDegree[index];
 }
 
 void HumanManager::SetIsShotPtr(bool* isShotPtr)
@@ -143,8 +156,9 @@ void HumanManager::SetIsShotPtr(bool* isShotPtr)
     HumanModel::SetIsShotPtr(isShotPtr);
 }
 
-bool HumanManager::Load(const std::string path, const int32_t stage, const Vector3 tableCenter, const float tableRadius)
+bool HumanManager::Load(const std::string path, const int32_t stage, const Vector3& tableCenter, const float tableRadius)
 {
+
     std::string key = "/Stage" + std::to_string(stage) + "/Human/RotateDeg";
     Vector3 humanRotateDeg;
     bool success = JsonManager::Load(path, key, humanRotateDeg);
@@ -160,7 +174,7 @@ bool HumanManager::Load(const std::string path, const int32_t stage, const Vecto
         Vector3 humanPos = GameFunction::GetPositionOnCircle(tableCenter, tableRadius * 0.8f, humanRotateDegree[i]);
         humanPos.y = 0.0f;
         human_[i]->SetTranslate(humanPos);
-        human_[i]->SetRotateY(-humanRotateDegree[i]*(std::numbers::pi_v<float> / 180.0f) + pi2point5);
+        human_[i]->SetRotateY(-humanRotateDegree[i] * (std::numbers::pi_v<float> / 180.0f) + pi2point5);
     }
 
     success = JsonManager::Load(path, key, humanCatchSize_);
@@ -188,7 +202,7 @@ bool HumanManager::Load(const std::string path, const int32_t stage, const Vecto
     //注意　一律ここで設定する
     customerTranslete.y = 0.5f;
     customer_->SetTranslate(customerTranslete);
- 
+
     customer_->SetRotateY(-customerRotateDegree_ * (std::numbers::pi_v<float> / 180.0f) + pi2point5);
 
     return true;
@@ -208,7 +222,7 @@ void HumanManager::Save(const std::string path, const int32_t stage)
 
 float HumanManager::GetMarkerAngle(int32_t index)
 {
-   //安全処理
+    //安全処理
     if (index < markerAngles_.size()) {
         return markerAngles_[index];
     }

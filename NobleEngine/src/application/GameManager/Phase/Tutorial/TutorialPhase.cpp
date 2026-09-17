@@ -276,7 +276,8 @@ void TutorialPhase::Update()
             ChangeCameraPhase(CameraPhase::CatchFollowing);
             Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
             glassPos.y = 1.28f;
-            glass_->ResetBroken();
+            /*glass_->ResetBroken();*/
+            glass_->Initialize();
             glass_->SetTranslate(glassPos);
             glass_->SetVelocity(Vector3{});
         }

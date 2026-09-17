@@ -1,13 +1,14 @@
 #include "GameScenePhase.h"
-#include <GameObject/Glass/Glass.h>
+
 #include <GameObject/TableObject/TableObject.h>
 #include <GameObject/Table/Table.h>
-#include <GameObject/CocktailWater/CocktailWater.h>
+//グラス総括管理
+#include<GameObject/GlassManager/GlassManager.h>
+
 //人間管理
 #include<GameObject/HumanManager/HumanManager.h>
 #include<GameObject/Bar/Bar.h>
-//予測オブジェクト
-#include <GameObject/PredictionObj/PredictionObj.h>
+
 
 #include <GameObject/UI/UIManager/UIManager.h>
 #include <GameObject/UI/BreakEvaluation/BreakEvaluation.h>
@@ -52,22 +53,20 @@ GameScenePhase::GameScenePhase()
     collisionManager_->SetTag();
 
     // オブジェクト実体生成
-    cocktailWater_ = std::make_unique<CocktailWater>();
+
     table_ = std::make_unique<Table>();
     table_->SetLightData(&gameLight_->GetLightData());
-    glass_ = std::make_unique<Glass>();
 
-    glass_->SetLightData(&gameLight_->GetLightData());
+    //グラス総括管理
+    glassManager_ = std::make_unique<GlassManager>();
+    glassManager_->SetLightData(&gameLight_->GetLightData());
+    glassManager_->SetCollisionManager(collisionManager_.get());
 
     //人間管理
     humanManager_ = std::make_unique<HumanManager>();
     humanManager_->SetLightData(&gameLight_->GetLightData());
-    humanManager_->SetIsShotPtr(&isShot_);
-
-    //予測線
-    prediction_ = std::make_unique<PredictionObj>();
-    prediction_->SetCollisionManager(collisionManager_.get());
-    prediction_->SetLightData(&gameLight_->GetLightData());
+    //ショットアドレスを入れるよう
+    humanManager_->SetIsShotPtr(&glassManager_->IsShotAddress());
 
     //配置用に使うつもりの残骸　もしかしたら後で参考にするかも
     //simpleObstaclePlacementFlow_ = std::make_unique<SimpleObstaclePlacementFlow>();
@@ -81,41 +80,62 @@ GameScenePhase::~GameScenePhase() {}
 
 void GameScenePhase::Initialize()
 {
-    isShot_ = false;
+ 
+    // ======================================
+    // 次のフェーズ
+    // ======================================
     nextPhase_ = Phase::Phase_None;
+
+    // ======================================
+    // レンダーターゲットの設定
+    // ======================================
     context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_GameScene)] = renderTargetID_;
 
+    // ======================================
     // オブジェクト初期化
+    // ======================================
+    
+    //グラス総括管理
+    glassManager_->Initialize();
+    //テーブル
     table_->Initialize();
-    glass_->Initialize();
-    cocktailWater_->Initialize();
-    //予測オブジェクト
-    prediction_->Initialize();
-
     //人間管理
     humanManager_->Initialize();
-
     //バー初期化（今は中身なし）
     bar_->Initialize();
+
+    // ======================================
+    // 音の設定
+    // ======================================
 
     volume = 0.0f;
     s_GameScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_GameScene_, true, volume));
 
+    // ======================================
+    // ロード
+    // ======================================
+
     //ゲームライトのロード
     gameLight_->Load();
 
+    //オブジェクトデータをセットする
     LoadObstacleData(0);
+
+    // ======================================
+    // ロード後のデータを使用しての設定
+    // ======================================
 
     //カメラの初期化
     gameCameraManager_->Initialize(humanManager_->GetCurrentGlassUserDegree());
     gameCameraManager_->ChangeCameraPhase(CameraPhase::CatchFollowing);
 
-    Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanManager_->GetCurrentGlassUserDegree());
-    glassPos.y = 1.28f;
-    glass_->SetTranslate(glassPos);
-    glass_->SetVelocity(Vector3{});
-    
-    //UI管理 ゲームタイマー
+    //グラスの位置を設定しているよ
+    glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(), humanManager_->GetCurrentGlassUserDegree(), 1.28f);
+  
+    // ======================================
+    // UI管理 ゲームタイマーも中に入っている
+    // ======================================
+ 
     uiManager_->Initialize();
 }
 
@@ -137,14 +157,14 @@ void GameScenePhase::Update()
     {
 
         const float currentHumanDegree = humanManager_->GetCurrentGlassUserDegree();
+        //ゲームカメラ管理
         gameCameraManager_->SetClosestThetaRadian(currentHumanDegree);
         gameCameraManager_->ChangeCameraPhase(CameraPhase::CatchFollowing);
-       
-        Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, currentHumanDegree);
-        glassPos.y = 1.28f;
-        glass_->ResetBroken();
-        glass_->SetTranslate(glassPos);
-        glass_->SetVelocity(Vector3{});
+
+        //初期化を呼んでみる
+        glassManager_->Initialize();
+        glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(), currentHumanDegree, 1.28f);
+   
         uiManager_->Initialize();
     }
 
@@ -154,10 +174,10 @@ void GameScenePhase::Update()
 
     // テーブル外判定
     Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
-    Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
+    Vector2 glassPos2D = glassManager_->GetPos2D();
   
     //テーブルの内円とグラスの外円が接触しているか
-    if (GameFunction::IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glass_->GetRadius()))
+    if (GameFunction::IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glassManager_->GetRadius()))
     {
         float angle = GameFunction::GetContactAngleDeg(tablePos2D, glassPos2D);
       
@@ -180,10 +200,13 @@ void GameScenePhase::Update()
                 gameCameraManager_->SetClosestThetaRadian(humanDegree);
                 gameCameraManager_->ChangeCameraPhase(CameraPhase::CatchFollowing);
                 
-                Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanDegree);
-                glassPos.y = 1.28f + 0.06f;
-                glass_->SetTranslate(glassPos);
-                glass_->SetVelocity(Vector3{});
+  
+                //少し上にする
+                glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(), humanDegree, 1.28f + 0.06f);
+                //速度を初期化する
+                glassManager_->SetVelocity(Vector3{});
+
+
                 uiManager_->GetBreakEvaluation()->SetMaxBreakCount(maxBreakableObstacleCount_);
                 int32_t obstacleCount = obstacles_.size();
                 uiManager_->GetBreakEvaluation()->SetBreakCount(maxBreakableObstacleCount_ - obstacleCount);
@@ -194,21 +217,19 @@ void GameScenePhase::Update()
             }
         }
 
+        glassManager_->AddTranslate(Vector3{ 0.0f, -0.06f, 0.0f });
 
-        glass_->AddTranslate(Vector3{ 0.0f, -0.06f, 0.0f });
 
-        if (glass_->GetIsBroken())
+        if (glassManager_->IsBroken())
         {
             const float humanDegree = humanManager_->GetCurrentGlassUserDegree();
            
             gameCameraManager_->SetClosestThetaRadian(humanDegree);
             gameCameraManager_->ChangeCameraPhase(CameraPhase::CatchFollowing);
            
-            Vector3 glassPos = GameFunction::GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanDegree);
-            glassPos.y = 1.28f;
-            glass_->ResetBroken();
-            glass_->SetTranslate(glassPos);
-            glass_->SetVelocity(Vector3{});
+            //フラグを初期化する。速度を0にする、など
+            glassManager_->Initialize();
+            glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(), humanDegree);
         }
     }
 
@@ -221,10 +242,8 @@ void GameScenePhase::Update()
     }
 
     // オブジェクト更新
-    glass_->Update(gameCameraManager_->GetCameraID());
+    glassManager_->Update(gameCameraManager_->GetCameraID());
     table_->Update(gameCameraManager_->GetCameraID());
-    cocktailWater_->SetTranslate(glass_->GetTranslate() + Vector3{ 0.0f,-0.09f,0.0f });
-    cocktailWater_->Update(gameCameraManager_->GetCameraID());
 
     for (int32_t i = 0; i < obstacles_.size(); ++i)
     {
@@ -237,8 +256,8 @@ void GameScenePhase::Update()
 
     //人間に発射フラグを渡したら発射を毎フレーム偽にする
     humanManager_->Update(gameCameraManager_->GetCameraID());
-
-    isShot_ = false;
+   //毎フレーム偽にする
+    glassManager_->SetIsShot(false);
 
     //コライダー更新
     if (isDebugDraw_) collisionManager_->DebugUpdate(gameCameraManager_->GetCameraID());
@@ -251,7 +270,13 @@ void GameScenePhase::Update()
     bar_->Update(gameCameraManager_->GetCameraID());
 
     //カメラのフェーズ
-    gameCameraManager_->UpdateCameraPhase(ableDrag_,glass_->GetTranslate(),glass_->GetVelocity(),mouseInsensitivity_);
+    gameCameraManager_->UpdateCameraPhase(
+        glassManager_->GetAbleDragAddress(),//ここだけアドレスで書き換える
+        glassManager_->GetTranslate(),
+        glassManager_->GetVelocity(),
+        glassManager_->GetMouseInsensitivity()
+
+    );
 
     //UI管理
     uiManager_->Update();
@@ -272,21 +297,24 @@ void GameScenePhase::Draw()
 
 void GameScenePhase::DrawImGui()
 {
-    glass_->DrawImGui();
-    cocktailWater_->DrawImGui();
+
+    //glass
+    glassManager_->DrawImGui();
+    
     //obstacles_[0]->DrawImGui();
     table_->DrawImGui();
-    prediction_->DrawImGui();
+ 
     uiManager_->DrawImGui();
 
-    humanManager_->DrawImGui(glass_.get(), table_.get());
+    if (humanManager_->DrawImGui(table_->GetTranslate(), table_->GetRadius())) {
+        //人間管理が編集したら
+        glassManager_->SetPosForTableAndHuman(table_->GetTranslate(), table_->GetRadius(),humanManager_->GetHumanRotateDegree(0));
+    };
 
     //バー
     bar_->DrawImGui();
 
     ImGui::Begin("Editor");
-
-    ImGui::Checkbox("ableDrag", &ableDrag_);
 
     ImGui::Checkbox("DebugDraw", &isDebugDraw_);
 
@@ -404,7 +432,7 @@ void GameScenePhase::CheckColliders()
     collisionManager_->ClearColliders();
 
     //コライダーを追加する
-    for (auto& collider : glass_->GetColliders())
+    for (auto& collider : glassManager_->GetColliders())
     {
         collisionManager_->AddCollider(collider.get());
     }
@@ -429,62 +457,7 @@ void GameScenePhase::CheckColliders()
 void GameScenePhase::PlayerControl()
 {    
 
-    if (ableDrag_)
-    {
-        if (Game::IO::Mouse::IsJustPressed(0))
-        {
-            dragStartPos_ = Game::IO::Mouse::Get2DPosition();
-            velocity_ = Vector2(0.0f, 0.0f);
-           gameCameraManager_->ChangeCameraPhase(CameraPhase::ShotAngleSetup);
-            dragging_ = true;
-        }
-        if (dragging_ && Game::IO::Mouse::IsHeld(0))
-        {
-            Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
-            float dragLengthY = dragStartPos_.y - Game::IO::Mouse::Get2DPosition().y;
-
-            constexpr float kPowerScale = 0.05f; // 感度。要調整
-            constexpr float kMaxSpeed = 5.0f;   // 上限。要調整
-
-            if (dragLengthY > 0.0f)
-            {
-                Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(gameCameraManager_->GetCameraID());
-                cameraDir.y = 0.0f;
-                cameraDir.Normalize();
-
-                float power = std::clamp(dragLengthY * kPowerScale, 0.0f, kMaxSpeed);
-                velocity_ = Vector2(cameraDir.x, cameraDir.z) * power;
-            } else
-            {
-                velocity_ = Vector2(0.0f, 0.0f);
-            }
-
-            Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-
-            prediction_->SetVelocity(velocity);
-            prediction_->SetTranslate(glass_->GetTranslate());
-            //予測線の更新をする
-            prediction_->Update(gameCameraManager_->GetCameraID(), obstacles_);
-        }
-        if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
-        {
-            dragging_ = false;
-            if (velocity_.LengthSq() > 0.5f)
-            {
-                glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
-                gameCameraManager_->SetPhi(20.0f); 
-
-                ableDrag_ = false;
-                prediction_->SetVelocity(Vector3{});
-                //
-                isShot_ = true;
-                gameCameraManager_->ChangeCameraPhase(CameraPhase::GlassFollowing);
-            } else
-            {
-                gameCameraManager_->ChangeCameraPhase(CameraPhase::Free);
-            }
-        }
-    }
+    glassManager_->PlayerControl(gameCameraManager_.get(),obstacles_);
 
 }
 
@@ -498,22 +471,19 @@ void GameScenePhase::DrawMainScreen(const int32_t renderTexture)
     //テーブルの描画
     table_->Draw(renderTexture);
 
-    //ショットアングルセットアップ時に描画する
     if (gameCameraManager_->GetCameraPhase() == CameraPhase::ShotAngleSetup)
     {
-        prediction_->Draw(renderTexture);
+        //グラス総括管理の予測線描画
+        glassManager_->DrawPrediction(renderTexture);
     }
-
     // 障害物の描画
     for (auto& obstacle : obstacles_)
     {
         obstacle->Draw(renderTexture);
     }
 
-    //カクテル液体の描画
-    cocktailWater_->Draw(renderTexture);
-    //グラスは半透明なので後に描画する
-    glass_->Draw(renderTexture);
+    //グラス総括管理
+    glassManager_->Draw(renderTexture);
 
 }
 

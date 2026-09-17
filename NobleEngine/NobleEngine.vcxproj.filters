@@ -127,6 +127,7 @@
     <ClCompile Include="src\application\System\GameFunction\GameFunction.cpp" />
     <ClCompile Include="src\application\GameObject\GameCameraManager\GameCameraManager.cpp" />
     <ClCompile Include="src\application\GameObject\GameScreen\GameScreen.cpp" />
+    <ClCompile Include="src\application\GameObject\GlassManager\GlassManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -417,6 +418,7 @@
     <ClInclude Include="src\application\System\GameFunction\GameFunction.h" />
     <ClInclude Include="src\application\GameObject\GameCameraManager\GameCameraManager.h" />
     <ClInclude Include="src\application\GameObject\GameScreen\GameScreen.h" />
+    <ClInclude Include="src\application\GameObject\GlassManager\GlassManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />

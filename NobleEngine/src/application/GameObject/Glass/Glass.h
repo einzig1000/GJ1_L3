@@ -26,8 +26,6 @@ public:
     void Draw(int32_t renderTargetID);
     void DrawImGui();
 
-    void SetGlassTypeAndLoadModels();
-
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
 	void AddTranslate(const Vector3& translate) { transform_.translate += translate; };
 
@@ -47,16 +45,10 @@ public:
 
 	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
+    //void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
+private:
 
-    void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
-    Vector3 Forward(){
-
-        return {
-            worldMatrix_.m[2][0],
-            worldMatrix_.m[2][1],
-            worldMatrix_.m[2][2]
-        };
-    }
+    void SetGlassTypeAndLoadModels();
 private:
 	LightDataForGPU* lightData_;
     //

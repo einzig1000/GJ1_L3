@@ -3,11 +3,11 @@
 #include <memory>
 #include <definition/constexprs.h>
 
-class Glass;
+class GlassManager;//グラス総括管理
 class TableObject;
 class Table;
 class CollisionManager;
-class CocktailWater;
+
 class PredictionObj;
 class HumanManager;//人間管理
 class Bar;//バークラスの追加
@@ -55,17 +55,7 @@ private:
 
 	std::unique_ptr<GameCameraManager> gameCameraManager_ = nullptr;
 
-	// グラス
-	bool isShot_ = false;
-	std::unique_ptr<Glass> glass_ = nullptr;
-	std::unique_ptr<CocktailWater> cocktailWater_ = nullptr;
-	Vector2 velocity_ = Vector2(0.0f, 0.0f);		// 射出速度
-	Vector2 dragStartPos_ = Vector2(0.0f, 0.0f);	// マウスドラッグ開始位置
-	bool ableDrag_ = true;
-	float mouseInsensitivity_ = 0.020f;	// マウス感度
-	bool dragging_ = false;	// ドラッグ中かどうか
-	float glassRadian_ = 0.0f;
-	float glassSpeedPower_ = 1.0f;
+	std::unique_ptr<GlassManager>glassManager_ = nullptr;
 
 	//プレイヤー操作
 	void PlayerControl();
@@ -79,8 +69,7 @@ private:
 
 	// テーブル
 	std::unique_ptr<Table> table_ = nullptr;
-	//予測オブジェ
-	std::unique_ptr<PredictionObj>prediction_ = nullptr;
+
 	//人間管理
 	std::unique_ptr<HumanManager>humanManager_ = nullptr;
 	//バー

@@ -14,20 +14,6 @@ Glass::Glass()
 
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
 
-    transform_.translate.y = 1.28f;
-
-}
-
-Glass::~Glass()
-{}
-
-void Glass::Initialize()
-{
-    //床との当たり判定
-    isHitFloor_ = false;
-    //顧客との当たり判定を得る
-    isHitCustomer_ = false;
-
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
     //シンプルモデルのシェーダー適用
@@ -36,9 +22,6 @@ void Glass::Initialize()
     glassObj_->SetupFromShaders();
 
     glassObj_->modelID_ = modelID_;
-    //一旦半透明にしておく
-    color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
-	material_.alpha = 0.5f;
 
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
@@ -46,10 +29,9 @@ void Glass::Initialize()
         CollisionTag::GetTag("Glass"),
         //ターゲット（バーテン）と障害物とお客様に当たる
         CollisionTag::GetTag("Target") |
-        CollisionTag::GetTag("Obstacles")|
+        CollisionTag::GetTag("Obstacles") |
         CollisionTag::GetTag("Customer")
     );
-
 
     if (!comCollider_.colliders.empty()) {
 
@@ -70,10 +52,10 @@ void Glass::Initialize()
             }
 
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Customer")) {
-             
+
                 //顧客と最初に当たった時を得る
                 isHitCustomer_ = true;
-                
+
             }
 
             if (isCollisionResponse) {
@@ -83,9 +65,26 @@ void Glass::Initialize()
             });
     }
 
-
     // GlassParticle
     glassParticle_ = std::make_unique<GlassParticle>();
+}
+
+Glass::~Glass()
+{}
+
+void Glass::Initialize()
+{
+    //床との当たり判定
+    isHitFloor_ = false;
+    //顧客との当たり判定を得る
+    isHitCustomer_ = false;
+    //壊れた判定
+    isBroken_ = false;
+
+    //一旦半透明にしておく
+    color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
+	material_.alpha = 0.5f;
+
     glassParticle_->Initialize();
 }
 
@@ -130,7 +129,6 @@ void Glass::Update(const int32_t cameraID)
         }
     }
 
-
     material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
     material_.alpha = color_.w;
    
@@ -146,6 +144,7 @@ void Glass::Draw(int32_t renderTargetID)
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
     if (isBroken_) {
+
         glassParticle_->Draw(renderTargetID);
     } else {
         glassObj_->Draw(renderTargetID);
