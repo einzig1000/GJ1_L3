@@ -34,6 +34,8 @@ public:
 	Vector3 GetTranslate() { return transform_.translate; };
     Vector3& GetTranslatePointer() { return transform_.translate; };
 
+    void SetRotateY(float rotateY) { transform_.rotate.y = rotateY; };
+    const float GetRotate() { transform_.rotate.y; };
 	//void SetVelocity(const Vector3& vel) { velocity_ = vel; };
     Vector3 GetVelocity() { return velocity_; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
@@ -45,7 +47,16 @@ public:
 
 	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
+
     void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
+    Vector3 Forward(){
+
+        return {
+            worldMatrix_.m[2][0],
+            worldMatrix_.m[2][1],
+            worldMatrix_.m[2][2]
+        };
+    }
 private:
 	LightDataForGPU* lightData_;
     //

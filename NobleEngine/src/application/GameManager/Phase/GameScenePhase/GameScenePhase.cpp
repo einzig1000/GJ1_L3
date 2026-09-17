@@ -142,8 +142,9 @@ void GameScenePhase::Update()
     }
 #endif
 
+    //カメラの更新
     Game::Camera::Update(c_main_);
-
+    //Rキーを押したらリスタート
     if (Game::IO::Key::IsJustPressed('R'))
     {
 
@@ -166,13 +167,17 @@ void GameScenePhase::Update()
     // テーブル外判定
     Vector2 tablePos2D = Vector2(table_->GetTranslate().x, table_->GetTranslate().z);
     Vector2 glassPos2D = Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
+  
+    //テーブルの内円とグラスの外円が接触しているか
     if (GameFunction::IsTouchingInnerEdge(tablePos2D, table_->GetRadius(), glassPos2D, glass_->GetRadius()))
     {
         float angle = GameFunction::GetContactAngleDeg(tablePos2D, glassPos2D);
+      
         for (int i = 0; i < 3; i++)
         {
             humanManager_->GetMarkerAngle(i * 2);
 
+            //angleがfromDegからtoDegの範囲に入っているか
             if (GameFunction::IsInAngleRange(
                 angle,
                 humanManager_->GetMarkerAngle(i * 2),
@@ -202,6 +207,7 @@ void GameScenePhase::Update()
 
 
         glass_->AddTranslate(Vector3{ 0.0f, -0.06f, 0.0f });
+
         if (glass_->GetIsBroken())
         {
             const float humanDegree = humanManager_->GetCurrentGlaassUserDegree();
@@ -245,71 +251,16 @@ void GameScenePhase::Update()
 
     //コライダー更新
     if (isDebugDraw_) collisionManager_->DebugUpdate(c_main_);
+    //コライダーの判定を開始する
     CheckColliders();
-
-    // ショット
-    if (ableDrag_)
-    {
-        if (Game::IO::Mouse::IsJustPressed(0))
-        {
-            dragStartPos_ = Game::IO::Mouse::Get2DPosition();
-            velocity_ = Vector2(0.0f, 0.0f);
-            ChangeCameraPhase(CameraPhase::ShotAngleSetup);
-            dragging_ = true;
-        }
-        if (dragging_ && Game::IO::Mouse::IsHeld(0))
-        {
-            Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
-            float dragLengthY = dragStartPos_.y - Game::IO::Mouse::Get2DPosition().y;
-
-            constexpr float kPowerScale = 0.05f; // 感度。要調整
-            constexpr float kMaxSpeed = 5.0f;   // 上限。要調整
-
-            if (dragLengthY > 0.0f)
-            {
-                Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
-                cameraDir.y = 0.0f;
-                cameraDir.Normalize();
-
-                float power = std::clamp(dragLengthY * kPowerScale, 0.0f, kMaxSpeed);
-                velocity_ = Vector2(cameraDir.x, cameraDir.z) * power;
-            } else
-            {
-                velocity_ = Vector2(0.0f, 0.0f);
-            }
-
-            Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-            prediction_->SetVelocity(velocity);
-            prediction_->SetTranslate(glass_->GetTranslate());
-            prediction_->Update(c_main_, obstacles_);
-        }
-        if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
-        {
-            dragging_ = false;
-            if (velocity_.LengthSq() > 0.5f)
-            {
-                glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
-                cameraSpherical_.phi = 20.0f;
-
-                ableDrag_ = false;
-                prediction_->SetVelocity(Vector3{});
-                //
-                isShot_ = true;
-                ChangeCameraPhase(CameraPhase::GlassFollowing);
-            } else
-            {
-                ChangeCameraPhase(CameraPhase::Free);
-            }
-        }
-    }
-
+    //プレイヤー操作
+    PlayerControl();
 
     //バーの更新
     bar_->Update(c_main_);
 
-
+    //カメラのフェーズ
     UpdateCameraPhase();
-
 
     //UI管理
     uiManager_->Update();
@@ -508,6 +459,67 @@ void GameScenePhase::CheckColliders()
     collisionManager_->CheckAllCollisions();
 }
 
+void GameScenePhase::PlayerControl()
+{    
+
+    if (ableDrag_)
+    {
+        if (Game::IO::Mouse::IsJustPressed(0))
+        {
+            dragStartPos_ = Game::IO::Mouse::Get2DPosition();
+            velocity_ = Vector2(0.0f, 0.0f);
+            ChangeCameraPhase(CameraPhase::ShotAngleSetup);
+            dragging_ = true;
+        }
+        if (dragging_ && Game::IO::Mouse::IsHeld(0))
+        {
+            Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
+            float dragLengthY = dragStartPos_.y - Game::IO::Mouse::Get2DPosition().y;
+
+            constexpr float kPowerScale = 0.05f; // 感度。要調整
+            constexpr float kMaxSpeed = 5.0f;   // 上限。要調整
+
+            if (dragLengthY > 0.0f)
+            {
+                Vector3 cameraDir = Game::Camera::Getter::GetCameraDirection(c_main_);
+                cameraDir.y = 0.0f;
+                cameraDir.Normalize();
+
+                float power = std::clamp(dragLengthY * kPowerScale, 0.0f, kMaxSpeed);
+                velocity_ = Vector2(cameraDir.x, cameraDir.z) * power;
+            } else
+            {
+                velocity_ = Vector2(0.0f, 0.0f);
+            }
+
+            Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
+
+            prediction_->SetVelocity(velocity);
+            prediction_->SetTranslate(glass_->GetTranslate());
+            //予測線の更新をする
+            prediction_->Update(c_main_, obstacles_);
+        }
+        if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
+        {
+            dragging_ = false;
+            if (velocity_.LengthSq() > 0.5f)
+            {
+                glass_->SetVelocity(Vector3(velocity_.x, 0.0f, velocity_.y));
+                cameraSpherical_.phi = 20.0f;
+
+                ableDrag_ = false;
+                prediction_->SetVelocity(Vector3{});
+                //
+                isShot_ = true;
+                ChangeCameraPhase(CameraPhase::GlassFollowing);
+            } else
+            {
+                ChangeCameraPhase(CameraPhase::Free);
+            }
+        }
+    }
+
+}
 
 bool GameScenePhase::LoadObstacleData(int32_t stage)
 {

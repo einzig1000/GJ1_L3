@@ -37,15 +37,19 @@ void NumMeshs::Update(const int32_t cameraID)
 
     if (isUpdateValue_) {
 
-        int32_t tempBenefit = std::abs(value_);
+        if (std::abs(value_) < 1000000) {
+            //カンスト
+            int32_t tempBenefit = std::abs(value_);
 
-        for (int digit = maxDigit_ -1; digit >= 0; digit--) {
-          
-            int digitNum = std::powf(10, digit);
-            int num = tempBenefit / digitNum;
-            numbers_[maxDigit_ - 1-digit]->SetModelId(num);
-            tempBenefit %= digitNum;
+            for (int digit = maxDigit_ - 1; digit >= 0; digit--) {
+
+                int digitNum = std::powf(10, digit);
+                int num = tempBenefit / digitNum;
+                numbers_[maxDigit_ - 1 - digit]->SetModelId(num);
+                tempBenefit %= digitNum;
+            }
         }
+
     }
 
     Vector4 color = { 1.0f,1.0f,1.0f,1.0f };

@@ -71,6 +71,11 @@ private:
 	bool ableDrag_ = true;
 	float mouseInsensitivity_ = 0.020f;	// マウス感度
 	bool dragging_ = false;	// ドラッグ中かどうか
+	float glassRadian_ = 0.0f;
+	float glassSpeedPower_ = 1.0f;
+
+	//プレイヤー操作
+	void PlayerControl();
 
 	// 障害物
 	std::vector<std::unique_ptr<TableObject>> obstacles_;
