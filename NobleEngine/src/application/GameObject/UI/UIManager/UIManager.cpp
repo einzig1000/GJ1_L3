@@ -93,10 +93,6 @@ void UIManager::Initialize()
     isInitializeCamera_ = false;
     Game::Camera::Setter::SetEnableControl(false, uiCameraID_);
  
-}
-
-void UIManager::Update()
-{
 
     const float hPi = std::numbers::pi_v<float>*0.5f;
     Game::Camera::Setter::SetDistanceTarget(12.0f, 0.0f, EaseType::LINEAR, uiCameraID_);
@@ -104,7 +100,15 @@ void UIManager::Update()
     Game::Camera::Setter::SetPhiTarget(0.16f, 0.0f, EaseType::LINEAR, uiCameraID_);
 
     Game::Camera::Setter::SetCenter({ 0.0f,-3.0,9.0f }, 0.0f, EaseType::LINEAR, uiCameraID_);
-    Game::Camera::Update(uiCameraID_);
+
+}
+
+void UIManager::Update()
+{
+
+     Game::Camera::Update(uiCameraID_);
+  
+ 
     //ゲームタイマー
     gameTimer_ -= Game::Time::GetScaledDeltaTimeMs()*0.001f;
     timeMesh_->SetValue(static_cast<int32_t>(gameTimer_));

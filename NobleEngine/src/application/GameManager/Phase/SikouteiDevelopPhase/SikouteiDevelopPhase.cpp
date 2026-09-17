@@ -141,13 +141,13 @@ SikouteiDevelopPhase::SikouteiDevelopPhase()
     drawForMain_[0]->SetCBufferData(0, ShaderType::PixelShader, &rt_3D_);
 
 
-    drawForMain_[1] = std::make_unique<RenderObject>();
-    drawForMain_[1]->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
-    drawForMain_[1]->psoConfig_.ps = "assets/shaders/FullScreen/CopyImage.PS.hlsl";
-    drawForMain_[1]->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
-    drawForMain_[1]->SetupFromShaders();
-    int32_t rtID = uiManager_->GetRenderTextureID();
-    drawForMain_[1]->SetCBufferData(0, ShaderType::PixelShader, &rtID);
+    //drawForMain_[1] = std::make_unique<RenderObject>();
+    //drawForMain_[1]->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
+    //drawForMain_[1]->psoConfig_.ps = "assets/shaders/FullScreen/CopyImage.PS.hlsl";
+    //drawForMain_[1]->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
+    //drawForMain_[1]->SetupFromShaders();
+
+    //drawForMain_[1]->SetCBufferData(0, ShaderType::PixelShader, &rtID);
 
     // サウンド
 	s_GameScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/GameScene.mp3");
@@ -492,10 +492,10 @@ void SikouteiDevelopPhase::Draw()
     //コライダーデバック描画
     if (isDebugDraw_) collisionManager_->DebugDraw();
     //UIなので一番最後に描画する
-    uiManager_->Draw();
+    //uiManager_->Draw();
 
     drawForMain_[0]->Draw(renderTargetID_, { rt_3D_ });
-    drawForMain_[1]->Draw(renderTargetID_, { uiManager_->GetRenderTextureID() });
+    //drawForMain_[1]->Draw(renderTargetID_, { uiManager_->GetRenderTextureID() });
 }
 
 void SikouteiDevelopPhase::DrawImGui()

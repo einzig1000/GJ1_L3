@@ -438,7 +438,7 @@ void TutorialPhase::Draw()
     glass_->Draw(renderTargetID_);
 
     //UIなので一番最後に描画する
-    uiManager_->Draw();
+    //uiManager_->Draw();
 }
 
 void TutorialPhase::DrawImGui()

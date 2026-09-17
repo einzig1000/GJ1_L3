@@ -32,6 +32,10 @@ GameScreen::GameScreen()
     drawForMain_[UI_SCREEN]->SetCBufferData(0, ShaderType::PixelShader, &renderTextureIDs_[UI_SCREEN]);
 }
 
+GameScreen::~GameScreen()
+{
+}
+
 void GameScreen::Draw(const int32_t renderTargetID)
 {
     drawForMain_[0]->Draw(renderTargetID, { renderTextureIDs_[MAIN_SCREEN] });
