@@ -3,20 +3,21 @@
 #include<GameObject/UI/UIModel/UIModel.h>
 #include<GameObject/UI/BreakEvaluation/BreakEvaluation.h>
 #include<numbers>
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 
 UIManager::UIManager()
 {
     // カメラ
     uiCameraID_ = Game::Camera::AddCamera("UICamera");
 
-    benefitMesh_ = std::make_unique<NumMeshs>();
-    timeMesh_ = std::make_unique<NumMeshs>();
+    benefitNumMesh_ = std::make_unique<NumMeshs>();
+    timeNumMesh_ = std::make_unique<NumMeshs>();
 
     timeAndMoneySignboard_ = std::make_unique<UIModel>();
 
     cockTailSignboard_ = std::make_unique<UIModel>();
 
-    yenWorl_ = std::make_unique<UIModel>();
+    yenWord_ = std::make_unique<UIModel>();
     timeWord_ = std::make_unique<UIModel>();
 
     breakEvaluation_ = std::make_unique<BreakEvaluation>();
@@ -74,7 +75,7 @@ void UIManager::Initialize()
         modelIds_["cocktailSignboard"].texture_,
         EulerTransforms{ { 1.0f,1.0f,1.0f } , { 0.0f,2.562f,0.0f }, { range,0.0f,1.0f } });
 
-    yenWorl_->Initialize(
+    yenWord_->Initialize(
         modelIds_["yen"].model_,
         modelIds_["yen"].texture_,
         EulerTransforms{ { 1.0f,1.0f,1.0f } , { 0.0f,0.0f,0.0f },{-1.67f,0.4f,-0.2f } },
@@ -90,8 +91,8 @@ void UIManager::Initialize()
 
     breakEvaluation_->Initialize();
 
-    benefitMesh_->Initialize(6, { { 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, {-0.28f,0.4f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
-    timeMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
+    benefitNumMesh_->Initialize(6, { { 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, {-0.28f,0.4f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
+    timeNumMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
 
     Game::Camera::Setter::SetEnableControl(false, uiCameraID_);
 
@@ -108,7 +109,7 @@ void UIManager::Update()
 
     //ゲームタイマー
     gameTimer_ -= Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-    timeMesh_->SetValue(static_cast<int32_t>(gameTimer_));
+    timeNumMesh_->SetValue(static_cast<int32_t>(gameTimer_));
 
     //アニメーションタイマー
     aniTimer_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
@@ -130,12 +131,12 @@ void UIManager::Update()
 
     cockTailSignboard_->Update(uiCameraID_);
 
-    yenWorl_->Update(uiCameraID_);
+    yenWord_->Update(uiCameraID_);
     timeWord_->Update(uiCameraID_);
  
 
-    benefitMesh_->Update(uiCameraID_);
-    timeMesh_->Update(uiCameraID_);
+    benefitNumMesh_->Update(uiCameraID_);
+    timeNumMesh_->Update(uiCameraID_);
 
 }
 
@@ -148,11 +149,11 @@ void UIManager::Draw(const int32_t uiRenderTextureID)
     
     breakEvaluation_->Draw(uiRenderTextureID);
 
-    yenWorl_->Draw(uiRenderTextureID);
+    yenWord_->Draw(uiRenderTextureID);
     timeWord_->Draw(uiRenderTextureID);
   
-    benefitMesh_->Draw(uiRenderTextureID);
-    timeMesh_->Draw(uiRenderTextureID);
+    benefitNumMesh_->Draw(uiRenderTextureID);
+    timeNumMesh_->Draw(uiRenderTextureID);
 
 }
 
@@ -163,26 +164,26 @@ void UIManager::DrawImGui()
     timeAndMoneySignboard_->DebugUI(i++);
    
     cockTailSignboard_->DebugUI(i++);
-    yenWorl_->DebugUI(i++);
+    yenWord_->DebugUI(i++);
     timeWord_->DebugUI(i++);
 
-    benefitMesh_->DrawImGui("benefit");
-    timeMesh_->DrawImGui("timeMesh");
+    benefitNumMesh_->DrawImGui("benefit");
+    timeNumMesh_->DrawImGui("timeMesh");
 
     breakEvaluation_->DebugImGui();
 }
 
 void UIManager::SetScore(float score)
 {
-    benefitMesh_->SetValue(static_cast<int32_t>(score));
+    benefitNumMesh_->SetValue(static_cast<int32_t>(score));
 }
 
 void UIManager::AddScore(float score)
 {
-	benefitMesh_->AddValue(static_cast<int32_t>(score));
+	benefitNumMesh_->AddValue(static_cast<int32_t>(score));
 }
 
 int32_t UIManager::GetScore() const
 {
-    return benefitMesh_->GetValue();
+    return benefitNumMesh_->GetValue();
 }

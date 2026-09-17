@@ -3,6 +3,8 @@
 #include<GameObject/UI/UIModel/UIModel.h>
 #include<numbers>
 #include<algorithm>
+#include<System/SESystem/GameSESystem/GameSESystem.h>
+
  BreakEvaluation::BreakEvaluation()
 {
     currentCountMesh_ = std::make_unique<NumMeshs>();
@@ -167,6 +169,9 @@ void BreakEvaluation::Update(const int32_t uiCameraId)
        
         } else {
             currentCountMesh_->SetEulerTransform(AnimationStart(numberAniTime_));
+            if (numberAniTime_.isEnd) {
+                GameSESystem::PlaySE(GameSESystem::UI_BREAK);
+            }
         }
     }
 

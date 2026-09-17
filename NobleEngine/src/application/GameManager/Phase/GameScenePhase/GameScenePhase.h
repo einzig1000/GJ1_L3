@@ -14,6 +14,7 @@ class UIManager;
 class GameLight;//ライト
 class GameCameraManager;//ゲームカメラ管理
 class GameScreen;//ゲーム画面
+class GameSESystem;
 
 class GameScenePhase :
 	public IPhase
@@ -51,6 +52,9 @@ private:
 	void CheckColliders();
 	//テーブル内イベント
 	void InnerTableEvent();
+
+	//ゲームSEシステム
+	std::unique_ptr<GameSESystem>gameSESystem_ = nullptr;
 
 	//ゲーム画面　
 	std::unique_ptr<GameScreen>gameScreen_ = nullptr;

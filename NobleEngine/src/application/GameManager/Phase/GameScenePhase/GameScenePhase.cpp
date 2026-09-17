@@ -27,6 +27,7 @@
 #include <Utilities/Json/JsonManager.h>
 
 #include<System/GameBGMSystem/GameBGMSystem.h>
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
@@ -76,6 +77,11 @@ GameScenePhase::GameScenePhase()
     //バー
     bar_ = std::make_unique<Bar>();
     bar_->SetLightData(&gameLight_->GetLightData());
+
+
+    gameSESystem_ = std::make_unique<GameSESystem>();
+    //ロード
+    gameSESystem_->Load();
 }
 
 GameScenePhase::~GameScenePhase() {}
@@ -457,6 +463,7 @@ void GameScenePhase::InnerTableEvent()
 
     if (glassManager_->IsBroken())
     {
+        GameSESystem::PlaySE(GameSESystem::BREAK);
         const float humanDegree = humanManager_->GetCurrentGlassUserDegree();
 
         gameCameraManager_->SetClosestThetaRadian(humanDegree);

@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.cpp" />
+    <ClCompile Include="src\application\System\SESystem\GameSESystem\GameSESystem.cpp" />
+    <ClCompile Include="src\application\System\SESystem\ISESystem.cpp" />
     <ClCompile Include="src\application\System\GameBGMSystem\GameBGMSystem.cpp" />
     <ClCompile Include="src\application\GameObject\GlassManager\GlassManager.cpp" />
     <ClCompile Include="src\application\GameObject\GameScreen\GameScreen.cpp" />
@@ -139,8 +142,12 @@
     <ClCompile Include="src\application\GameObject\UI\UIModel\UIModel.cpp" />
     <ClCompile Include="src\application\GameObject\UI\UIManager\UIManager.cpp" />
     <ClCompile Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.cpp" />
+    <ClCompile Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.h" />
+    <ClInclude Include="src\application\System\SESystem\GameSESystem\GameSESystem.h" />
+    <ClInclude Include="src\application\System\SESystem\ISESystem.h" />
     <ClInclude Include="src\application\System\GameBGMSystem\GameBGMSystem.h" />
     <ClInclude Include="src\application\GameObject\GlassManager\GlassManager.h" />
     <ClInclude Include="src\application\GameObject\GameScreen\GameScreen.h" />
@@ -422,6 +429,7 @@
     <ClInclude Include="src\application\GameObject\UI\UIModel\UIModel.h" />
     <ClInclude Include="src\application\GameObject\UI\UIManager\UIManager.h" />
     <ClInclude Include="src\application\GameManager\Phase\Tutorial\TutorialPhase.h" />
+    <ClInclude Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />

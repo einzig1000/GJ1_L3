@@ -1,7 +1,7 @@
 #include "TableObject.h"
 #include"Utilities/Json/JsonManager.h"
 #include"GameObject/Effect/GlassParticle/GlassParticle.h"
-
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 namespace
 {
     //グラス共通の変数
@@ -277,6 +277,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
                 glassParticle_->Emit(transform_.translate, comCollider_.colliders.at(0)->GetPhysicsBody().velocity);
                 // 死亡まで残り1秒
 				deathCounter_.Initialize(1.0f);
+                GameSESystem::PlaySE(GameSESystem::BREAK);
             }
             });
     }

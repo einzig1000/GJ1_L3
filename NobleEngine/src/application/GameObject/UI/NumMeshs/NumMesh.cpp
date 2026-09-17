@@ -1,8 +1,9 @@
 #include "NumMeshs.h"
 #include"../Numbers/Numbers.h"
+#include<algorithm>
 
 NumMeshs::NumMeshs()
-{    
+{
     Numbers::Load();
 
     numbers_.resize(maxDigit_);
@@ -20,7 +21,7 @@ NumMeshs::~NumMeshs()
 
 
 void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transform, Matrix4x4* parent)
-{  
+{
     maxDigit_ = maxDigit;
     for (uint32_t i = 0; i < maxDigit; ++i) {
         numbers_[i]->Initialize(0, transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }, transform.rotate, transform.scale, parent);
@@ -37,27 +38,27 @@ void NumMeshs::Update(const int32_t cameraID)
 
     if (isUpdateValue_) {
 
-        if (std::abs(value_) < 1000000) {
-            //カンスト
-            int32_t tempBenefit = std::abs(value_);
+        //カンスト処理
+        value_ = std::clamp(value_, 0, 1000000 - 1);
+        int32_t tempBenefit = std::abs(value_);
 
-            for (int digit = maxDigit_ - 1; digit >= 0; digit--) {
+        for (int digit = maxDigit_ - 1; digit >= 0; digit--) {
 
-                int digitNum = std::powf(10, digit);
-                int num = tempBenefit / digitNum;
-                numbers_[maxDigit_ - 1 - digit]->SetModelId(num);
-                tempBenefit %= digitNum;
-            }
+            int digitNum = std::powf(10, digit);
+            int num = tempBenefit / digitNum;
+            numbers_[maxDigit_ - 1 - digit]->SetModelId(num);
+            tempBenefit %= digitNum;
         }
+
 
     }
 
     Vector4 color = { 1.0f,1.0f,1.0f,1.0f };
 
     if (isMinus_) {
-       color = { 1.0f,0.0f,0.0f,1.0f };
-       minus_->SetColor(color);
-       minus_->Update(cameraID);
+        color = { 1.0f,0.0f,0.0f,1.0f };
+        minus_->SetColor(color);
+        minus_->Update(cameraID);
     }
 
     for (uint32_t i = 0; i < maxDigit_; ++i) {
@@ -108,11 +109,11 @@ void NumMeshs::SetEulerTransform(const EulerTransforms& transform)
 {
 
     for (uint32_t i = 0; i < maxDigit_; ++i) {
-        EulerTransforms numTransform = EulerTransforms{.scale = transform.scale,.rotate =  transform.rotate,.translate =  {transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }} };
+        EulerTransforms numTransform = EulerTransforms{ .scale = transform.scale,.rotate = transform.rotate,.translate = {transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }} };
         numbers_[i]->SetTransform(numTransform);
     }
 
-    EulerTransforms minusTransform = EulerTransforms{.scale =  transform.scale,.rotate =  transform.rotate, .translate = {transform.translate - Vector3{ transform.scale.x * 0.5f,0.0f,0.0f }} };
+    EulerTransforms minusTransform = EulerTransforms{ .scale = transform.scale,.rotate = transform.rotate, .translate = {transform.translate - Vector3{ transform.scale.x * 0.5f,0.0f,0.0f }} };
     //マイナスは10のインデックスに入っている
     minus_->SetTransform(minusTransform);
 

@@ -129,6 +129,10 @@
     <ClCompile Include="src\application\GameObject\GameScreen\GameScreen.cpp" />
     <ClCompile Include="src\application\GameObject\GlassManager\GlassManager.cpp" />
     <ClCompile Include="src\application\System\GameBGMSystem\GameBGMSystem.cpp" />
+    <ClCompile Include="src\application\System\SESystem\ISESystem.cpp" />
+    <ClCompile Include="src\application\System\SESystem\GameSESystem\GameSESystem.cpp" />
+    <ClCompile Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.cpp" />
+    <ClCompile Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -421,6 +425,10 @@
     <ClInclude Include="src\application\GameObject\GameScreen\GameScreen.h" />
     <ClInclude Include="src\application\GameObject\GlassManager\GlassManager.h" />
     <ClInclude Include="src\application\System\GameBGMSystem\GameBGMSystem.h" />
+    <ClInclude Include="src\application\System\SESystem\ISESystem.h" />
+    <ClInclude Include="src\application\System\SESystem\GameSESystem\GameSESystem.h" />
+    <ClInclude Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.h" />
+    <ClInclude Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
