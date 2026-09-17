@@ -225,7 +225,7 @@ void SikouteiDevelopPhase::Initialize()
 
     isShot_ = false;
 	nextPhase_ = Phase::Phase_None;
-    context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_SikouteiDevelop)] = renderTargetID_;
+    //context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_SikouteiDevelop)] = renderTargetID_;
 
 	// オブジェクト初期化
     table_->Initialize();

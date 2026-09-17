@@ -4,11 +4,11 @@
 #include <Utilities/Json/JsonManager.h>
 #include <GameManager/Phase/TitlePhase/TitlePhase.h>
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
-#include <GameManager/Phase/TestPhase/TestPhase.h>
-#include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
+//#include <GameManager/Phase/TestPhase/TestPhase.h>
+//#include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
 #include <GameManager/Phase/Tutorial/TutorialPhase.h>
-#include <GameManager/Phase/ResultPhase/ResultPhase.h>
+
 
 GameManager::GameManager() 
 {
@@ -123,23 +123,25 @@ std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
 {
 	switch (phase)
 	{
-	case Phase::Phase_Test:
-		return std::make_unique<TestPhase>();
-		break;
+
 	case Phase::Phase_Title:
 		return std::make_unique<TitlePhase>();
-		break;
-	case Phase::Phase_SikouteiDevelop:
-		return std::make_unique<SikouteiDevelopPhase>();
-		break;
-	case Phase::Phase_Result:
-		return std::make_unique<ResultPhase>();
 		break;
 	case Phase::Phase_Tutorial:
 		return std::make_unique<TutorialPhase>();
 		break;
+	//case Phase::Phase_SikouteiDevelop:
+	//	return std::make_unique<SikouteiDevelopPhase>();
+	//	break;
+	//case Phase::Phase_Test:
+	//	return std::make_unique<TestPhase>();
+	//	break;
 	case Phase::Phase_GameScene:
 		return  std::make_unique<GameScenePhase>();
+		break;
+	case Phase::Phase_Result:
+		return std::make_unique<ResultPhase>();
+		break;
 	default:
 		break;
 	}
