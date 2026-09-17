@@ -7,15 +7,13 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 #include <string>
+#include<System/GameBGMSystem/GameBGMSystem.h>
 
 TitlePhase::TitlePhase() {
 
 	// レンダーターゲット
 	renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "Title");
-
-	// サウンド
-	s_TitleScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/TitleScene.mp3");
-
+	
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
@@ -73,8 +71,8 @@ void TitlePhase::Initialize() {
 
 	Initialize_LightModels();
 
-	volume = 0.0f;
-	s_TitleScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_TitleScene_, true, volume));
+	GameBGMSystem::GetInstance().StopAllAudio();
+	GameBGMSystem::GetInstance().Initialize(GameBGMSystem::TITLE_BGM);
 }
 
 void TitlePhase::Update() {
@@ -1341,9 +1339,8 @@ void TitlePhase::Update_Animation() {
 }
 
 void TitlePhase::Update_Sound() {
-	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
-	volume = std::clamp(volume, 0.0f, 1.0f);
-	Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+
+	GameBGMSystem::GetInstance().UpVolume(GameBGMSystem::TITLE_BGM);
 }
 
 void TitlePhase::Start_CocktailCameraAnimation() {
@@ -1540,9 +1537,8 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		isSpaceHoldTracking_ = false;
 		isSpaceFastForward_ = false;
 		ChangePhase(Phase::Phase_GameScene);
-		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.01f;
-		if (volume < 0.0f) Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
-		else Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+		//volumeを下げる
+		GameBGMSystem::GetInstance().DownVolume(GameBGMSystem::TITLE_BGM);
 	}
 	const float smoothTopMoveT = EaseInOut01(topMoveT);
 

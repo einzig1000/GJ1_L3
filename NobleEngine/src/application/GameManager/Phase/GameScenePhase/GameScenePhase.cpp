@@ -26,6 +26,8 @@
 //Json
 #include <Utilities/Json/JsonManager.h>
 
+#include<System/GameBGMSystem/GameBGMSystem.h>
+
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 
@@ -44,9 +46,6 @@ GameScenePhase::GameScenePhase()
 
     //UI管理
     uiManager_ = std::make_unique<UIManager>();
-
-    // サウンド
-    s_GameScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/GameScene.mp3");
     //カメラ管理
     gameCameraManager_ = std::make_unique<GameCameraManager>();
     //ゲームライトの実体生成 ここで管理する
@@ -107,12 +106,9 @@ void GameScenePhase::Initialize()
     //バー初期化（今は中身なし）
     bar_->Initialize();
 
-    // ======================================
+    GameBGMSystem::GetInstance().StopAllAudio();
     // 音の設定
-    // ======================================
-
-    volume = 0.0f;
-    s_GameScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_GameScene_, true, volume));
+    GameBGMSystem::GetInstance().Initialize(GameBGMSystem::GAME_BGM);
 
     // ======================================
     // ロード
@@ -145,10 +141,13 @@ void GameScenePhase::Initialize()
 void GameScenePhase::Update()
 {
 #ifdef _RELEASE
+
     //リリース版ならシーン切り替えする
     if (uiManager_->GetTimer() <= 0.0f) {
         //フェーズ
         nextPhase_ = Phase::Phase_Result;
+    } else if(uiManager_->GetTimer() <= 1.0f){
+        GameBGMSystem::GetInstance().DownVolume(GameBGMSystem::GAME_BGM);
     }
 #endif
 
@@ -482,9 +481,7 @@ void GameScenePhase::PlayerControl()
 
 void GameScenePhase::UpdateBGM()
 {
-    volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
-    volume = std::clamp(volume, 0.0f, 1.0f);
-    Game::Audio::SetAudioVolume(s_GameScene_PlayIDs_[0], volume);
+    GameBGMSystem::GetInstance().UpVolume(GameBGMSystem::GAME_BGM);
 }
 
 void GameScenePhase::ResetGame()

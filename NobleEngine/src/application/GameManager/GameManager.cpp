@@ -9,9 +9,16 @@
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
 #include <GameManager/Phase/Tutorial/TutorialPhase.h>
 
+#include<System/GameBGMSystem/GameBGMSystem.h>
+
 
 GameManager::GameManager() 
 {
+
+
+	//全部ロードしたいニキ
+	GameBGMSystem::GetInstance().Load();
+
 	JsonManager::LoadAll("assets/application/json");
 
 
@@ -36,6 +43,8 @@ GameManager::GameManager()
 	renderObject_->psoConfig_.ps = "assets/shaders/FullScreen/Mask.PS.hlsl";
 	renderObject_->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
 	renderObject_->SetupFromShaders();
+
+
 }
 
 GameManager::~GameManager()

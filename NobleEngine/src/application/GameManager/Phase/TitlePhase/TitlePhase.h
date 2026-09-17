@@ -18,9 +18,6 @@ public:
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
 
 private:
-	int32_t s_TitleScene_ = 0;
-	std::vector<int32_t> s_TitleScene_PlayIDs_;
-	float volume = 0.0f;
 
 	// ========================================
 	// Space長押しによる倍速

@@ -1,6 +1,6 @@
 #include "ResultPhase.h"
 #include "Game.h"
-
+#include<System/GameBGMSystem/GameBGMSystem.h>
 #include <algorithm>
 #include <cmath>
 #include <numbers>
@@ -405,6 +405,13 @@ void ResultPhase::Start_LoseLiquidCameraAnimation() {
 
 void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 	if (resultCameraState_ == ResultCameraState::WaitingForInput) {
+	
+		if (isWin_) {
+			GameBGMSystem::GetInstance().UpVolume(GameBGMSystem::RESULT_WIN);
+		} else {
+			GameBGMSystem::GetInstance().UpVolume(GameBGMSystem::RESULT_LOSE);
+		}
+
 		if (Game::IO::Key::IsJustPressed(0x20)) {
 			if (isWin_ && manWinState_ == ManWinState::HoldingGood) {
 				// WinはGoodの最終ポーズになってから開始する。
@@ -424,6 +431,7 @@ void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 	resultCameraElapsedTime_ += scaledDeltaTime;
 
 	if (resultCameraState_ == ResultCameraState::LoseArcToFront) {
+
 		const float arcT = std::clamp(resultCameraElapsedTime_ / kLoseLiquidCameraArcDuration_, 0.0f, 1.0f);
 		const float easedArcT = EaseInOut01(arcT);
 
@@ -447,6 +455,9 @@ void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 	}
 
 	if (resultCameraState_ == ResultCameraState::LoseStraight) {
+
+		GameBGMSystem::GetInstance().DownVolume(GameBGMSystem::RESULT_LOSE);
+
 		const float straightT = std::clamp(resultCameraElapsedTime_ / kLoseLiquidCameraStraightDuration_, 0.0f, 1.0f);
 		const float easedStraightT = EaseInOut01(straightT);
 
@@ -481,9 +492,14 @@ void ResultPhase::Update_ResultCameraAnimation(float scaledDeltaTime) {
 		if (orbitT >= 1.0f) {
 			resultCameraState_ = ResultCameraState::Diving;
 			resultCameraElapsedTime_ = 0.0f;
+
+
 		}
 		return;
 	}
+
+	//ここまで来るならかち？
+	GameBGMSystem::GetInstance().DownVolume(GameBGMSystem::RESULT_WIN);
 
 	// 2.5周後の位置から、少し上へ膨らむ放物線で中央へ飛び込む。
 	const float diveT = std::clamp(resultCameraElapsedTime_ / kResultCameraDiveDuration_, 0.0f, 1.0f);
@@ -1052,6 +1068,9 @@ void ResultPhase::DrawImGui_Models() {
 }
 
 void ResultPhase::InitializeCommon() {
+
+	GameBGMSystem::GetInstance().StopAllAudio();
+
 	renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "result");
 
 	context_->renderTargetIDs[static_cast<size_t>(Phase::Phase_Result)] = renderTargetID_;
@@ -1087,6 +1106,10 @@ void ResultPhase::InitializeCommon() {
 }
 
 void ResultPhase::InitializeWin() {
+
+
+	GameBGMSystem::GetInstance().Initialize(GameBGMSystem::RESULT_WIN);
+
 	// Winは現在の暗いピンク色を維持する
 	lightBuffer_.lights[0].color = Vector4(0.45f, 0.12f, 0.22f, 1.0f);
 	lightBuffer_.lights[0].intensity = 0.18f;
@@ -1111,6 +1134,10 @@ void ResultPhase::InitializeWin() {
 }
 
 void ResultPhase::InitializeLose() {
+
+
+	GameBGMSystem::GetInstance().Initialize(GameBGMSystem::RESULT_LOSE);
+
 	// Loseはシーン全体のDirectional LightとResultRayを赤系へ切り替える
 	lightBuffer_.lights[0].color = Vector4(0.55f, 0.03f, 0.03f, 1.0f);
 	lightBuffer_.lights[0].intensity = 0.22f;
@@ -1163,6 +1190,8 @@ void ResultPhase::UpdateCommon() {
 
 void ResultPhase::UpdateWin() {
 	const float scaledDeltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+	
+
 	Update_WinMan();
 	Update_ResultRayAnimation(scaledDeltaTime);
 	Update_ResultUIModel();
@@ -1172,6 +1201,8 @@ void ResultPhase::UpdateWin() {
 
 void ResultPhase::UpdateLose() {
 	const float scaledDeltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+
+
 	Update_LoseMan();
 	Update_LoseGlassAnimation();
 	Update_ResultRayAnimation(scaledDeltaTime);

@@ -57,10 +57,6 @@ private:
 
 	int32_t stageSum = 0;
 
-	int32_t s_GameScene_ = 0;
-	std::vector<int32_t> s_GameScene_PlayIDs_;
-	float volume = 0.0f;
-
 	std::unique_ptr<GameCameraManager> gameCameraManager_ = nullptr;
 
 	std::unique_ptr<GlassManager>glassManager_ = nullptr;
