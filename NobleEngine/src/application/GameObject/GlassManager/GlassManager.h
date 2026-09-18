@@ -16,38 +16,35 @@ public:
 	void Initialize();
 	void Update(const int32_t cameraID);
 	//ゲームカメラとの相互作用
-	void PlayerControl(GameCameraManager* gameCameraManager, std::vector<std::unique_ptr<TableObject>>& tebleObjects);
+	void PlayerControl(
+		GameCameraManager* gameCameraManager, 
+		std::vector<std::unique_ptr<TableObject>>& tebleObjects
+	);
 	
 	void DrawPrediction(const int32_t renderTexture);
 	void Draw(const int32_t renderTexture);
-
 
 	void DrawImGui();
 	/// @brief テーブル位置と人の角度から座標をセットする関数
 	/// @param tablePos テーブル位置
 	/// @param tableRadius テーブル半径
 	/// @param humanDeg 人の配置角度
-	void SetPosForTableAndHuman(const Vector3& tablePos, const float tableRadius, const float humanDeg, const float tabelHeight = 1.28f);
-	/// @brief グラスのXZ軸においての位置を取得する
-	/// @return xZの位置
-	Vector2 GetPos2D();
+	void SetPosForTableAndHuman(
+		const Vector3& tablePos, 
+		const float tableRadius, 
+		const float humanDeg,
+		const float tabelHeight = 1.28f
+	);
 
-	float GetRadius();
-	void AddTranslate(const Vector3& vel);
-	bool IsBroken();
-	std::vector<std::unique_ptr<Collider>>& GetColliders();
-
-	const Vector3& GetTranslate();
 	const float GetMouseInsensitivity();
-	void SetVelocity(const Vector3& vel);
-	const Vector3& GetVelocity();
-
 	bool& GetAbleDragAddress() { return ableDrag_; }
 
 	void SetLightData(LightDataForGPU* data);
 	void SetCollisionManager(CollisionManager* collisionManager);
 	void SetIsShot(const bool isShot) { isShot_ = isShot; };
 	bool& IsShotAddress() { return isShot_; }
+
+	Glass* GetGlassPtr();
 private:
 
 	//グラス

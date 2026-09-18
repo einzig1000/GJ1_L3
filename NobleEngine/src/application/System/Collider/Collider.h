@@ -163,7 +163,7 @@ public:
 
 	void SetIsDrawCollider(const bool flag);
 	void Update(const int32_t cameraID);
-	void Draw();
+	void Draw(const int32_t renderTextureID);
 	private:
 	void ResetColliderType(const ColliderType& type);
 	//=======================================

@@ -8,6 +8,7 @@
 #include<GameObject/GameCameraManager/GameCameraManager.h>
 #include<System/CollisionManager/CollisionManager.h>
 #include<algorithm>
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 
 namespace {
     constexpr Vector3 kCocktailOffset = { 0.0f,-0.09f,0.0f };
@@ -21,11 +22,8 @@ GlassManager::GlassManager()
     cocktailWater_ = std::make_unique<CocktailWater>();
     //グラス
     glass_ = std::make_unique<Glass>();
-
     //予測線
     prediction_ = std::make_unique<PredictionObj>();
-
-
 }
 
 GlassManager::~GlassManager()
@@ -36,16 +34,6 @@ void GlassManager::SetLightData(LightDataForGPU* data)
 {
     glass_->SetLightData(data);
     prediction_->SetLightData(data);
-}
-
-void GlassManager::SetVelocity(const Vector3& vel)
-{
-    glass_->SetVelocity(vel);
-}
-
-const Vector3& GlassManager::GetVelocity()
-{
-    return glass_->GetVelocity();
 }
 
 void GlassManager::SetCollisionManager(CollisionManager* collisionManager)
@@ -88,8 +76,6 @@ void GlassManager::PlayerControl(GameCameraManager* gameCameraManager , std::vec
         {
             Vector2 dragVector = Game::IO::Mouse::Get2DPosition() - dragStartPos_;
             float dragLengthY = dragStartPos_.y - Game::IO::Mouse::Get2DPosition().y;
-
-
 
             if (dragLengthY > 0.0f)
             {
@@ -155,9 +141,7 @@ void GlassManager::DrawImGui()
     prediction_->DrawImGui();
 
     ImGui::Begin("Editor");
-
     ImGui::Checkbox("ableDrag", &ableDrag_);
-
     ImGui::End();
 }
 
@@ -170,35 +154,7 @@ void GlassManager::SetPosForTableAndHuman(const Vector3& tablePos, const float t
     glass_->SetTranslate(glassPos);
 }
 
-Vector2 GlassManager::GetPos2D()
-{
-   return Vector2(glass_->GetTranslate().x, glass_->GetTranslate().z);
-}
-
-float GlassManager::GetRadius()
-{
-    return glass_->GetRadius();
-}
-
-void GlassManager::AddTranslate(const Vector3& vel)
-{
-    glass_->AddTranslate(vel);
-}
-
-bool GlassManager::IsBroken()
-{
-    return glass_->GetIsBroken();
-}
-
-std::vector<std::unique_ptr<Collider>>& GlassManager::GetColliders()
-{
-    return glass_->GetColliders();
-}
-
-const Vector3& GlassManager::GetTranslate()
-{
-   return glass_->GetTranslate();
-}
+Glass* GlassManager::GetGlassPtr() { return glass_.get(); }
 
 const float GlassManager::GetMouseInsensitivity()
 {

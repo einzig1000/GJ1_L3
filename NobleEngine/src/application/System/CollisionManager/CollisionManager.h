@@ -76,7 +76,7 @@ public:
     //コライダー描画のための更新
     void DebugUpdate(const int32_t cameraID);
     //コライダーデバック描画
-    void DebugDraw();
+    void DebugDraw(const int32_t renderTargetID);
 
 private:
     // コライダーのリスト

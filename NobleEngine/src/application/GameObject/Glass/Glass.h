@@ -18,6 +18,7 @@ public:
     /// @brief 壊れたフラグの取得
     /// @return 
     bool GetIsBroken() { return isBroken_; }
+
     //カスタマーとの判定を得る
     bool GetIsHitCustomer() { return isHitCustomer_; }
 
@@ -31,7 +32,9 @@ public:
 
 	Vector3 GetTranslate() { return transform_.translate; };
     Vector3& GetTranslatePointer() { return transform_.translate; };
-
+    /// @brief XZ平面の2D座標を得る
+    /// @return 
+    Vector2 Get2DPos() {return Vector2(transform_.translate.x, transform_.translate.z); };
     void SetRotateY(float rotateY) { transform_.rotate.y = rotateY; };
     const float GetRotate() { transform_.rotate.y; };
 	//void SetVelocity(const Vector3& vel) { velocity_ = vel; };

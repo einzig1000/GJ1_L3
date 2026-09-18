@@ -15,6 +15,7 @@ class GameLight;//ライト
 class GameCameraManager;//ゲームカメラ管理
 class GameScreen;//ゲーム画面
 class GameSESystem;
+class GlassParticle;
 
 class GameScenePhase :
 	public IPhase
@@ -52,6 +53,8 @@ private:
 	void CheckColliders();
 	//テーブル内イベント
 	void InnerTableEvent();
+	void JudgeAndSetCameraAndLoad();
+
 
 	//ゲームSEシステム
 	std::unique_ptr<GameSESystem>gameSESystem_ = nullptr;
@@ -68,6 +71,11 @@ private:
 	GlassType glassType = GlassType::Champagne;
 	// 障害物
 	std::vector<std::unique_ptr<TableObject>> obstacles_;
+
+	//パーティクル
+	std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
+
+
 	int32_t deleteIndex = -1;
 	// そのステージで壊せる最大数
 	int32_t maxBreakableObstacleCount_ = 0;

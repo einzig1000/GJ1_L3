@@ -2,6 +2,7 @@
 #include<Game.h>
 class HumanModel;
 
+class Customer;
 
 class HumanManager
 {
@@ -22,6 +23,7 @@ public:
     bool Load(const std::string path, const int32_t stage,const Vector3& tableCenter,const float tableRadius);
     void Save(const std::string path, const int32_t stage);
     float GetMarkerAngle(int32_t index);
+    Customer* GetCustomerPtr() { return customer_.get(); }
 private:
     //借り物
     bool* isShotPtr_ = nullptr;
@@ -35,7 +37,7 @@ private:
     float customerRotateDegree_ = 0.0f;
 
     //お客さん
-    std::unique_ptr<HumanModel> customer_ = nullptr;
+    std::unique_ptr<Customer> customer_ = nullptr;
 
     // マーカー(デバッグ描画)
     std::unique_ptr<RenderObject> markers_[6];

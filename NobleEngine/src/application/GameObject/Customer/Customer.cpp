@@ -1,8 +1,8 @@
 #include "Customer.h"
-
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 Customer::Customer()
 {
-	Load();
+    Load();
 }
 
 Customer::~Customer()
@@ -11,33 +11,33 @@ Customer::~Customer()
 
 void Customer::Load()
 {
-	std::string directory = "assets/application/model/Woman/";
-	std::string filePath = directory + "woman.gltf";
-	// モデル
-	modelID_ = Game::Asset::Model::Load(filePath);
-	// アニメーション
+    std::string directory = "assets/application/model/Woman/";
+    std::string filePath = directory + "woman.gltf";
+    // モデル
+    modelID_ = Game::Asset::Model::Load(filePath);
+    // アニメーション
     animationIDs_.clear();
 
     animationIDs_["Catch"] = Game::Asset::Animation::Load(filePath, "Catch");
-	animationIDs_["IdleSit"] = Game::Asset::Animation::Load(filePath, "IdleSit");
+    animationIDs_["IdleSit"] = Game::Asset::Animation::Load(filePath, "IdleSit");
 
-	// テクスチャ
-	textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
-	//インスタンス1なので0とし行列のコンテナは考えない
-	comCollider_.CreateFromModelData(modelID_, worldMatrix_,
-        /*CollisionTag::GetTag("Target") |ターゲットとしない*/
+    // テクスチャ
+    textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
+    //インスタンス1なので0とし行列のコンテナは考えない
+    comCollider_.CreateFromModelData(modelID_, worldMatrix_,
         CollisionTag::GetTag("Customer"),
-        CollisionTag::GetTag("Glass")
+        CollisionTag::GetTag("Glass")|
+        CollisionTag::GetTag("Prediction")
     );
 
-	currentAnimationName_ = "IdleSit";
+    currentAnimationName_ = "IdleSit";
 
-    if (!comCollider_.colliders.empty()) {
 
-        // 自分のコライダーを変数に保持
-        auto& myCollider = comCollider_.colliders.at(0);
+    // 全ての要素にコールバックを登録する関数を CompoundCollider に追加するか、ループで設定
+    for (auto& collider : comCollider_.colliders) {
+        collider->SetOnCollisionCallback([this](Collider* collider) {
 
-        myCollider->SetOnCollisionCallback([this](Collider* collider) {
+            GameSESystem::PlaySE(GameSESystem::MONEY);
 
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
 
@@ -45,9 +45,11 @@ void Customer::Load()
                 isHitPrediction_ = true;
 
             }
-
             });
     }
+
+
+
 }
 
 void Customer::UpdateAnimation()
@@ -61,7 +63,7 @@ void Customer::UpdateAnimation()
     //前フレームで予測線が当たっており、誰かがショットしてた時等ショット
     if (isHitPrediction_) {
         currentAnimationName_ = "Catch";
- 
+
     }
 
     isHitPrediction_ = false;

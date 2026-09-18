@@ -118,7 +118,7 @@ void UIManager::Update()
         aniTimer_ = 0.0f;
         //トグルする
         isDown_ = !isDown_;
-        float offset = 0.25f* powf(-1.0f,isDown_);
+        float offset = 0.125f* powf(-1.0f,isDown_);
         Game::Camera::Setter::SetCenter({ 0.0f, -3.0f+ offset, 9.0f}, 0.5f, EaseType::LINEAR, uiCameraID_);
     }
 
@@ -128,23 +128,25 @@ void UIManager::Update()
     breakEvaluation_->Update(uiCameraID_);
 
     timeAndMoneySignboard_->Update(uiCameraID_);
-
     cockTailSignboard_->Update(uiCameraID_);
 
     yenWord_->Update(uiCameraID_);
     timeWord_->Update(uiCameraID_);
- 
 
     benefitNumMesh_->Update(uiCameraID_);
     timeNumMesh_->Update(uiCameraID_);
 
+    if (breakEvaluation_->GetIsAddScore()) {
+        //破壊数に応じて加算する あるいはお客さんに届いた。
+        GameSESystem::PlaySE(GameSESystem::MONEY);
+        benefitNumMesh_->AddValue(breakEvaluation_->GetBreakCount());
+    }
 }
 
 void UIManager::Draw(const int32_t uiRenderTextureID)
 {
  
     timeAndMoneySignboard_->Draw(uiRenderTextureID);
-
     cockTailSignboard_->Draw(uiRenderTextureID);
     
     breakEvaluation_->Draw(uiRenderTextureID);

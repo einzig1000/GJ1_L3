@@ -11,7 +11,6 @@ enum class GimmickType
 	None,
 	Spring,
 };
-class GlassParticle;
 
 class TableObject
 {
@@ -34,7 +33,7 @@ public:
 	Vector3 GetTranslate() const { return transform_.translate; };
 	EulerTransforms GetTransform() const { return transform_; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
-
+    Vector3 GetVelocity() {return  comCollider_.colliders.at(0)->GetPhysicsBody().velocity; }
 	void SetRotate(const Vector3& rotate) { transform_.rotate = rotate; };
 
 	void SetColor(const Vector4& color) { color_ = color; };
@@ -45,16 +44,15 @@ public:
     void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
 
 	bool IsBroken() const { return isBroken_; };
-
+    const Vector4& GetEmitColor() { return emitColor_; };
 private:
     LightDataForGPU* lightData_;
     
+    Vector4 emitColor_ = {0.0f};
     //床との当たり判定
     bool isHitFloor_ = false;
     // グラスとの衝突で消し飛んだか
 	bool isBroken_ = false;
-    // 死後5秒で存在ごと消える
-	CounterSec deathCounter_;
 
 	GlassType glassType_ = GlassType::GLASS_MAX;
 
@@ -75,7 +73,6 @@ private:
     //複合コライダー
     Collision::CompoundCollider comCollider_;
 
-    //パーティクル
-    std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
+
 };
 

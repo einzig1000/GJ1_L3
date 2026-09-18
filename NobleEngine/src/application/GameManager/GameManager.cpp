@@ -28,7 +28,7 @@ GameManager::GameManager()
 	maskTextureCreator_->Initialize();
 	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
-	Phase startUpPhase = Phase::Phase_Title;
+	Phase startUpPhase = Phase::Phase_GameScene;
 	currentPhase_ = CreatePhase(startUpPhase);
 	currentPhase_->SetContext(&phaseContext_);
 

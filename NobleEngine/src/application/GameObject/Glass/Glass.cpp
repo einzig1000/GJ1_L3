@@ -1,6 +1,7 @@
 #include "Glass.h"
 #include"Utilities/Json/JsonManager.h"
 #include"GameObject/Effect/GlassParticle/GlassParticle.h"
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 namespace
 {
     //グラス共通の変数
@@ -122,6 +123,7 @@ void Glass::Update(const int32_t cameraID)
         if (!isBroken_) {
             isBroken_ = true;
             glassParticle_->Emit(transform_.translate);
+            GameSESystem::PlaySE(GameSESystem::BREAK);
         }
 
         if (isBroken_) {
@@ -153,28 +155,13 @@ void Glass::Draw(int32_t renderTargetID)
 
 void Glass::DrawImGui()
 {
-    ImGui::Begin("glass");
+    ImGui::Begin("Glass");
 
     Vector3 glassVel = GetVelocity();
     Vector3 glassVel2dNormalized = Vector3(glassVel.x, 0.0f, glassVel.z).Normalized();
     Vector3 yawPttch = Game::Math::YawPitchFromDirection(glassVel2dNormalized);
     ImGui::Text("glass yawPitch: %f, %f, %f", yawPttch.x, yawPttch.y, yawPttch.z);
     ImGui::End();
-
-    ImGui::Begin("Material");
-
-    if (ImGui::TreeNode("Glass"))
-    {
-		ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
-		ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
-		ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
-		ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
-
-        ImGui::TreePop();
-    }
-
-    ImGui::End();
-
 
 }
 

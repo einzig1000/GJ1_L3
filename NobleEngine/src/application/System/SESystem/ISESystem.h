@@ -29,12 +29,11 @@ inline void ISESystem::PlaySE(T type, bool isOriginal)
         return;
     }
     if (isOriginal) {
-        if (gameAudios_[type].status_ != -1) {
+        if (Game::Audio::IsAudioPlaying(gameAudios_[type].status_)) {
             return;
         }
     }
-
-    gameAudios_[type].status_ = Game::Audio::PlayAudio(gameAudios_[static_cast<uint32_t>(type)].id,false);
+     gameAudios_[type].status_ = Game::Audio::PlayAudio(gameAudios_[static_cast<uint32_t>(type)].id,false);
 }
 
 

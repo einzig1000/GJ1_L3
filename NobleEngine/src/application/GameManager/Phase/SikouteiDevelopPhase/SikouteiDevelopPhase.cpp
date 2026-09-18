@@ -491,7 +491,7 @@ void SikouteiDevelopPhase::Draw()
     glass_->Draw(rt_3D_);
 
     //コライダーデバック描画
-    if (isDebugDraw_) collisionManager_->DebugDraw();
+    if (isDebugDraw_) collisionManager_->DebugDraw(rt_3D_);
     //UIなので一番最後に描画する
     //uiManager_->Draw();
 

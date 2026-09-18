@@ -163,12 +163,12 @@ void Collider::Update(const int32_t cameraID)
 #endif // DEBUG
 }
 
-void Collider::Draw()
+void Collider::Draw(const int32_t renderTextureID)
 {
 #ifdef _DEBUG
 
     if (isDrawCollider_) {
-        colliderObj_->Draw();
+        colliderObj_->Draw(renderTextureID);
     }
 
 #endif // DEBUG

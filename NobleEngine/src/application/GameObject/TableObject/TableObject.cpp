@@ -1,6 +1,6 @@
 #include "TableObject.h"
 #include"Utilities/Json/JsonManager.h"
-#include"GameObject/Effect/GlassParticle/GlassParticle.h"
+
 #include<System/SESystem/GameSESystem/GameSESystem.h>
 namespace
 {
@@ -18,9 +18,7 @@ TableObject::TableObject()
     glassObj_->psoConfig_.ps = "assets/shaders/PunctualLight/PunctualLight.PS.hlsl";
     glassObj_->SetupFromShaders();
 
-    // GlassParticle
-    glassParticle_ = std::make_unique<GlassParticle>();
-    glassParticle_->Initialize();
+
 
 }
 
@@ -32,7 +30,6 @@ void TableObject::Initialize()
     //床との当たり判定
     isHitFloor_ = false;
     isBroken_ = false;
-	deathCounter_.Initialize(-1.0f);
 
     transform_.translate.y = 1.28f;
 }
@@ -42,15 +39,6 @@ void TableObject::Update(const int32_t cameraID)
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
     Vector3 vel = { 0.0f };
-
-    ////物理を呼ぶぞ！
-    //if (!comCollider_.colliders.empty())
-    //{
-    //    auto  phyB = comCollider_.colliders.at(0)->GetPhysicsBody();
-    //    float mass = phyB.mass;
-    //    vel = phyB.velocity;
-    //}
-
 
     if (transform_.translate.y <= deadLine_)
     {
@@ -66,21 +54,15 @@ void TableObject::Update(const int32_t cameraID)
     worldMatrix_ = transform_.GetWorldMatrix();
     wvpMatrix_ = worldMatrix_ * viewProjection;
 
-    glassParticle_->Update(cameraID);
 
     material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
     material_.alpha = color_.w;
 
 
-	if (deathCounter_.GetProgress() >= 1.0f) isBroken_ = true;
-
 }
 
 void TableObject::Draw(int32_t renderTargetID)
 {
-    glassParticle_->Draw(renderTargetID);
-
-    if (deathCounter_.GetProgress() >= 0.1f) return;
 
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
@@ -109,8 +91,7 @@ void TableObject::DrawImGui()
 
     ImGui::End();
 
-    //バーティクルデバック表示
-    glassParticle_->DebugImGui(static_cast<int32_t>(glassType_));
+
 }
 
 void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
@@ -208,7 +189,7 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
     //モデルとテクスチャIDをセットする
     glassObj_->modelID_ = Game::Asset::Model::Load(modelPath);
     textureID_ = Game::Asset::Texture::Load(texturePath);
-    glassParticle_->SetEmitColor(particleColor);
+    emitColor_ = particleColor;
 
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
@@ -273,11 +254,12 @@ void TableObject::SetGlassTypeAndLoadModels(const GlassType type)
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Glass")) {
                 //障害物だったら 押し戻す
                 transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
-                //パーティクルを出現させる 反発方向にセットする
-                glassParticle_->Emit(transform_.translate, comCollider_.colliders.at(0)->GetPhysicsBody().velocity);
-                // 死亡まで残り1秒
-				deathCounter_.Initialize(1.0f);
-                GameSESystem::PlaySE(GameSESystem::BREAK);
+                if (!isBroken_) {
+
+                    isBroken_ = true;
+                    GameSESystem::PlaySE(GameSESystem::BREAK);
+                }
+          
             }
             });
     }
