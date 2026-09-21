@@ -245,12 +245,12 @@ void GameScenePhase::Update()
         }
     }
 
-    //コライダー更新
-    if (isDebugDraw_) collisionManager_->DebugUpdate(gameCameraManager_->GetCameraID());
+
     //コライダーの判定を開始する
     CheckColliders();
  
-
+    //コライダー更新
+    if (isDebugDraw_) collisionManager_->DebugUpdate(gameCameraManager_->GetCameraID());
 }
 
 void GameScenePhase::Draw()

@@ -37,14 +37,17 @@ void Customer::Load()
     for (auto& collider : comCollider_.colliders) {
         collider->SetOnCollisionCallback([this](Collider* collider) {
 
-            GameSESystem::PlaySE(GameSESystem::MONEY);
+            if (!isHitPrediction_) {
+      /*          GameSESystem::PlaySE(GameSESystem::MONEY);*/
 
-            if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
+                if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
 
-                //予測線と当たった時を得る
-                isHitPrediction_ = true;
+                    //予測線と当たった時を得る
+                    isHitPrediction_ = true;
 
+                }
             }
+         
             });
     }
 
