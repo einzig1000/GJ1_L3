@@ -60,18 +60,17 @@ private:
 	std::unique_ptr<GameScreen>gameScreen_ = nullptr;
 
 	int32_t stageSum = 0;
-
+	//カメラを管理しているところ
 	std::unique_ptr<GameCameraManager> gameCameraManager_ = nullptr;
-
+	//グラス管理
 	std::unique_ptr<GlassManager>glassManager_ = nullptr;
-
+	//グラスタイプ
 	GlassType glassType = GlassType::Champagne;
 	// 障害物
 	std::vector<std::unique_ptr<TableObject>> obstacles_;
-
 	//パーティクル
 	std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
-
+	//破壊されたグラスがどのインデックスだったかを得る
 	int32_t deleteIndex = -1;
 	// そのステージで壊せる最大数
 	int32_t maxBreakableObstacleCount_ = 0;
@@ -85,10 +84,14 @@ private:
 	std::unique_ptr<GameLight> gameLight_ = nullptr;
 	//UI管理
 	std::unique_ptr<UIManager>uiManager_ = nullptr;
-
-	bool isDebugDraw_ = false;
+	
+	//コライダー管理
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
-	//コントロール可能
+
+	// ================//デバック用//======================
+	//コライダーのデバック表示
+	bool isDebugDraw_ = false;
+	//プレイヤーがコントロール可能かどうか
 	bool canControll_ = true;
 
 };
