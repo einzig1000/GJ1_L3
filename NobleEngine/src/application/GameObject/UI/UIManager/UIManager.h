@@ -1,14 +1,15 @@
 #pragma once
 #include"Game.h"
-#include<unordered_map >
+#include<unordered_map>
+
 class UIModel;
 class NumMeshs;
 class BreakEvaluation;
 
-    struct modelIDs {
-        int32_t model_ = -1;
-        int32_t texture_ = -1;
-    };
+struct modelIDs {
+    int32_t model_ = -1;
+    int32_t texture_ = -1;
+};
 
 class UIManager
 {
@@ -29,15 +30,16 @@ public:
     int32_t GetScore() const;
     //シェイク
     void SetShakeProgress(const float shake) { shakeProgress_ = shake; };
-
     void SetCameraPhasePtr(CameraPhase* cameraPhase);
-    void SetIsHitCustomer(const bool flag) { isHitCustomer_ = flag; }
+    void SetIsHitCustomer(const bool flag) { isHitCustomer_ = flag; };
 private:
     CameraPhase* cameraPhasePtr_ = nullptr;
+
     struct modelIDs {
         int32_t model_ = -1;
         int32_t texture_ = -1;
     };
+
     // ダウン
     bool isDown_ = true;
     // 顧客にヒットした
@@ -52,25 +54,28 @@ private:
     //UIのcamera
     int32_t uiCameraID_ = -1;
 
+    //モデル
+    std::unordered_map<std::string, modelIDs>modelIds_;
+   
+    //破壊判定
     std::unique_ptr<BreakEvaluation>breakEvaluation_ = nullptr;
 
-    std::unordered_map<std::string, modelIDs>modelIds_;
-
+    // ==================//UI//=========================
+   
     //時間とお金
     std::unique_ptr<UIModel>timeAndMoneySignboard_ = nullptr;
-
     //カクテル
     std::unique_ptr<UIModel>cockTailSignboard_ = nullptr;
     //時間文字
     std::unique_ptr<UIModel>timeWord_ = nullptr;
-
     //円文字
     std::unique_ptr<UIModel>yenWord_ = nullptr;
+
+    // ==================//NumMeshs//====================
 
     //利益
     std::unique_ptr<NumMeshs>benefitNumMesh_ = nullptr;
     //時間
     std::unique_ptr<NumMeshs>timeNumMesh_ = nullptr;
-
 };
 

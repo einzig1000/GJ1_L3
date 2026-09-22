@@ -5,6 +5,12 @@
 #include<numbers>
 #include<System/SESystem/GameSESystem/GameSESystem.h>
 
+namespace {
+    //ボーナス定数
+    constexpr int32_t shakeBonus = 5000;
+    constexpr int32_t benefit = 500;
+}
+
 UIManager::UIManager()
 {
     // カメラ
@@ -147,7 +153,7 @@ void UIManager::Update()
         // あるいはお客さんに届いた。
         GameSESystem::PlaySE(GameSESystem::MONEY,true);
         //シェイク値によってボーナスをかけて　渡ったら規定値500円
-        benefitNumMesh_->AddValue(shakeProgress_*5000 +500);
+        benefitNumMesh_->AddValue(shakeProgress_* shakeBonus + benefit);
         isHitCustomer_ = false;
         //お客様に提供されたらゼロに戻す
         shakeProgress_ = 0.0f;
