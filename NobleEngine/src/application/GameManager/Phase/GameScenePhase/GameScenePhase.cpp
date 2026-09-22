@@ -464,6 +464,8 @@ void GameScenePhase::InnerTableEvent()
         glassManager_->Initialize();
         JudgeAndSetCameraAndLoad();
 
+        glassManager_->SetShakeValue(0.0f);
+        uiManager_->SetShakeProgress(glassManager_->GetShakeValue());
         //グラスがテーブルから離れた。
         uiManager_->GetBreakEvaluation()->SetIsGlassOutOfTable(true);
 

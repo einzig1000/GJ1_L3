@@ -133,6 +133,7 @@
     <ClCompile Include="src\application\System\SESystem\GameSESystem\GameSESystem.cpp" />
     <ClCompile Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.cpp" />
     <ClCompile Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.cpp" />
+    <ClCompile Include="src\application\GameObject\UI\ShakeProgress\ShakeProgress.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application\GameObject\CocktailWater\CocktailWater.h" />
@@ -429,6 +430,7 @@
     <ClInclude Include="src\application\System\SESystem\GameSESystem\GameSESystem.h" />
     <ClInclude Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.h" />
     <ClInclude Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.h" />
+    <ClInclude Include="src\application\GameObject\UI\ShakeProgress\ShakeProgress.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />

@@ -5,6 +5,7 @@
 class UIModel;
 class NumMeshs;
 class BreakEvaluation;
+class ShakeProgress;
 
 struct modelIDs {
     int32_t model_ = -1;
@@ -28,8 +29,7 @@ public:
     void SetScore(float score);
     void AddScore(float score);
     int32_t GetScore() const;
-    //シェイク
-    void SetShakeProgress(const float shake) { shakeProgress_ = shake; };
+    void SetShakeProgress(const float shake);
     void SetCameraPhasePtr(CameraPhase* cameraPhase);
     void SetIsHitCustomer(const bool flag) { isHitCustomer_ = flag; };
 private:
@@ -40,6 +40,7 @@ private:
         int32_t texture_ = -1;
     };
 
+    float cameraOffset_ = 0.0f;
     // ダウン
     bool isDown_ = true;
     // 顧客にヒットした
@@ -48,31 +49,27 @@ private:
     float aniTimer_ = 0.0f;
     // ゲームタイマー
     float gameTimer_ = 0.0f;
-    // シェイク値
-    float shakeProgress_ = 0.0f;
 
     //UIのcamera
     int32_t uiCameraID_ = -1;
 
     //モデル
     std::unordered_map<std::string, modelIDs>modelIds_;
-   
     //破壊判定
     std::unique_ptr<BreakEvaluation>breakEvaluation_ = nullptr;
+    //シェイク
+    std::unique_ptr<ShakeProgress>shakeProgress_ = nullptr;
 
     // ==================//UI//=========================
    
     //時間とお金
     std::unique_ptr<UIModel>timeAndMoneySignboard_ = nullptr;
-    //カクテル
-    std::unique_ptr<UIModel>cockTailSignboard_ = nullptr;
+
     //時間文字
     std::unique_ptr<UIModel>timeWord_ = nullptr;
     //円文字
     std::unique_ptr<UIModel>yenWord_ = nullptr;
-    //カクテル　グラス
-    std::unique_ptr<UIModel>glassModel_ = nullptr;
-
+ 
     // ==================//NumMeshs//====================
 
     //利益

@@ -2,6 +2,7 @@
 #include<GameObject/UI/NumMeshs/NumMeshs.h>
 #include<GameObject/UI/UIModel/UIModel.h>
 #include<GameObject/UI/BreakEvaluation/BreakEvaluation.h>
+#include<GameObject/UI/ShakeProgress/ShakeProgress.h>
 #include<numbers>
 #include<System/SESystem/GameSESystem/GameSESystem.h>
 
@@ -20,22 +21,18 @@ UIManager::UIManager()
     timeNumMesh_ = std::make_unique<NumMeshs>();
 
     timeAndMoneySignboard_ = std::make_unique<UIModel>();
-    cockTailSignboard_ = std::make_unique<UIModel>();
+
     yenWord_ = std::make_unique<UIModel>();
     timeWord_ = std::make_unique<UIModel>();
-    //グラス
-    glassModel_ = std::make_unique<UIModel>();
 
+    //破壊する
     breakEvaluation_ = std::make_unique<BreakEvaluation>();
+    //シェイクプログレス
+    shakeProgress_ = std::make_unique<ShakeProgress>();
 
     modelIds_["timeAndMoney"] = {
      Game::Asset::Model::Load("assets/application/model/UI_TIme&Money/UI_TIme&Money.obj") ,
      Game::Asset::Texture::Load("assets/application/model/UI_TIme&Money/UI.png")
-    };
-
-    modelIds_["cocktailSignboard"] = {
-    Game::Asset::Model::Load("assets/application/model/UI_cocktail/UI_cocktail.obj") ,
-    Game::Asset::Texture::Load("assets/application/model/UI_cocktail/UI.png")
     };
 
     int32_t white1x1 = Game::Asset::Texture::Load("assets/engine/texture/white1x1.png");
@@ -49,13 +46,7 @@ UIManager::UIManager()
     white1x1
     };
 
-    modelIds_["glass"] = {
-    Game::Asset::Model::Load("assets/application/model/Cocktail/Cocktail.obj") ,
-    white1x1
-    };
 
-    const uint32_t windowWidthSize = Game::Window::GetWidth();
-    const uint32_t windowHeightSize = Game::Window::GetHeight();
 
 }
 
@@ -71,6 +62,8 @@ void UIManager::Initialize()
     aniTimer_ = 0.0f;
     isDown_ = true;
 
+    cameraOffset_ = 0.0f;
+
     const float pi = std::numbers::pi_v<float>;
     const float hPi = pi * 0.5f;
     float range = 8.0f;
@@ -80,10 +73,6 @@ void UIManager::Initialize()
         modelIds_["timeAndMoney"].texture_,
         EulerTransforms{ {1.0f,1.0f,1.0f} ,{ 0.0f,3.642f,0.0f }, { -range,0.0f,1.0f } });
 
-    cockTailSignboard_->Initialize(
-        modelIds_["cocktailSignboard"].model_,
-        modelIds_["cocktailSignboard"].texture_,
-        EulerTransforms{ { 1.0f,1.0f,1.0f } , { 0.0f,2.562f,0.0f }, { range,0.0f,1.0f } });
 
     yenWord_->Initialize(
         modelIds_["yen"].model_,
@@ -99,15 +88,9 @@ void UIManager::Initialize()
         timeAndMoneySignboard_->GetWorldMatrixPtr()
     );
 
-    //グラスモデル
-    glassModel_->Initialize(
-        modelIds_["glass"].model_,
-        modelIds_["glass"].texture_,
-        EulerTransforms{ { 3.0f,3.0f,3.0f } , { 0.0f, 0.0f,0.0f },{ -0.18f,0.18f,-1.0f} },
-        cockTailSignboard_->GetWorldMatrixPtr()
-    );
-
     breakEvaluation_->Initialize();
+
+    shakeProgress_->Initialize();
 
     benefitNumMesh_->Initialize(6, { { 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, {-0.28f,0.4f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
     timeNumMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
@@ -137,8 +120,10 @@ void UIManager::Update()
         //トグルする
         isDown_ = !isDown_;
         float offset = 0.125f * powf(-1.0f, isDown_);
+        cameraOffset_ = offset;
         Game::Camera::Setter::SetCenter({ 0.0f, -3.0f + offset, 9.0f }, 0.5f, EaseType::LINEAR, uiCameraID_);
     }
+
 
     Game::Camera::Update(uiCameraID_);
 
@@ -146,15 +131,15 @@ void UIManager::Update()
     breakEvaluation_->Update(uiCameraID_);
 
     timeAndMoneySignboard_->Update(uiCameraID_);
-    cockTailSignboard_->Update(uiCameraID_);
+
+
+    shakeProgress_->Update(uiCameraID_);
 
     yenWord_->Update(uiCameraID_);
     timeWord_->Update(uiCameraID_);
 
     benefitNumMesh_->Update(uiCameraID_);
     timeNumMesh_->Update(uiCameraID_);
-
-    glassModel_->Update(uiCameraID_);
 
     if (breakEvaluation_->GetIsAddScore()) {
         //破壊数に応じて加算する あるいはお客さんに届いた。
@@ -167,10 +152,10 @@ void UIManager::Update()
         // あるいはお客さんに届いた。
         GameSESystem::PlaySE(GameSESystem::MONEY, true);
         //シェイク値によってボーナスをかけて　渡ったら規定値500円
-        benefitNumMesh_->AddValue(shakeProgress_ * shakeBonus + benefit);
+        benefitNumMesh_->AddValue(shakeProgress_->GetShakeProgress() * shakeBonus + benefit);
         isHitCustomer_ = false;
         //お客様に提供されたらゼロに戻す
-        shakeProgress_ = 0.0f;
+        shakeProgress_->SetShakeProgress(0.0f);
     }
 
 }
@@ -179,9 +164,9 @@ void UIManager::Draw(const int32_t uiRenderTextureID)
 {
 
     timeAndMoneySignboard_->Draw(uiRenderTextureID);
-    cockTailSignboard_->Draw(uiRenderTextureID);
 
-    glassModel_->Draw(uiRenderTextureID);
+    //シェイク
+    shakeProgress_->Draw(uiRenderTextureID);
 
     breakEvaluation_->Draw(uiRenderTextureID);
     yenWord_->Draw(uiRenderTextureID);
@@ -197,11 +182,6 @@ void UIManager::DrawImGui()
 
     int i = 0;
     timeAndMoneySignboard_->DebugUI(i++);
-
-
-    glassModel_->DebugUI(i++);
-
-    cockTailSignboard_->DebugUI(i++);
     yenWord_->DebugUI(i++);
     timeWord_->DebugUI(i++);
 
@@ -211,9 +191,7 @@ void UIManager::DrawImGui()
 
     breakEvaluation_->DebugImGui();
 
-    ImGui::Begin("UI");
-    ImGui::SliderFloat("shakeProgress", &shakeProgress_, 0.0f, 1.0f);
-    ImGui::End();
+    shakeProgress_->DebugUI();
 }
 
 void UIManager::SetScore(float score)
@@ -229,4 +207,9 @@ void UIManager::AddScore(float score)
 int32_t UIManager::GetScore() const
 {
     return benefitNumMesh_->GetValue();
+}
+
+void UIManager::SetShakeProgress(const float shake)
+{
+    shakeProgress_->SetShakeProgress(shake);
 }
