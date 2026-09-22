@@ -21,7 +21,9 @@ CreateMaskTexture::CreateMaskTexture()
 }
 
 CreateMaskTexture::~CreateMaskTexture()
-{}
+{
+
+}
 
 void CreateMaskTexture::Initialize()
 {

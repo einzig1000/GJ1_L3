@@ -17,7 +17,6 @@ GlassParticle::GlassParticle()
 	emitterSphere_.reflectDirection = {0.0f,0.0f,0.0f};
 	emitterSphere_.color = { 1.0f,1.0f,1.0f,1.0f };
 
-
 	hitPosition_.tableCenter = {0.0f,1.2f,0.0f};//テーブルセンター
 	hitPosition_.tableRadius = 10.0f;//テーブル半径
 	hitPosition_.tableThickness = 0.0625f;//テーブルの高さ

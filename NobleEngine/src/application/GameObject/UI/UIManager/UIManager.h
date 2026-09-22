@@ -70,6 +70,8 @@ private:
     std::unique_ptr<UIModel>timeWord_ = nullptr;
     //円文字
     std::unique_ptr<UIModel>yenWord_ = nullptr;
+    //カクテル　グラス
+    std::unique_ptr<UIModel>glassModel_ = nullptr;
 
     // ==================//NumMeshs//====================
 

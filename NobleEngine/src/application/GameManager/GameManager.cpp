@@ -14,13 +14,10 @@
 
 GameManager::GameManager() 
 {
-
-
 	//全部ロードしたいニキ
 	GameBGMSystem::GetInstance().Load();
 
 	JsonManager::LoadAll("assets/application/json");
-
 
 	phaseContext_.renderTargetIDs.resize(static_cast<size_t>(Phase::Phase_Max));
 

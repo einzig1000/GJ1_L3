@@ -90,7 +90,6 @@ GameScenePhase::~GameScenePhase() {}
 
 void GameScenePhase::Initialize()
 {
-
     // ======================================
     // 次のフェーズ
     // ======================================
@@ -251,7 +250,6 @@ void GameScenePhase::Draw()
     DrawMainScreen(gameScreen_->GetRenderTextureID(GameScreen::MAIN_SCREEN));
     //UIなので一番最後に描画する
     uiManager_->Draw(gameScreen_->GetRenderTextureID(GameScreen::UI_SCREEN));
-
     //実際に見せるゲーム画面の描画
     gameScreen_->Draw(renderTargetID_);
 
