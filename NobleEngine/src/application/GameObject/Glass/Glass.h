@@ -18,7 +18,7 @@ public:
     /// @brief 壊れたフラグの取得
     /// @return 
     bool GetIsBroken() { return isBroken_; }
-
+    bool GetIsEmit() { return isEmit_; }
     //カスタマーとの判定を得る
     bool GetIsHitCustomer() { return isHitCustomer_; }
 
@@ -59,7 +59,7 @@ private:
     bool isHitFloor_ = false;
     //壊れたフラグ
     bool isBroken_ = false;
-
+    bool isEmit_ = false;
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
 
@@ -75,7 +75,6 @@ private:
     int32_t textureID_ = -1;
 
     Collision::CompoundCollider comCollider_;
-    //パーティクル
-    std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
+
 };
 

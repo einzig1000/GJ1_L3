@@ -7,6 +7,8 @@ class PredictionObj;
 class GameCameraManager;
 class TableObject;
 class CollisionManager;
+class GlassParticle;
+
 class GlassManager
 {
 public:
@@ -57,6 +59,9 @@ private:
 	std::unique_ptr<CocktailWater> cocktailWater_ = nullptr;
 	//予測オブジェ
 	std::unique_ptr<PredictionObj>prediction_ = nullptr;
+
+	//パーティクル
+	std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
 	// 射出速度
 	Vector2 velocity_ = Vector2(0.0f, 0.0f);
 	// マウスドラッグ開始位置

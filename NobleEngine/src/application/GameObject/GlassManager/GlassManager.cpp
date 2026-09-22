@@ -9,7 +9,7 @@
 #include<System/CollisionManager/CollisionManager.h>
 #include<algorithm>
 #include<System/SESystem/GameSESystem/GameSESystem.h>
-
+#include"GameObject/Effect/GlassParticle/GlassParticle.h"
 namespace {
     constexpr Vector3 kCocktailOffset = { 0.0f,-0.09f,0.0f };
     constexpr float kPowerScale = 0.05f; // 感度。要調整
@@ -24,6 +24,9 @@ GlassManager::GlassManager()
     glass_ = std::make_unique<Glass>();
     //予測線
     prediction_ = std::make_unique<PredictionObj>();
+    // GlassParticle
+    glassParticle_ = std::make_unique<GlassParticle>();
+    glassParticle_->SetEmitColor({ 0.5f,0.5f,0.5f,1.0f });
 }
 
 GlassManager::~GlassManager()
@@ -57,6 +60,9 @@ void GlassManager::Initialize()
     glass_->SetVelocity(Vector3{});
     //予測オブジェクト
     prediction_->Initialize();
+    //パーティクル
+    glassParticle_->Initialize();
+
 }
 
 void GlassManager::Update(const int32_t cameraID)
@@ -64,6 +70,15 @@ void GlassManager::Update(const int32_t cameraID)
     glass_->Update(cameraID);
     cocktailWater_->SetTranslate(glass_->GetTranslate() + kCocktailOffset);
     cocktailWater_->Update(cameraID);
+
+    if (glass_->GetIsEmit()) {
+        glassParticle_->SetEmitColor({ 0.75f,0.75f,0.75f,1.0f });
+        glassParticle_->Emit(glass_->GetTranslate());
+    }
+
+    glassParticle_->Update(cameraID);
+
+ 
 }
 
 void GlassManager::PlayerControl(GameCameraManager* gameCameraManager, std::vector<std::unique_ptr<TableObject>>& tebleObjects)
@@ -138,6 +153,8 @@ void GlassManager::Draw(const int32_t renderTexture)
     cocktailWater_->Draw(renderTexture);
     //グラスは半透明なので後に描画する
     glass_->Draw(renderTexture);
+
+    glassParticle_->Draw(renderTexture);
 }
 
 void GlassManager::DrawImGui()
@@ -167,9 +184,9 @@ void GlassManager::SetShakeValue(const float shake)
 
 void GlassManager::AddShakeValue(const float shake)
 {
-   const float temp = cocktailWater_->GetMixProgress();
-   float value = std::clamp(temp + shake, 0.0f, 1.0f);
-   cocktailWater_->SetMixProgress(value);
+    const float temp = cocktailWater_->GetMixProgress();
+    float value = std::clamp(temp + shake, 0.0f, 1.0f);
+    cocktailWater_->SetMixProgress(value);
 }
 
 float GlassManager::GetShakeValue()

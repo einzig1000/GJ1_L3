@@ -1,6 +1,6 @@
 #include "Glass.h"
 #include"Utilities/Json/JsonManager.h"
-#include"GameObject/Effect/GlassParticle/GlassParticle.h"
+
 #include<System/SESystem/GameSESystem/GameSESystem.h>
 namespace
 {
@@ -66,8 +66,7 @@ Glass::Glass()
             });
     }
 
-    // GlassParticle
-    glassParticle_ = std::make_unique<GlassParticle>();
+
 }
 
 Glass::~Glass()
@@ -81,12 +80,13 @@ void Glass::Initialize()
     isHitCustomer_ = false;
     //壊れた判定
     isBroken_ = false;
-
+    //放出
+    isEmit_ = false;
     //一旦半透明にしておく
     color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
 	material_.alpha = 0.5f;
 
-    glassParticle_->Initialize();
+
 }
 
 void Glass::Update(const int32_t cameraID)
@@ -94,6 +94,7 @@ void Glass::Update(const int32_t cameraID)
     //毎フレーム当たり判定を初期化する
     isHitFloor_ = false;
     isHitCustomer_ = false;
+    //isEmit_ = false;
 
     velocity_ = { 0.0f, 0.0f, 0.0f };
 
@@ -122,13 +123,13 @@ void Glass::Update(const int32_t cameraID)
     if (isHitFloor_) {
         if (!isBroken_) {
             isBroken_ = true;
-            glassParticle_->Emit(transform_.translate);
+            //この瞬間だけエミっと
+            isEmit_ = true;
+            //glassParticle_->Emit(transform_.translate);
             GameSESystem::PlaySE(GameSESystem::BREAK);
         }
 
-        if (isBroken_) {
-            glassParticle_->Update(cameraID);
-        }
+
     }
 
     material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
@@ -145,12 +146,9 @@ void Glass::Draw(int32_t renderTargetID)
     glassObj_->SetCBufferData(2, ShaderType::PixelShader, &material_);
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
-    if (isBroken_) {
-
-        glassParticle_->Draw(renderTargetID);
-    } else {
+    if (!isBroken_) {
         glassObj_->Draw(renderTargetID);
-    }
+    } 
 }
 
 void Glass::DrawImGui()
