@@ -138,9 +138,21 @@ void UIManager::Update()
 
     if (breakEvaluation_->GetIsAddScore()) {
         //破壊数に応じて加算する あるいはお客さんに届いた。
-        GameSESystem::PlaySE(GameSESystem::MONEY);
-        benefitNumMesh_->AddValue(breakEvaluation_->GetBreakCount());
+        GameSESystem::PlaySE(GameSESystem::MONEY,true);
+        //ベネフィットを入れちゃおー
+        benefitNumMesh_->AddValue(breakEvaluation_->GetBenefit());
     }
+
+    if (isHitCustomer_) {
+        // あるいはお客さんに届いた。
+        GameSESystem::PlaySE(GameSESystem::MONEY,true);
+        //シェイク値によってボーナスをかけて　渡ったら規定値500円
+        benefitNumMesh_->AddValue(shakeProgress_*5000 +500);
+        isHitCustomer_ = false;
+        //お客様に提供されたらゼロに戻す
+        shakeProgress_ = 0.0f;
+    }
+
 }
 
 void UIManager::Draw(const int32_t uiRenderTextureID)
@@ -173,6 +185,10 @@ void UIManager::DrawImGui()
     timeNumMesh_->DrawImGui("timeMesh");
 
     breakEvaluation_->DebugImGui();
+
+    ImGui::Begin("UI");
+    ImGui::SliderFloat("shakeProgress", &shakeProgress_, 0.0f, 1.0f);
+    ImGui::End();
 }
 
 void UIManager::SetScore(float score)

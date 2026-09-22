@@ -38,15 +38,19 @@ public:
 
 	const float GetMouseInsensitivity();
 	bool& GetAbleDragAddress() { return ableDrag_; }
-
 	void SetLightData(LightDataForGPU* data);
 	void SetCollisionManager(CollisionManager* collisionManager);
 	void SetIsShot(const bool isShot) { isShot_ = isShot; };
 	bool& IsShotAddress() { return isShot_; }
+	
+	// シェイク値を設定する
+	void SetShakeValue(const float shake);
+	void AddShakeValue(const float shake);
+	// シェイク値をゲットする
+	float GetShakeValue();
 
 	Glass* GetGlassPtr();
 private:
-
 	//グラス
 	std::unique_ptr<Glass> glass_ = nullptr;
 	//カクテル液体
@@ -70,4 +74,3 @@ private:
 	//グラススピードパワー
 	float glassSpeedPower_ = 1.0f;
 };
-

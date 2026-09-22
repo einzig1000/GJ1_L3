@@ -57,8 +57,6 @@ Glass::Glass()
                     //顧客と最初に当たった時を得る
                     isHitCustomer_ = true;
                 }
-             
-
             }
 
             if (isCollisionResponse) {

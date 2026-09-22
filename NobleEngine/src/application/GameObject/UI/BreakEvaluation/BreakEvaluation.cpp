@@ -5,8 +5,15 @@
 #include<algorithm>
 #include<System/SESystem/GameSESystem/GameSESystem.h>
 
- BreakEvaluation::BreakEvaluation()
+BreakEvaluation::BreakEvaluation()
 {
+
+    kBenefits_["Bad"] = -500;
+    kBenefits_["Good"] = 200;
+    kBenefits_["Great"] = 500;
+    kBenefits_["Parfect"] = 1000;
+
+
     currentCountMesh_ = std::make_unique<NumMeshs>();
 
     breakSignboard_ = std::make_unique<UIModel>();
@@ -51,7 +58,7 @@
 
     transformKey_["start"].transform_ = { { 0.0f ,0.0f,0.0f}, {0.0f,0.0f,0.0f}, {-1.0f,-0.3f,-0.2f} };
     transformKey_["middle"].transform_ = { {1.2f ,1.2f,1.2f}, {0.0f,0.0f,0.0f}, {0.0f,-0.3f,-0.2f} };
-    transformKey_["end"] .transform_ = { {0.0f ,0.0f,0.0f}, {0.0f,0.0f,0.0f}, {1.0f,-0.3f,-0.2f} };
+    transformKey_["end"].transform_ = { {0.0f ,0.0f,0.0f}, {0.0f,0.0f,0.0f}, {1.0f,-0.3f,-0.2f} };
 
     transformKey_["start"].time = 0.0f;
     transformKey_["default"].time = 0.25f;
@@ -64,7 +71,7 @@ BreakEvaluation::~BreakEvaluation()
 }
 
 void BreakEvaluation::Initialize()
-{    
+{
     isJudgeStart_ = false;
     isUp_ = false;
     isPreUp_ = false;
@@ -79,7 +86,7 @@ void BreakEvaluation::Initialize()
     breakCount_ = 0;
     evaluationString_ = "unKnown";
 
-    numberAniTime_ = {.isEnd = false,.timer = 0.0f};
+    numberAniTime_ = { .isEnd = false,.timer = 0.0f };
     evalutionAniTime_ = { .isEnd = false,.timer = 0.0f };
 
     float pi = 3.14159265358979f;
@@ -141,7 +148,7 @@ void BreakEvaluation::Update(const int32_t uiCameraId)
     //毎フレーム初期化する
     isAddScore_ = false;
 
-    if (!isPreUp_ && isUp_|| isPreUp_ && !isUp_) {
+    if (!isPreUp_ && isUp_ || isPreUp_ && !isUp_) {
         //アップした瞬間またはアップ終了をしゅとくする　
         boardAnimationTimer_ = 0.0f;
     }
@@ -155,7 +162,7 @@ void BreakEvaluation::Update(const int32_t uiCameraId)
 
     //看板の上げ下げ
     if (isUp_) {
-        posY = Game::Math::Ease::Easing(0.0f,4.0f,EaseType::IN_BACK, boardAnimationTimer_);
+        posY = Game::Math::Ease::Easing(0.0f, 4.0f, EaseType::IN_BACK, boardAnimationTimer_);
     } else {
         posY = Game::Math::Ease::Easing(4.0f, 0.0f, EaseType::OUT_BACK, boardAnimationTimer_);
     }
@@ -170,20 +177,20 @@ void BreakEvaluation::Update(const int32_t uiCameraId)
 
         if (numberAniTime_.isEnd) {
 
-           if (evaluationString_ != "unKnown") {
-               evaluations_[evaluationString_]->SetEulerTransform(AnimationStart(evalutionAniTime_));
-           }
+            if (evaluationString_ != "unKnown") {
+                evaluations_[evaluationString_]->SetEulerTransform(AnimationStart(evalutionAniTime_));
+            }
 
-           if (evalutionAniTime_.isEnd) {
-               //アニメーションの終了
-               isAnimation_ = false;
-          
-               //このタイミングで
-               if (evaluationString_ != "Bad" && evaluationString_ != "unKnown") {
-                   //判定が悪くないときに加算する
-                   isAddScore_ = true;
-               }
-           }
+            if (evalutionAniTime_.isEnd) {
+                //アニメーションの終了
+                isAnimation_ = false;
+
+                //このタイミングで
+                if (evaluationString_ != "unKnown") {
+                    //判定が悪くないときに加算する
+                    isAddScore_ = true;
+                }
+            }
         } else {
             currentCountMesh_->SetEulerTransform(AnimationStart(numberAniTime_));
             if (numberAniTime_.isEnd) {
@@ -207,7 +214,7 @@ void BreakEvaluation::Draw(const int32_t renderTextureID)
 {
     breakSignboard_->Draw(renderTextureID);
 
-    if (evaluationString_ != "unKnown"&& numberAniTime_.isEnd) {
+    if (evaluationString_ != "unKnown" && numberAniTime_.isEnd) {
         //それぞれの判定に対応したレンダーオブジェクトを出力する
         evaluations_[evaluationString_]->Draw(renderTextureID);
     }
@@ -269,9 +276,11 @@ void BreakEvaluation::BreakJudgement()
 
     if (maxBreakCount_ == 0) {
         evaluationString_ = "unKnown";
+        benefit_ = 0;
         return;
     }
-    if (breakCount_ <= 0|| isGlassOutOfTable_) {
+
+    if (breakCount_ <= 0 || isGlassOutOfTable_) {
         //割ってしまう　一つも割れない
         evaluationString_ = "Bad";
     } else if (breakCount_ / static_cast<float>(maxBreakCount_) <= 0.7f) {
@@ -284,6 +293,9 @@ void BreakEvaluation::BreakJudgement()
         evaluationString_ = "Parfect";
     }
 
+    //利益を判定ごとに入れる
+    benefit_ = kBenefits_[evaluationString_];
+  
     //判定を終えたら即戻す
     isGlassOutOfTable_ = false;
 
@@ -309,7 +321,7 @@ EulerTransforms BreakEvaluation::AnimationStart(AniTime& aniTime)
         transform = Easing(transformKey_["start"].transform_, transformKey_["middle"].transform_, EaseType::LINEAR, t);
 
     } else if (aniTime.timer <= middleTime) {
-       
+
         transform = transformKey_["middle"].transform_;
 
     } else if (aniTime.timer <= endTime) {
@@ -317,7 +329,7 @@ EulerTransforms BreakEvaluation::AnimationStart(AniTime& aniTime)
         float duration = endTime - middleTime;
         float t = (aniTime.timer - middleTime) / duration;
 
-        transform = Easing( transformKey_["middle"].transform_, transformKey_["end"].transform_, EaseType::LINEAR, t);
+        transform = Easing(transformKey_["middle"].transform_, transformKey_["end"].transform_, EaseType::LINEAR, t);
     } else {
         transform = transformKey_["end"].transform_;
         aniTime.timer = endTime;
@@ -330,7 +342,7 @@ EulerTransforms BreakEvaluation::AnimationStart(AniTime& aniTime)
 EulerTransforms BreakEvaluation::Easing(const EulerTransforms& start, const EulerTransforms& end, const EaseType type, float time)
 {
     EulerTransforms result;
-    result.scale = Game::Math::Ease::Easing(start.scale,end.scale,type,time);
+    result.scale = Game::Math::Ease::Easing(start.scale, end.scale, type, time);
     result.rotate = Game::Math::Ease::Easing(start.rotate, end.rotate, type, time);
     result.translate = Game::Math::Ease::Easing(start.translate, end.translate, type, time);
 

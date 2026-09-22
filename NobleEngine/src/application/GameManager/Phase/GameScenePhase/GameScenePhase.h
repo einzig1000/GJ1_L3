@@ -29,16 +29,13 @@ public:
 		int32_t _pad[3];
 	};
 public:
-
 	GameScenePhase();
 	~GameScenePhase() override;
-
 	void Initialize() override;
 	void Update() override;
 	void Draw() override;
 	void DrawImGui() override;
 	void ChangePhase(Phase phase) override { nextPhase_ = phase; }
-
 private:
 	void UpdateBGM();
 	void ResetGame();
@@ -75,11 +72,9 @@ private:
 	//パーティクル
 	std::unique_ptr<GlassParticle>glassParticle_ = nullptr;
 
-
 	int32_t deleteIndex = -1;
 	// そのステージで壊せる最大数
 	int32_t maxBreakableObstacleCount_ = 0;
-
 	// テーブル
 	std::unique_ptr<Table> table_ = nullptr;
 	//人間管理
@@ -93,7 +88,7 @@ private:
 
 	bool isDebugDraw_ = false;
 	std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
-
-
+	//コントロール可能
 	bool canControll_ = true;
+
 };

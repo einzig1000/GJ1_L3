@@ -22,7 +22,8 @@ public:
     void DebugImGui();
     //外部から呼び出す
     void SetBreakCount(const int32_t breakCount);
-    int32_t GetBreakCount() { return breakCount_; }
+    //int32_t GetBreakCount() { return breakCount_; }
+    int32_t GetBenefit() { return benefit_; }
     //外部から呼び出す
     void SetMaxBreakCount(const int32_t maxBreakCount);
     //上に上がる
@@ -34,9 +35,15 @@ private:
     EulerTransforms AnimationStart(AniTime& aniTime);
     EulerTransforms Easing(const EulerTransforms& start, const EulerTransforms& end, const EaseType type, float time);
 private:
+    int32_t benefit_ = 0;
+    
+    std::unordered_map <std::string, int32_t>kBenefits_;
+
+    
     float boardAnimationTimer_ = 0.0f;
     bool isJudgeStart_ = false;
     bool isGlassOutOfTable_ = false;
+
 
     bool isAddScore_ = false;
     bool isUp_ = false;

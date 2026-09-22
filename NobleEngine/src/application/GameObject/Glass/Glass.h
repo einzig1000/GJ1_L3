@@ -47,19 +47,19 @@ public:
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 
 	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
-
     //void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
 private:
 
     void SetGlassTypeAndLoadModels();
 private:
 	LightDataForGPU* lightData_;
-    //
+    //顧客にヒットしたとき
     bool isHitCustomer_ = false;
     //床との当たり判定
     bool isHitFloor_ = false;
     //壊れたフラグ
     bool isBroken_ = false;
+
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
 

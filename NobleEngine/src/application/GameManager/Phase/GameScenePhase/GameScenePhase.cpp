@@ -38,7 +38,6 @@
 
 GameScenePhase::GameScenePhase()
 {
-
     //ゲーム画面
     gameScreen_ = std::make_unique<GameScreen>();
 
@@ -81,7 +80,6 @@ GameScenePhase::GameScenePhase()
     //バー
     bar_ = std::make_unique<Bar>();
     bar_->SetLightData(&gameLight_->GetLightData());
-
 
     gameSESystem_ = std::make_unique<GameSESystem>();
     //ロード
@@ -136,7 +134,6 @@ void GameScenePhase::Initialize()
     //オブジェクトデータをセットする
     LoadObstacleData(0);
 
-
     // GlassParticle
     glassParticle_ = std::make_unique<GlassParticle>();
     glassParticle_->Initialize();
@@ -169,19 +166,17 @@ void GameScenePhase::Update()
 
     //カメラの更新
     gameCameraManager_->Update();
-
     //BGMの更新
     UpdateBGM();
-
     //テーブル内の出来事
     InnerTableEvent();
     //UI管理
     uiManager_->Update();
 
     // ==============//入力操作//======================
-    
-    ResetGame();
 
+    //リセットゲーム
+    ResetGame();
     //プレイヤー操作
     PlayerControl();
 
@@ -197,21 +192,17 @@ void GameScenePhase::Update()
         deleteIndex = -1;
     }
 
-
-
     for (int32_t i = 0; i < obstacles_.size(); ++i)
     {
         obstacles_[i]->Update(gameCameraManager_->GetCameraID());
     }
     
-
     glassParticle_->Update(gameCameraManager_->GetCameraID());
 
     //人間管理
     humanManager_->Update(gameCameraManager_->GetCameraID());
     //バーの更新
     bar_->Update(gameCameraManager_->GetCameraID());
-
 
     //毎フレーム偽にする
     glassManager_->SetIsShot(false);
@@ -240,11 +231,12 @@ void GameScenePhase::Update()
             //パーティクルを出現させる 反発方向にセットする
             glassParticle_->SetEmitColor(obstacles_[i]->GetEmitColor());
             glassParticle_->Emit(obstacles_[i]->GetTranslate(), obstacles_[i]->GetVelocity());
-
+            //シェイク値を加算する
+            glassManager_->AddShakeValue(0.15f);
+            uiManager_->SetShakeProgress(glassManager_->GetShakeValue());
             break;
         }
     }
-
 
     //コライダーの判定を開始する
     CheckColliders();
@@ -451,22 +443,26 @@ void GameScenePhase::InnerTableEvent()
 
     if (!isTouchingInnerEdge) {
         //テーブルにいなかったら早期リターン
-
         return;
     }
 
-
     if (glassManager_->GetGlassPtr()->GetIsHitCustomer()) {
         //お客さんにヒットしたとき
-
-        //フラグを初期化する。速度を0にする、など
+        
+        //UIマネージャーに値を入れた後に初期化する
+        uiManager_->SetShakeProgress(glassManager_->GetShakeValue());
+        //フラグを初期化する。速度を0にする、など  //シェイク値をご破算
         glassManager_->Initialize();
+
         JudgeAndSetCameraAndLoad();
+        //UI カスタマーにヒットした
+        uiManager_->SetIsHitCustomer(true);
         //仮にスライドSEを入れる
         GameSESystem::PlaySE(GameSESystem::SLIDE);
-
+       
     } else if (glassManager_->GetGlassPtr()->GetIsBroken()) {
-        //フラグを初期化する。速度を0にする、など
+
+        //フラグを初期化する。速度を0にする、など  //シェイク値をご破算
         glassManager_->Initialize();
         JudgeAndSetCameraAndLoad();
 
@@ -494,12 +490,14 @@ void GameScenePhase::InnerTableEvent()
                 humanManager_->SetCurrentGlassUserIndex(i);
                 //速度を初期化する
                 glassManager_->GetGlassPtr()->SetVelocity(Vector3{});
+                //パスされた時加算する
+                glassManager_->AddShakeValue(0.15f);
+                uiManager_->SetShakeProgress(glassManager_->GetShakeValue());
                 JudgeAndSetCameraAndLoad();
                 break;
             }
         }
     }
-
 
     //ここまで来たら重力処理をする
     glassManager_->GetGlassPtr()->AddTranslate(Vector3{ 0.0f, -0.06f, 0.0f });
@@ -560,7 +558,6 @@ void GameScenePhase::ResetGame()
 
 void GameScenePhase::DrawMainScreen(const int32_t renderTexture)
 {
-
     //バーの描画
     bar_->Draw(renderTexture);
     //人間の描画
@@ -583,8 +580,6 @@ void GameScenePhase::DrawMainScreen(const int32_t renderTexture)
 
     //グラス総括管理
     glassManager_->Draw(renderTexture);
-
-
 
     //コライダーデバック描画
     if (isDebugDraw_) collisionManager_->DebugDraw(renderTexture);

@@ -28,27 +28,33 @@ GlassManager::GlassManager()
 
 GlassManager::~GlassManager()
 {
+
 }
 
 void GlassManager::SetLightData(LightDataForGPU* data)
 {
+    //グラス
     glass_->SetLightData(data);
+    //予測線
     prediction_->SetLightData(data);
 }
 
 void GlassManager::SetCollisionManager(CollisionManager* collisionManager)
 {
+    //予測線
     prediction_->SetCollisionManager(collisionManager);
 }
 
 void GlassManager::Initialize()
 {
+    //ショットフラグ
     isShot_ = false;
+    //グラス
     glass_->Initialize();
+    //カクテル
     cocktailWater_->Initialize();
     //ベロシティの初期化をする
     glass_->SetVelocity(Vector3{});
-
     //予測オブジェクト
     prediction_->Initialize();
 }
@@ -60,7 +66,7 @@ void GlassManager::Update(const int32_t cameraID)
     cocktailWater_->Update(cameraID);
 }
 
-void GlassManager::PlayerControl(GameCameraManager* gameCameraManager , std::vector<std::unique_ptr<TableObject>>& tebleObjects)
+void GlassManager::PlayerControl(GameCameraManager* gameCameraManager, std::vector<std::unique_ptr<TableObject>>& tebleObjects)
 {
     if (ableDrag_)
     {
@@ -120,14 +126,14 @@ void GlassManager::PlayerControl(GameCameraManager* gameCameraManager , std::vec
 }
 
 void GlassManager::DrawPrediction(const int32_t renderTexture)
-{   
+{
     //ショットアングルセットアップ時に描画する
     prediction_->Draw(renderTexture);
-    
+
 }
 
 void GlassManager::Draw(const int32_t renderTexture)
-{   
+{
     //カクテル液体の描画
     cocktailWater_->Draw(renderTexture);
     //グラスは半透明なので後に描画する
@@ -148,10 +154,27 @@ void GlassManager::DrawImGui()
 void GlassManager::SetPosForTableAndHuman(const Vector3& tablePos, const float tableRadius, const float humanDeg, const float tabelHeight)
 {
     //ここで0.5をかける
-    Vector3 glassPos = GameFunction::GetPositionOnCircle(tablePos, tableRadius*0.5f, humanDeg);
+    Vector3 glassPos = GameFunction::GetPositionOnCircle(tablePos, tableRadius * 0.5f, humanDeg);
     //テーブル高さの設定をここでするが、どうしようか
     glassPos.y = tabelHeight;
     glass_->SetTranslate(glassPos);
+}
+
+void GlassManager::SetShakeValue(const float shake)
+{
+    cocktailWater_->SetMixProgress(shake);
+}
+
+void GlassManager::AddShakeValue(const float shake)
+{
+   const float temp = cocktailWater_->GetMixProgress();
+   float value = std::clamp(temp + shake, 0.0f, 1.0f);
+   cocktailWater_->SetMixProgress(value);
+}
+
+float GlassManager::GetShakeValue()
+{
+    return cocktailWater_->GetMixProgress();
 }
 
 Glass* GlassManager::GetGlassPtr() { return glass_.get(); }
