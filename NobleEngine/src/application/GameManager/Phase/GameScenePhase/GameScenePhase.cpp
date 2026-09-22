@@ -464,6 +464,7 @@ void GameScenePhase::InnerTableEvent()
         JudgeAndSetCameraAndLoad();
         //仮にスライドSEを入れる
         GameSESystem::PlaySE(GameSESystem::SLIDE);
+
     } else if (glassManager_->GetGlassPtr()->GetIsBroken()) {
         //フラグを初期化する。速度を0にする、など
         glassManager_->Initialize();
