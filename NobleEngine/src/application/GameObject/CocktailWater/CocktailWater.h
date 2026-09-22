@@ -95,7 +95,10 @@ public:
 	void DrawImGui();
 
 	void SetTranslate(const Vector3& translate) { waterTransform_.translate = translate; }
-
+	//カラーのミックス具合をゲットする
+	float GetMixProgress() { return waterColorCB_.mixProgress; }
+	//カラーのミックス具合をセットする
+	void SetMixProgress(const float progress) { waterColorCB_.mixProgress = progress; }
 private:
 	std::unique_ptr<RenderObject> water_;
 	EulerTransforms waterTransform_;

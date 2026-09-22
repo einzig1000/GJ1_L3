@@ -8,12 +8,7 @@ class GlassParticle;
 
 class Glass
 {
-public:
-    enum GlassType
-    {
-        GLASS_COCKTAIL,
-        GLASS_MAX,
-    };
+
 public:
     Glass();
     ~Glass();
@@ -23,6 +18,7 @@ public:
     /// @brief 壊れたフラグの取得
     /// @return 
     bool GetIsBroken() { return isBroken_; }
+
     //カスタマーとの判定を得る
     bool GetIsHitCustomer() { return isHitCustomer_; }
 
@@ -30,16 +26,17 @@ public:
     void Update(const int32_t cameraID);
     void Draw(int32_t renderTargetID);
     void DrawImGui();
-    /// @brief グラスタイプを持たせるか基底クラスにするかは考える
-    /// @param type 
-    void SetGlassTypeAndLoadModels(const GlassType type);
 
 	void SetTranslate(const Vector3& translate) { transform_.translate = translate; };
 	void AddTranslate(const Vector3& translate) { transform_.translate += translate; };
 
 	Vector3 GetTranslate() { return transform_.translate; };
     Vector3& GetTranslatePointer() { return transform_.translate; };
-
+    /// @brief XZ平面の2D座標を得る
+    /// @return 
+    Vector2 Get2DPos() {return Vector2(transform_.translate.x, transform_.translate.z); };
+    void SetRotateY(float rotateY) { transform_.rotate.y = rotateY; };
+    const float GetRotate() { transform_.rotate.y; };
 	//void SetVelocity(const Vector3& vel) { velocity_ = vel; };
     Vector3 GetVelocity() { return velocity_; };
     void SetVelocity(const Vector3& vel) { comCollider_.colliders.at(0)->SetVelocity(vel); };
@@ -47,20 +44,22 @@ public:
     float GetRadius() { return transform_.scale.x * 1.0f; };
 
     //コライダーをゲットする
-
     std::vector<std::unique_ptr<Collider>>& GetColliders() { return comCollider_.colliders; };
 
 	void SetLightData(LightDataForGPU* lightData) { lightData_ = lightData; };
+    //void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
+private:
 
-    void ResetBroken() { isHitFloor_ = false; isBroken_ = false; }
+    void SetGlassTypeAndLoadModels();
 private:
 	LightDataForGPU* lightData_;
-    //
+    //顧客にヒットしたとき
     bool isHitCustomer_ = false;
     //床との当たり判定
     bool isHitFloor_ = false;
     //壊れたフラグ
     bool isBroken_ = false;
+
     //グラス
     std::unique_ptr<RenderObject> glassObj_ = nullptr;
 

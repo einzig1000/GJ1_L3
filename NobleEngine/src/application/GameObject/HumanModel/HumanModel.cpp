@@ -1,5 +1,7 @@
 #include "HumanModel.h"
 
+bool* HumanModel::isShotPtr_ = nullptr;
+
 HumanModel::HumanModel()
 {
 
@@ -12,7 +14,6 @@ HumanModel::~HumanModel()
 
 void HumanModel::Initialize()
 {
-    isShot_ = false;
     modelData_ = Game::Asset::Model::GetData(modelID_);
     numVertices_ = static_cast<uint32_t>(modelData_->vertices.size());
     skinInstance_ = Game::Asset::Animation::CreateSkinInstance(modelID_);
@@ -55,8 +56,7 @@ void HumanModel::Load()
 
     animationIDs_.clear();
     animationIDs_["Idle"] = Game::Asset::Animation::Load(filePath, "Idle");
-    //animationIDs_["IdelSit"] = Game::Asset::Animation::Load(filePath, "IdelSit");
-    //animationIDs_["Catch"] = Game::Asset::Animation::Load(filePath, "Catch");
+
     // テクスチャ
     textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
     //インスタンス1なので0とし行列のコンテナは考えない
@@ -106,12 +106,14 @@ void HumanModel::Draw(int32_t renderTargetID)
     animationCompute_->Dispatch();
 }
 
-void HumanModel::DrawImGui()
+void HumanModel::DrawImGui(const int32_t id)
 {
 
     ImGui::Begin("GameObj");
 
-    if (ImGui::TreeNode("Human")) {
+    ImGui::PushID(id);
+
+    if (ImGui::TreeNode(("Human"+std::to_string(id)).c_str())) {
 
         static int32_t currentAnimID = 0; // 現在選択中の animationID
 
@@ -146,6 +148,8 @@ void HumanModel::DrawImGui()
         ImGui::TreePop();
     }
 
+    ImGui::PopID();
+
     ImGui::End();
 
 
@@ -172,35 +176,6 @@ void HumanModel::SetAnimation(const std::string name)
 
 void HumanModel::UpdateAnimation()
 {
-
-    //bool isNear = false;
-    //if (glassPos_) {
-    //    Vector3 distance = *glassPos_ - transform_.translate;
-
-    //    if (distance.Length() < 0.25f) {
-    //        isNear = true;
-    //    };
-
-    //}
-
-    //if (isNear) {
-
-    //    if (currentAnimationName_ == "IdelSit" || currentAnimationName_ == "Idle") {
-    //        currentAnimationName_ = "Catch";
-    //    } else {
-    //        if (isEndAnimation_) {
-    //            currentAnimationName_ = "IdelSit";
-    //        }
-    //     
-    //    }
-
-
-    //} else {
-    //    if (isEndAnimation_) {
-    //        currentAnimationName_ = "IdelSit";
-    //    }
-
-    //}
 
 }
 

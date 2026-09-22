@@ -10,7 +10,7 @@ CreateMaskTexture::CreateMaskTexture()
 	render = std::make_unique<RenderObject>();
 	render->psoConfig_.vs = "assets/shaders/SimpleModel/SimpleModel.VS.hlsl";
 	render->psoConfig_.ps = "assets/shaders/SimpleModel/SimpleModelNonTexture.PS.hlsl";
-	render->modelID_ = Game::Asset::Model::Load("assets/application/model/Alcohol/Cocktail/Cocktail.obj");
+	render->modelID_ = Game::Asset::Model::Load("assets/application/model/Cocktail/Cocktail.obj");
 	render->SetupFromShaders();
 
 	cameraID_ = Game::Camera::AddCamera("MaskTextureCamera");

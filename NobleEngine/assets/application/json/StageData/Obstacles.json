@@ -1,6 +1,9 @@
 {
   "Stage0": {
     "Count": 3,
+    "Customer": {
+      "RotateDeg": 270.0
+    },
     "Human": {
       "RotateDeg": {
         "x": 90.0,
@@ -44,6 +47,9 @@
   },
   "Stage1": {
     "Count": 3,
+    "Customer": {
+      "RotateDeg": 270.0
+    },
     "Human": {
       "RotateDeg": {
         "x": 90.0,
@@ -79,6 +85,9 @@
   },
   "Stage2": {
     "Count": 3,
+    "Customer": {
+      "RotateDeg": 270.0
+    },
     "Human": {
       "RotateDeg": {
         "x": 90.0,
@@ -114,6 +123,9 @@
   },
   "Stage3": {
     "Count": 5,
+    "Customer": {
+      "RotateDeg": 270.0
+    },
     "Human": {
       "RotateDeg": {
         "x": 90.0,

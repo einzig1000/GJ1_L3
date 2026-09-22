@@ -52,20 +52,24 @@ namespace Collision {
         std::vector<std::unique_ptr<Collider>> newColliders;
         newColliders.reserve(maxCount);
 
-        for (int j = 0; j < maxCount; ++j) {
+        // 2. Sphere のセット
+        for (int j = 0; j < sphereCount; ++j) {
             auto collider = std::make_unique<Collider>();
             collider->SetWorldMatrixAddress(mat);
             collider->SetCollisionAttribute(attribute);
             collider->SetCollisionMask(mask);
+            collider->SetSphere(modelData->colliderShape.spheres[j]);
             newColliders.push_back(std::move(collider));
-        }
-        // 2. Sphere のセット
-        for (int j = 0; j < sphereCount; ++j) {
-            newColliders[j]->SetSphere(modelData->colliderShape.spheres[j]);
         }
 
         for (int j = 0; j < aabbCount; ++j) {
-            newColliders[sphereCount + j]->SetAABB(modelData->colliderShape.aabbs[j]);
+            auto collider = std::make_unique<Collider>();
+            collider->SetWorldMatrixAddress(mat);
+            collider->SetCollisionAttribute(attribute);
+            collider->SetCollisionMask(mask);
+            collider->SetAABB(modelData->colliderShape.aabbs[j]);
+            newColliders.push_back(std::move(collider));
+   
         }
 
         colliders = std::move(newColliders);

@@ -6,7 +6,7 @@
 
 #include"Game.h"
 
-void CollisionManager::Load()
+void CollisionManager::SetTag()
 {
     Collider::Load();
 
@@ -484,12 +484,12 @@ void CollisionManager::DebugUpdate(const int32_t cameraID)
 #endif
 }
 
-void CollisionManager::DebugDraw()
+void CollisionManager::DebugDraw(const int32_t renderTargetID)
 {
 #ifdef _DEBUG
 
     for (auto& collider : colliders_) {
-        collider->Draw();
+        collider->Draw(renderTargetID);
     }
 
 #endif

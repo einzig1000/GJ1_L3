@@ -12,35 +12,43 @@ class BreakEvaluation;
 
 class UIManager
 {
-
-
 public:
     UIManager();
     ~UIManager();
+
     void Initialize();
     void Update();
-    void Draw();
-    void DebugImGui();
+    void Draw(const int32_t uiRenderTextureID);
+    void DrawImGui();
     float GetTimer() { return gameTimer_; };
 
 	BreakEvaluation* GetBreakEvaluation() { return breakEvaluation_.get(); }
-    int32_t GetRenderTextureID() const { return renderTextureID_; }
 
     void SetScore(float score);
     void AddScore(float score);
     int32_t GetScore() const;
+    //シェイク
+    void SetShakeProgress(const float shake) { shakeProgress_ = shake; };
 
+    void SetCameraPhasePtr(CameraPhase* cameraPhase);
+    void SetIsHitCustomer(const bool flag) { isHitCustomer_ = flag; }
 private:
-
-    bool isInitializeCamera_ = false;
+    CameraPhase* cameraPhasePtr_ = nullptr;
     struct modelIDs {
         int32_t model_ = -1;
         int32_t texture_ = -1;
     };
-
+    // ダウン
+    bool isDown_ = true;
+    // 顧客にヒットした
+    bool isHitCustomer_ = false;
+    // アニメタイマー
+    float aniTimer_ = 0.0f;
+    // ゲームタイマー
     float gameTimer_ = 0.0f;
+    // シェイク値
+    float shakeProgress_ = 0.0f;
 
-    int32_t renderTextureID_ = -1;
     //UIのcamera
     int32_t uiCameraID_ = -1;
 
@@ -57,13 +65,12 @@ private:
     std::unique_ptr<UIModel>timeWord_ = nullptr;
 
     //円文字
-    std::unique_ptr<UIModel>yenWorl_ = nullptr;
+    std::unique_ptr<UIModel>yenWord_ = nullptr;
 
     //利益
-    std::unique_ptr<NumMeshs>benefitMesh_ = nullptr;
+    std::unique_ptr<NumMeshs>benefitNumMesh_ = nullptr;
     //時間
-    std::unique_ptr<NumMeshs>timeMesh_ = nullptr;
-
+    std::unique_ptr<NumMeshs>timeNumMesh_ = nullptr;
 
 };
 

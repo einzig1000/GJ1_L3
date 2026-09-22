@@ -4,15 +4,21 @@
 #include <Utilities/Json/JsonManager.h>
 #include <GameManager/Phase/TitlePhase/TitlePhase.h>
 #include <GameManager/Phase/GameScenePhase/GameScenePhase.h>
-#include <GameManager/Phase/TestPhase/TestPhase.h>
-#include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
-#include <GameManager/Phase/CollisionTestPhase/CollisionTestPhase.h>
+//#include <GameManager/Phase/TestPhase/TestPhase.h>
+//#include <GameManager/Phase/SikouteiDevelopPhase/SikouteiDevelopPhase.h>
 #include <GameManager/Phase/ResultPhase/ResultPhase.h>
 #include <GameManager/Phase/Tutorial/TutorialPhase.h>
 
-#include <GameManager/Phase/ResultPhase/ResultPhase.h>
+#include<System/GameBGMSystem/GameBGMSystem.h>
+
+
 GameManager::GameManager() 
 {
+
+
+	//全部ロードしたいニキ
+	GameBGMSystem::GetInstance().Load();
+
 	JsonManager::LoadAll("assets/application/json");
 
 
@@ -22,7 +28,7 @@ GameManager::GameManager()
 	maskTextureCreator_->Initialize();
 	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
-	Phase startUpPhase = Phase::Phase_Title;
+	Phase startUpPhase = Phase::Phase_GameScene;
 	currentPhase_ = CreatePhase(startUpPhase);
 	currentPhase_->SetContext(&phaseContext_);
 
@@ -32,14 +38,13 @@ GameManager::GameManager()
 	targetRenderTargetID_ = currentRenderTargetID_;
 
 
-
-
-
 	renderObject_ = std::make_unique<RenderObject>();
 	renderObject_->psoConfig_.vs = "assets/shaders/FullScreen/FullScreen.VS.hlsl";
 	renderObject_->psoConfig_.ps = "assets/shaders/FullScreen/Mask.PS.hlsl";
 	renderObject_->modelID_ = Game::Asset::Model::Load("assets/engine/model/plane/plane.obj");
 	renderObject_->SetupFromShaders();
+
+
 }
 
 GameManager::~GameManager()
@@ -127,20 +132,24 @@ std::unique_ptr<IPhase> GameManager::CreatePhase(Phase phase)
 {
 	switch (phase)
 	{
-	case Phase::Phase_Test:
-		return std::make_unique<TestPhase>();
-		break;
+
 	case Phase::Phase_Title:
 		return std::make_unique<TitlePhase>();
 		break;
-	case Phase::Phase_SikouteiDevelop:
-		return std::make_unique<SikouteiDevelopPhase>();
+	case Phase::Phase_Tutorial:
+		return std::make_unique<TutorialPhase>();
+		break;
+	//case Phase::Phase_SikouteiDevelop:
+	//	return std::make_unique<SikouteiDevelopPhase>();
+	//	break;
+	//case Phase::Phase_Test:
+	//	return std::make_unique<TestPhase>();
+	//	break;
+	case Phase::Phase_GameScene:
+		return  std::make_unique<GameScenePhase>();
 		break;
 	case Phase::Phase_Result:
 		return std::make_unique<ResultPhase>();
-		break;
-	case Phase::Phase_Tutorial:
-		return std::make_unique<TutorialPhase>();
 		break;
 	default:
 		break;

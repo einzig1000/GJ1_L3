@@ -178,7 +178,9 @@ CocktailWater::~CocktailWater()
 {}
 
 void CocktailWater::Initialize()
-{}
+{
+	waterColorCB_.mixProgress = 0.0f;
+}
 
 void CocktailWater::Update(int32_t cameraID)
 {
@@ -197,7 +199,6 @@ void CocktailWater::Update(int32_t cameraID)
 
 	waterColorCB_.motionWaveTime = waterWaveCB_.motionWaveTime;
 	waterColorCB_.motionIntensity = waterWaveCB_.motionIntensity;
-	waterColorCB_.mixProgress = 0.1f;
 
 	waterCameraCB_.cameraPositionWS = Game::Camera::Getter::GetWorldPosition(cameraID);
 }

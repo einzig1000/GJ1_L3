@@ -17,7 +17,14 @@ Vector3 ParentMatrix::GetWorldTransformByMatrix(const Matrix4x4& mat)
 
 Vector3 ParentMatrix::GetParentScaleByMatrix(const Matrix4x4& mat)
 {
-    return { mat.m[0][0], mat.m[1][1], mat.m[2][2] };
+    Vector3 scale;
+    // X軸ベクトルの長さ
+    scale.x = std::sqrt(mat.m[0][0] * mat.m[0][0] + mat.m[0][1] * mat.m[0][1] + mat.m[0][2] * mat.m[0][2]);
+    // Y軸ベクトルの長さ
+    scale.y = std::sqrt(mat.m[1][0] * mat.m[1][0] + mat.m[1][1] * mat.m[1][1] + mat.m[1][2] * mat.m[1][2]);
+    // Z軸ベクトルの長さ
+    scale.z = std::sqrt(mat.m[2][0] * mat.m[2][0] + mat.m[2][1] * mat.m[2][1] + mat.m[2][2] * mat.m[2][2]);
+    return scale;
 }
 
 void Collider::InitCalcuatedTisFrameFlag()
@@ -163,12 +170,12 @@ void Collider::Update(const int32_t cameraID)
 #endif // DEBUG
 }
 
-void Collider::Draw()
+void Collider::Draw(const int32_t renderTextureID)
 {
 #ifdef _DEBUG
 
     if (isDrawCollider_) {
-        colliderObj_->Draw();
+        colliderObj_->Draw(renderTextureID);
     }
 
 #endif // DEBUG

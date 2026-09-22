@@ -132,7 +132,7 @@ TutorialPhase::TutorialPhase()
     c_main_ = Game::Camera::AddCamera("TutorialPhase");
 
     //コリジョン管理
-    collisionManager_->Load();
+    collisionManager_->SetTag();
     collisionManager_ = std::make_unique<CollisionManager>();
 
 
@@ -173,7 +173,6 @@ TutorialPhase::TutorialPhase()
 
     prediction_ = std::make_unique<PredictionObj>();
     prediction_->SetCollisionManager(collisionManager_.get());
-    prediction_->SetObstacleArray(obstacles_);
     prediction_->SetLightData(&lightData_);
 
 
@@ -277,7 +276,8 @@ void TutorialPhase::Update()
             ChangeCameraPhase(CameraPhase::CatchFollowing);
             Vector3 glassPos = GetPositionOnCircle(table_->GetTranslate(), table_->GetRadius() * 0.5f, humanRotateDegree[currentGlassUserIndex_]);
             glassPos.y = 1.28f;
-            glass_->ResetBroken();
+            /*glass_->ResetBroken();*/
+            glass_->Initialize();
             glass_->SetTranslate(glassPos);
             glass_->SetVelocity(Vector3{});
         }
@@ -347,10 +347,11 @@ void TutorialPhase::Update()
             }
 
             Vector3 velocity = { velocity_.x, 0.0f, velocity_.y };
-            prediction_->SetObstacleCount(obstacleCount);
+   
             prediction_->SetVelocity(velocity);
             prediction_->SetTranslate(glass_->GetTranslate());
-            prediction_->Update(c_main_);
+            //一旦コメントアウトする
+         /*   prediction_->Update(c_main_);*/
         }
         if (dragging_ && Game::IO::Mouse::IsJustReleased(0))
         {
@@ -438,7 +439,7 @@ void TutorialPhase::Draw()
     glass_->Draw(renderTargetID_);
 
     //UIなので一番最後に描画する
-    uiManager_->Draw();
+    //uiManager_->Draw();
 }
 
 void TutorialPhase::DrawImGui()
@@ -449,7 +450,7 @@ void TutorialPhase::DrawImGui()
     table_->DrawImGui();
     prediction_->DrawImGui();
     //collisionManager_->DebugImGui();
-    uiManager_->DebugImGui();
+    uiManager_->DrawImGui();
 
     ImGui::Begin("glass");
 

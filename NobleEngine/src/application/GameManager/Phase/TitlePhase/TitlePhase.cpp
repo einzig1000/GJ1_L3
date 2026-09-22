@@ -7,15 +7,15 @@
 #include <externals/MagicEnum/magic_enum.hpp>
 #include <numbers>
 #include <string>
+#include<System/GameBGMSystem/GameBGMSystem.h>
+#include<System/SESystem/TitleSESystem/TitleSESystem.h>
+
 
 TitlePhase::TitlePhase() {
 
 	// レンダーターゲット
 	renderTargetID_ = Game::Asset::RenderTexture::CreateRenderTexture(Game::Window::GetWidth(), Game::Window::GetHeight(), "Title");
-
-	// サウンド
-	s_TitleScene_ = Game::Asset::Audio::Load("assets/application/audio/BGM/TitleScene.mp3");
-
+	
 	// カメラ
 	c_main_ = Game::Camera::AddCamera("SimpleModels");
 	Game::Camera::Setter::SetCenter(Vector3(-60.0f, 7.0f, -55.0f), 0.0f, EaseType::IN_OUT_SINE, c_main_);
@@ -55,6 +55,11 @@ TitlePhase::TitlePhase() {
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		titleSelectModels_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
 	}
+
+
+
+	titleSESystem_ = std::make_unique<TitleSESystem>();
+	titleSESystem_->Load();
 }
 
 TitlePhase::~TitlePhase() {
@@ -73,8 +78,8 @@ void TitlePhase::Initialize() {
 
 	Initialize_LightModels();
 
-	volume = 0.0f;
-	s_TitleScene_PlayIDs_.push_back(Game::Audio::PlayAudio(s_TitleScene_, true, volume));
+	GameBGMSystem::GetInstance().StopAllAudio();
+	GameBGMSystem::GetInstance().Initialize(GameBGMSystem::TITLE_BGM);
 }
 
 void TitlePhase::Update() {
@@ -1074,6 +1079,10 @@ void TitlePhase::Update_Animation() {
 					}
 				}
 				isIcePseudoPhysicsReleased_ = allIceReleased;
+
+				if (isIcePseudoPhysicsReleased_) {
+					TitleSESystem::PlaySE(TitleSESystem::ICE);
+				}
 			}
 
 			Update_PresentationIce(scaledDeltaTime, true);
@@ -1183,6 +1192,7 @@ void TitlePhase::Update_Animation() {
 	if (!isCocktailViewCameraStarted_) {
 		isCocktailViewCameraStarted_ = true;
 		Start_CocktailViewCameraAnimation();
+		TitleSESystem::PlaySE(TitleSESystem::WATER);
 	}
 
 	ginAnimationElapsedTime_ += scaledDeltaTime;
@@ -1284,6 +1294,8 @@ void TitlePhase::Update_Animation() {
 		if (!Game::IO::Key::IsJustPressed(0x20)) {
 			return;
 		}
+		//TitleSESystem::PlaySE(TitleSESystem::SLIDE);
+		TitleSESystem::PlaySE(TitleSESystem::ICE);
 
 		isTitleSelectTransitionStarted_ = true;
 		// Selectへ入るまでは、最初のカクテル上のTitleRayを消しておく。
@@ -1341,9 +1353,8 @@ void TitlePhase::Update_Animation() {
 }
 
 void TitlePhase::Update_Sound() {
-	volume += Game::Time::GetScaledDeltaTimeMs() * 0.0001f;
-	volume = std::clamp(volume, 0.0f, 1.0f);
-	Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+
+	GameBGMSystem::GetInstance().UpVolume(GameBGMSystem::TITLE_BGM);
 }
 
 void TitlePhase::Start_CocktailCameraAnimation() {
@@ -1415,16 +1426,19 @@ void TitlePhase::Update_TitleSelect() {
 		// Aキーまたは左矢印キーでZ=-60側を選択
 		if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
 			selectedTitleIndex_ = 0;
+			TitleSESystem::PlaySE(TitleSESystem::LIGHT);
 		}
 
 		// Dキーまたは右矢印キーでZ=-50側を選択
 		if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
 			selectedTitleIndex_ = 1;
+			TitleSESystem::PlaySE(TitleSESystem::LIGHT);
 		}
 
 		// Spaceキーで現在の選択を確定する
 		if (Game::IO::Key::IsJustPressed(0x20)) {
 			Start_SelectedCocktailAnimation();
+			TitleSESystem::PlaySE(TitleSESystem::DECIDE);
 		}
 	}
 
@@ -1530,19 +1544,24 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 		return;
 	}
 
+
 	// 第2段階：正面位置から真上へ、少し高く膨らむ放物線を描いて移動する。
 	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
 	if (topMoveT > 1.0f) {
+		if (topMoveT != 1.0f) {
+			//ダイビング！
+			TitleSESystem::PlaySE(TitleSESystem::DIVE,true);
+		}
 		topMoveT = 1.0f;
 		// 倍速中にフェーズが切り替わっても、次フェーズへ2倍速を持ち越さない。
 		Game::Time::SetTimeScale(1.0f);
 		spaceHoldStartTime_ = std::chrono::steady_clock::time_point{};
 		isSpaceHoldTracking_ = false;
 		isSpaceFastForward_ = false;
-		ChangePhase(Phase::Phase_SikouteiDevelop);
-		volume -= Game::Time::GetScaledDeltaTimeMs() * 0.01f;
-		if (volume < 0.0f) Game::Audio::StopAudio(s_TitleScene_PlayIDs_[0]);
-		else Game::Audio::SetAudioVolume(s_TitleScene_PlayIDs_[0], volume);
+
+		ChangePhase(Phase::Phase_GameScene);
+		//volumeを下げる
+		GameBGMSystem::GetInstance().DownVolume(GameBGMSystem::TITLE_BGM);
 	}
 	const float smoothTopMoveT = EaseInOut01(topMoveT);
 

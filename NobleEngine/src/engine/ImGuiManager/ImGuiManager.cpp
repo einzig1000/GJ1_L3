@@ -30,7 +30,6 @@ ImGuiManager::ImGuiManager(DirectXManager* dxManager, WindowManager* windowManag
 		dxManager_->GetDescriptorHeapManager()->GetSRV_UAVManager()->GetGPUHandleAt(slot)                     // ImGuiフォントSRV用のGPUハンドル
 	);
 
-
 #ifdef _RELEASE
 	io.IniFilename = nullptr;
 

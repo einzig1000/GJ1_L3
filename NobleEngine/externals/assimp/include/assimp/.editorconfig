@@ -1,6 +1,7 @@
 # See <http://EditorConfig.org> for details
 
-[*.{h,hpp,inl}]
+[*.{h,hpp,inl,cpp}]
+charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true

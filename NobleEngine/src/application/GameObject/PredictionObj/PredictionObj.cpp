@@ -3,8 +3,6 @@
 #include <GameObject/TableObject/TableObject.h>
 #include <algorithm>
 
-
-
 PredictionObj::PredictionObj()
 {
     std::string filePath = "assets/engine/model/sphere/sphere.obj";
@@ -74,9 +72,9 @@ void PredictionObj::Initialize()
     InitializeForDrawPrediction();
 }
 
-void PredictionObj::Update(const int32_t cameraID)
+void PredictionObj::Update(const int32_t cameraID, std::vector<std::unique_ptr<TableObject>>& tebleObjects)
 {
-    //float deltaTime = Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+    //ここだけデルタタイムを固定し、予測が外れないようにする。
     float deltaTime = 1.0f / 60.0f;
 
     // 発射フェーズ
@@ -87,7 +85,7 @@ void PredictionObj::Update(const int32_t cameraID)
     transforms_.translate = emitter_.translate;
 
     // 障害物側の物理状態を退避(仮想衝突での書き換えを後で元に戻すため)
-    SnapshotObstaclePhysics();
+    SnapshotObstaclePhysics(tebleObjects);
 
     // 物理を呼ぶぞ！
     for (int i = 0; i < instanceCount_; ++i)
@@ -102,7 +100,7 @@ void PredictionObj::Update(const int32_t cameraID)
             //vel *= 0.99f;
             //colliders_->SetVelocity(vel);
 			worldMatrix_ = transforms_.GetWorldMatrix();
-            CheckColliders();
+            CheckColliders(tebleObjects);
         }
     
 		EulerTransforms transformsForDraw = transforms_;
@@ -201,15 +199,14 @@ void PredictionObj::DrawImGui()
     //ImGui::End();
 }
 
-void PredictionObj::CheckColliders()
+void PredictionObj::CheckColliders(std::vector<std::unique_ptr<TableObject>>& tebleObjects)
 {
-    //コライダーリストを毎フレーム削除してみる？
+    //コライダーリストを毎フレーム削除
     collisionManager_->ClearColliders();
 
     //コライダーを追加する
-    for (int32_t i = 0; i < obstacleCount_; i++)
-    {
-        for (auto& collider : obstacles_[i]->GetColliders())
+    for (auto& obstacle : tebleObjects) {
+        for (auto& collider : obstacle->GetColliders())
         {
             collisionManager_->AddCollider(collider.get());
         }
@@ -250,13 +247,13 @@ void PredictionObj::UpdateForDrawPrediction(int32_t cameraID)
 
 }
 
-void PredictionObj::SnapshotObstaclePhysics()
+void PredictionObj::SnapshotObstaclePhysics(std::vector<std::unique_ptr<TableObject>>& tebleObjects)
 {
     obstaclePhysicsSnapshot_.clear();
 
-    for (int32_t i = 0; i < obstacleCount_; i++)
-    {
-        for (auto& collider : obstacles_[i]->GetColliders())
+    for (auto& obstacle : tebleObjects) {
+
+        for (auto& collider : obstacle->GetColliders())
         {
             auto phyB = collider->GetPhysicsBody();
             obstaclePhysicsSnapshot_.push_back({ collider.get(), phyB.velocity, phyB.penetration });

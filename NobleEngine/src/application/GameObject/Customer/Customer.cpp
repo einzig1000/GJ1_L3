@@ -1,8 +1,8 @@
 #include "Customer.h"
-
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 Customer::Customer()
 {
-	Load();
+    Load();
 }
 
 Customer::~Customer()
@@ -11,54 +11,64 @@ Customer::~Customer()
 
 void Customer::Load()
 {
-	std::string directory = "assets/application/model/Woman/";
-	std::string filePath = directory + "woman.gltf";
-	// モデル
-	modelID_ = Game::Asset::Model::Load(filePath);
-	// アニメーション
+    std::string directory = "assets/application/model/Woman/";
+    std::string filePath = directory + "woman.gltf";
+    // モデル
+    modelID_ = Game::Asset::Model::Load(filePath);
+    // アニメーション
     animationIDs_.clear();
 
     animationIDs_["Catch"] = Game::Asset::Animation::Load(filePath, "Catch");
-	animationIDs_["IdleSit"] = Game::Asset::Animation::Load(filePath, "IdleSit");
+    animationIDs_["IdleSit"] = Game::Asset::Animation::Load(filePath, "IdleSit");
 
-	// テクスチャ
-	textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
-	//インスタンス1なので0とし行列のコンテナは考えない
-	comCollider_.CreateFromModelData(modelID_, worldMatrix_, CollisionTag::GetTag("Target") | CollisionTag::GetTag("Customer"), CollisionTag::GetTag("Glass"));
+    // テクスチャ
+    textureID_ = Game::Asset::Texture::Load(directory + "texture.png");
+    //インスタンス1なので0とし行列のコンテナは考えない
+    comCollider_.CreateFromModelData(modelID_, worldMatrix_,
+        CollisionTag::GetTag("Customer"),
+        CollisionTag::GetTag("Glass")|
+        CollisionTag::GetTag("Prediction")
+    );
 
-	currentAnimationName_ = "IdleSit";
+    currentAnimationName_ = "IdleSit";
+
+
+    // 全ての要素にコールバックを登録する関数を CompoundCollider に追加するか、ループで設定
+    for (auto& collider : comCollider_.colliders) {
+        collider->SetOnCollisionCallback([this](Collider* collider) {
+
+            if (!isHitPrediction_) {
+      /*          GameSESystem::PlaySE(GameSESystem::MONEY);*/
+
+                if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Prediction")) {
+
+                    //予測線と当たった時を得る
+                    isHitPrediction_ = true;
+
+                }
+            }
+         
+            });
+    }
+
+
 
 }
 
 void Customer::UpdateAnimation()
 {
-    transform_.translate.y = 0.5f;
 
-    bool isNear = false;
-    if (glassPos_) {
-        Vector3 distance = *glassPos_ - transform_.translate;
-        distance.y = 0.0f;
-        if (distance.Length() < 1.0f) {
-            isNear = true;
-        };
+    //アニメーションが終了したら
+    if (isEndAnimation_) {
+        currentAnimationName_ = "IdleSit";
+    }
+
+    //前フレームで予測線が当たっており、誰かがショットしてた時等ショット
+    if (isHitPrediction_) {
+        currentAnimationName_ = "Catch";
 
     }
 
-    if (isNear) {
+    isHitPrediction_ = false;
 
-        if (currentAnimationName_ == "IdleSit") {
-            currentAnimationName_ = "Catch";
-        } else {
-            if (isEndAnimation_) {
-                currentAnimationName_ = "IdleSit";
-            }
-
-        }
-
-
-    } else {
-        if (isEndAnimation_) {
-            currentAnimationName_ = "IdleSit";
-        }
-    }
 }

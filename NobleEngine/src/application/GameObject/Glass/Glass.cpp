@@ -1,6 +1,7 @@
 #include "Glass.h"
 #include"Utilities/Json/JsonManager.h"
 #include"GameObject/Effect/GlassParticle/GlassParticle.h"
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 namespace
 {
     //グラス共通の変数
@@ -10,23 +11,9 @@ namespace
 Glass::Glass()
 {
     //カクテルをロードする
-    SetGlassTypeAndLoadModels(GLASS_COCKTAIL);
+    SetGlassTypeAndLoadModels();
 
     JsonManager::Load("assets/application/json/Glass/Glass.json", "/deadLine", deadLine_);
-
-    transform_.translate.y = 1.28f;
-
-}
-
-Glass::~Glass()
-{}
-
-void Glass::Initialize()
-{
-    //床との当たり判定
-    isHitFloor_ = false;
-    //顧客との当たり判定を得る
-    isHitCustomer_ = false;
 
     //レンダーオブジェクトのインスタンス作成
     glassObj_ = std::make_unique<RenderObject>();
@@ -36,20 +23,16 @@ void Glass::Initialize()
     glassObj_->SetupFromShaders();
 
     glassObj_->modelID_ = modelID_;
-    //一旦半透明にしておく
-    color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
-	material_.alpha = 0.5f;
 
     comCollider_.CreateFromModelData(
         glassObj_->modelID_,
         worldMatrix_,
         CollisionTag::GetTag("Glass"),
-
+        //ターゲット（バーテン）と障害物とお客様に当たる
         CollisionTag::GetTag("Target") |
-        CollisionTag::GetTag("Obstacles")|
+        CollisionTag::GetTag("Obstacles") |
         CollisionTag::GetTag("Customer")
     );
-
 
     if (!comCollider_.colliders.empty()) {
 
@@ -70,23 +53,39 @@ void Glass::Initialize()
             }
 
             if (collider->GetCollisionAttribute() == CollisionTag::GetTag("Customer")) {
-             
+                if (!isHitCustomer_) {
                     //顧客と最初に当たった時を得る
                     isHitCustomer_ = true;
-                
+                }
             }
 
             if (isCollisionResponse) {
                 transform_.translate += comCollider_.colliders.at(0)->GetPhysicsBody().penetration * Game::Time::GetScaledDeltaTimeMs() * 0.001f;
             }
 
-
             });
     }
 
-
     // GlassParticle
     glassParticle_ = std::make_unique<GlassParticle>();
+}
+
+Glass::~Glass()
+{}
+
+void Glass::Initialize()
+{
+    //床との当たり判定
+    isHitFloor_ = false;
+    //顧客との当たり判定を得る
+    isHitCustomer_ = false;
+    //壊れた判定
+    isBroken_ = false;
+
+    //一旦半透明にしておく
+    color_ = Vector4{ 1.0f, 1.0f, 1.0f, 0.5f };
+	material_.alpha = 0.5f;
+
     glassParticle_->Initialize();
 }
 
@@ -124,13 +123,13 @@ void Glass::Update(const int32_t cameraID)
         if (!isBroken_) {
             isBroken_ = true;
             glassParticle_->Emit(transform_.translate);
+            GameSESystem::PlaySE(GameSESystem::BREAK);
         }
 
         if (isBroken_) {
             glassParticle_->Update(cameraID);
         }
     }
-
 
     material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
     material_.alpha = color_.w;
@@ -147,6 +146,7 @@ void Glass::Draw(int32_t renderTargetID)
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
 
     if (isBroken_) {
+
         glassParticle_->Draw(renderTargetID);
     } else {
         glassObj_->Draw(renderTargetID);
@@ -155,80 +155,20 @@ void Glass::Draw(int32_t renderTargetID)
 
 void Glass::DrawImGui()
 {
-    //ImGui::Begin("GameObj");
-    //
-    //if (ImGui::TreeNode("Glass"))
-    //{
-    //    static Vector3 vel;
-    //    ImGui::DragFloat3("velocity", &vel.x, 0.1f, -10.0f, 10.0f);
-    //    //物理ボディ
-    //    if (ImGui::TreeNode("PhysicsBody")) {
-    //        if (!comCollider_.colliders.empty()) {
-    //            auto& collider = comCollider_.colliders.at(0);
-    //            auto  phyB = collider->GetPhysicsBody();
-    //            float mass = phyB.mass;
-    //
-    //            ImGui::SliderFloat("mass", &phyB.mass, 0.001f, 1000.0f);
-    //
-    //            collider->SetMass(phyB.mass);
-    //
-    //            if (ImGui::Button("Shot"))
-    //            {
-    //                collider->SetVelocity(vel);
-    //            }
-    //        }
-    //
-    //        ImGui::Checkbox("isHitFloor", &isHitFloor_);
-    //
-    //        ImGui::DragFloat3("Scale##", &transform_.scale.x, 0.01f);
-    //        ImGui::DragFloat3("Rotate##", &transform_.rotate.x, 0.01f);
-    //        ImGui::DragFloat3("Translate##", &transform_.translate.x, 0.01f);
-    //        ImGui::ColorEdit4("Color##", &color_.x);
-    //
-    //        ImGui::TreePop();
-    //    }
-    //
-    //
-    //
-    //    ImGui::TreePop();
-    //}
-    //
-    //ImGui::End();
+    ImGui::Begin("Glass");
 
-    ImGui::Begin("Material");
-
-    if (ImGui::TreeNode("Glass"))
-    {
-		ImGui::DragFloat3("DiffuseColor", &material_.diffuseColor.x, 0.01f);
-		ImGui::DragFloat3("SpecularColor", &material_.specularColor.x, 0.01f);
-		ImGui::DragFloat("shininess", &material_.shininess, 0.01f);
-		ImGui::DragFloat("Alpha", &material_.alpha, 0.01f);
-
-        ImGui::TreePop();
-    }
-
+    Vector3 glassVel = GetVelocity();
+    Vector3 glassVel2dNormalized = Vector3(glassVel.x, 0.0f, glassVel.z).Normalized();
+    Vector3 yawPttch = Game::Math::YawPitchFromDirection(glassVel2dNormalized);
+    ImGui::Text("glass yawPitch: %f, %f, %f", yawPttch.x, yawPttch.y, yawPttch.z);
     ImGui::End();
 
-
-    //glassParticle_->DebugImGui();
 }
 
-void Glass::SetGlassTypeAndLoadModels(const GlassType type)
+void Glass::SetGlassTypeAndLoadModels()
 {
-
-    std::string filePath;
+    std::string filePath = "assets/application/model/Cocktail/Cocktail.obj";
     std::string textureFilePath = "assets/engine/texture/white1x1.png";
-
-    switch (type)
-    {
-    case Glass::GLASS_COCKTAIL:
-        filePath = "assets/application/model/Cocktail/Cocktail.obj";
-        break;
-    default:
-        //デフォルトはカクテル
-        filePath = "assets/application/model/Cocktail/Cocktail.obj";
-        break;
-    }
 
     //モデルとテクスチャIDをセットする
     modelID_ = Game::Asset::Model::Load(filePath);

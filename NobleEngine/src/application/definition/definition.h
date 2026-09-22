@@ -25,12 +25,13 @@ enum class CameraPhase
 enum class Phase
 {
     Phase_None,
-    Phase_Test,
+    //Phase_Test,
     Phase_Title,
+    Phase_Tutorial,
     Phase_GameScene,
-	Phase_SikouteiDevelop,
+	//Phase_SikouteiDevelop,
     Phase_Result,
-	Phase_Tutorial,
+
 
 	Phase_Max,
 };
