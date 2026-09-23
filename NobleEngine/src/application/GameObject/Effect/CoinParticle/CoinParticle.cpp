@@ -59,10 +59,10 @@ void CoinParticle::Initialize()
     emitterForCoin_.randomRange = 1.0f;
     emitterForCoin_.emit = 0;
 
-    emitterForCoin_.lifeTime = 2.0f; // ★ ここを追加 (0より大きい値を設定)
+    emitterForCoin_.lifeTime = 1.5f; // ★ ここを追加 (0より大きい値を設定)
 
     endpos_.endPos = { 0.0f,0.0f,0.0f };
-    endpos_.easeStartTime = 0.75f;
+    endpos_.easeStartTime = 0.4f;
 }
 
 void CoinParticle::Update(int32_t cameraID)
@@ -110,7 +110,9 @@ void CoinParticle::Draw(int32_t renderTargetID)
 void CoinParticle::SetPosition(const Vector3& startPos, const Vector3& endPos)
 {
     emitterForCoin_.translate = startPos;
+    emitterForCoin_.translate.z += 1.0f;
     endpos_.endPos = endPos;
+    endpos_.endPos.z += 1.0f;
 }
 void CoinParticle::DebugImGui() {
 
