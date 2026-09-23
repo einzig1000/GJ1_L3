@@ -18,21 +18,22 @@ public:
     //利益の設定 
     void SetValue(const int32_t benefit)
     {
-        value_ = benefit;
+        targetValue_ = benefit;
         isUpdateValue_ = true;
     };
 	void AddValue(const int32_t benefit)
 	{
-		value_ += benefit;
+        targetValue_ += benefit;
 		isUpdateValue_ = true;
 	};
 
-	int32_t GetValue() const { return value_; }
+	int32_t GetValue() const { return targetValue_; }
 
     void SetEulerTransform(const EulerTransforms& transform);
     const Vector3 GetWorldPos();
 private:
     bool isMinus_ = false;
+    int32_t targetValue_ = 0;
     int32_t value_ = 0;
     bool isUpdateValue_ = false;
     //6桁

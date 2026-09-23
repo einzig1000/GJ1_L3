@@ -2,6 +2,10 @@
 #include"../Numbers/Numbers.h"
 #include<algorithm>
 
+namespace {
+    const float kSpeed = 0.05f;
+}
+
 NumMeshs::NumMeshs()
 {
     Numbers::Load();
@@ -34,9 +38,11 @@ void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transf
 
 void NumMeshs::Update(const int32_t cameraID)
 {
-    isMinus_ = value_ < 0.0f;
+    isMinus_ = targetValue_ < 0;
 
     if (isUpdateValue_) {
+
+        value_ = Easing::F_LINEAR(value_, targetValue_, kSpeed);
 
         //カンスト処理
         value_ = std::clamp(value_, -1000000+1, 1000000 - 1);

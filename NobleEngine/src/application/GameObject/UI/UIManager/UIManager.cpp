@@ -161,6 +161,9 @@ void UIManager::Update()
             GameSESystem::PlaySE(GameSESystem::MONEY, true);
             //パーティクル
             coinParticle_->Emit(tempBenefit * 0.1f);
+        } else {
+            //全然破壊できてないですよ
+            GameSESystem::PlaySE(GameSESystem::BREAK, true);
         }
 
     }
