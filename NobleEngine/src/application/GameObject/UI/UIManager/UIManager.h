@@ -6,6 +6,7 @@ class UIModel;
 class NumMeshs;
 class BreakEvaluation;
 class ShakeProgress;
+class CoinParticle;
 
 struct modelIDs {
     int32_t model_ = -1;
@@ -59,7 +60,8 @@ private:
     std::unique_ptr<BreakEvaluation>breakEvaluation_ = nullptr;
     //シェイク
     std::unique_ptr<ShakeProgress>shakeProgress_ = nullptr;
-
+    //
+    std::unique_ptr<CoinParticle>coinParticle_ = nullptr;
     // ==================//UI//=========================
    
     //時間とお金
@@ -69,7 +71,9 @@ private:
     std::unique_ptr<UIModel>timeWord_ = nullptr;
     //円文字
     std::unique_ptr<UIModel>yenWord_ = nullptr;
- 
+    
+
+
     // ==================//NumMeshs//====================
 
     //利益

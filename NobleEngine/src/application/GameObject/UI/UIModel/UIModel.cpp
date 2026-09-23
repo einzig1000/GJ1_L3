@@ -16,6 +16,11 @@ UIModel::~UIModel()
 {
 }
 
+const Vector3 UIModel::GetWorldPos()
+{
+    return { worldMatrix_.m[3][0],worldMatrix_.m[3][1],worldMatrix_.m[3][2] };
+}
+
 void UIModel::SetTranslate(const Vector3 translate)
 {
     transform_.translate = translate;

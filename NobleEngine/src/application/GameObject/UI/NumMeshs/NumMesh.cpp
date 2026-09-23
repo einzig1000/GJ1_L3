@@ -118,3 +118,15 @@ void NumMeshs::SetEulerTransform(const EulerTransforms& transform)
     minus_->SetTransform(minusTransform);
 
 }
+
+const Vector3 NumMeshs::GetWorldPos()
+{
+    int32_t center = maxDigit_ / 2;
+
+    if (maxDigit_ % 2 == 0) {
+        //偶数だったら
+       return (numbers_[center-1]->WorldPos()+numbers_[center]->WorldPos())*0.5f;
+    }
+
+    return numbers_[center]->WorldPos();
+}

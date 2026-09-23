@@ -19,6 +19,7 @@ private:
 public:
     UIModel();
     ~UIModel();
+    const Vector3 GetWorldPos();
     Matrix4x4* GetWorldMatrixPtr() { return &worldMatrix_; };
     void SetTranslate(const Vector3 translate);
     void Initialize(const int32_t modelID,const int32_t textureID, const EulerTransforms& transform,Matrix4x4* parent = nullptr);

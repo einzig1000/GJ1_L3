@@ -6,6 +6,11 @@ namespace {
     int32_t textureID_ = -1;
 }
 
+const Vector3 Numbers::WorldPos()
+{
+    return { worldMatrix_.m[3][0],worldMatrix_.m[3][1],worldMatrix_.m[3][2] };
+}
+
 void Numbers::Load()
 {
     modelIDs_.clear();

@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\GameObject\Effect\CoinParticle\CoinParticle.cpp" />
     <ClCompile Include="src\application\GameObject\UI\ShakeProgress\ShakeProgress.cpp" />
     <ClCompile Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.cpp" />
     <ClCompile Include="src\application\System\SESystem\GameSESystem\GameSESystem.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\GameObject\Effect\CoinParticle\CoinParticle.h" />
     <ClInclude Include="src\application\GameObject\UI\ShakeProgress\ShakeProgress.h" />
     <ClInclude Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.h" />
     <ClInclude Include="src\application\System\SESystem\GameSESystem\GameSESystem.h" />
@@ -435,6 +437,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\application\json\Glass\Glass.json" />
+    <None Include="assets\shaders\Particle\Coin\CoinParticle.hlsli" />
     <None Include="resources\shaders\Block\versionInfo.md">
       <SubType>
       </SubType>

@@ -5,6 +5,7 @@
 #include<GameObject/UI/ShakeProgress/ShakeProgress.h>
 #include<numbers>
 #include<System/SESystem/GameSESystem/GameSESystem.h>
+#include<GameObject/Effect/CoinParticle/CoinParticle.h>
 
 namespace {
     //ボーナス定数
@@ -29,6 +30,9 @@ UIManager::UIManager()
     breakEvaluation_ = std::make_unique<BreakEvaluation>();
     //シェイクプログレス
     shakeProgress_ = std::make_unique<ShakeProgress>();
+
+    //コインパーティクル
+    coinParticle_ = std::make_unique<CoinParticle>();
 
     modelIds_["timeAndMoney"] = {
      Game::Asset::Model::Load("assets/application/model/UI_TIme&Money/UI_TIme&Money.obj") ,
@@ -95,6 +99,8 @@ void UIManager::Initialize()
     benefitNumMesh_->Initialize(6, { { 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, {-0.28f,0.4f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
     timeNumMesh_->Initialize(2, { { 1.1f ,1.1f,1.1f }, { 0.0f,0.0f,0.0f }, { 0.8f,-0.63f,-0.2f } }, timeAndMoneySignboard_->GetWorldMatrixPtr());
 
+    coinParticle_->Initialize();
+
     Game::Camera::Setter::SetEnableControl(false, uiCameraID_);
 
     Game::Camera::Setter::SetDistanceTarget(12.0f, 0.0f, EaseType::LINEAR, uiCameraID_);
@@ -103,6 +109,8 @@ void UIManager::Initialize()
 
     Game::Camera::Setter::SetCenter({ 0.0f,-3.0,9.0f }, 0.0f, EaseType::LINEAR, uiCameraID_);
 
+
+    
 }
 
 void UIManager::Update()
@@ -141,23 +149,39 @@ void UIManager::Update()
     benefitNumMesh_->Update(uiCameraID_);
     timeNumMesh_->Update(uiCameraID_);
 
+
+
     if (breakEvaluation_->GetIsAddScore()) {
-        //破壊数に応じて加算する あるいはお客さんに届いた。
-        GameSESystem::PlaySE(GameSESystem::MONEY, true);
+       
+        int32_t tempBenefit = breakEvaluation_->GetBenefit();
         //ベネフィットを入れちゃおー
-        benefitNumMesh_->AddValue(breakEvaluation_->GetBenefit());
+        benefitNumMesh_->AddValue(tempBenefit);
+        if (tempBenefit > 0) {
+            //破壊数に応じて加算する あるいはお客さんに届いた。
+            GameSESystem::PlaySE(GameSESystem::MONEY, true);
+            //パーティクル
+            coinParticle_->Emit(tempBenefit * 0.1f);
+        }
+
     }
 
     if (isHitCustomer_) {
         // あるいはお客さんに届いた。
         GameSESystem::PlaySE(GameSESystem::MONEY, true);
         //シェイク値によってボーナスをかけて　渡ったら規定値500円
-        benefitNumMesh_->AddValue(shakeProgress_->GetShakeProgress() * shakeBonus + benefit);
+        int32_t tempBenefit = shakeProgress_->GetShakeProgress() * shakeBonus + benefit;
+        benefitNumMesh_->AddValue(tempBenefit);
         isHitCustomer_ = false;
         //お客様に提供されたらゼロに戻す
         shakeProgress_->SetShakeProgress(0.0f);
+        //パーティクル
+        coinParticle_->Emit(tempBenefit*0.1f);
     }
 
+    //ブレイクカウントから利益までの位置をセットしたい。
+    coinParticle_->SetPosition(breakEvaluation_->GetSignBoardPos(), benefitNumMesh_->GetWorldPos());
+    //コインパーティクル
+    coinParticle_->Update(uiCameraID_);
 }
 
 void UIManager::Draw(const int32_t uiRenderTextureID)
@@ -175,16 +199,20 @@ void UIManager::Draw(const int32_t uiRenderTextureID)
     benefitNumMesh_->Draw(uiRenderTextureID);
     timeNumMesh_->Draw(uiRenderTextureID);
 
+
+    coinParticle_->Draw(uiRenderTextureID);
 }
 
 void UIManager::DrawImGui()
 {
 
+    coinParticle_->DebugImGui();
+
     int i = 0;
     timeAndMoneySignboard_->DebugUI(i++);
     yenWord_->DebugUI(i++);
     timeWord_->DebugUI(i++);
-
+  
 
     benefitNumMesh_->DrawImGui("benefit");
     timeNumMesh_->DrawImGui("timeMesh");
@@ -192,6 +220,8 @@ void UIManager::DrawImGui()
     breakEvaluation_->DebugImGui();
 
     shakeProgress_->DebugUI();
+
+
 }
 
 void UIManager::SetScore(float score)

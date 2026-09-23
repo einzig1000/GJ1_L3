@@ -14,6 +14,7 @@ private:
     Vector4 color_;
     Matrix4x4* parent_ = nullptr;
 public:
+    const Vector3 WorldPos();
     static void Load();
     Numbers();
     ~Numbers();

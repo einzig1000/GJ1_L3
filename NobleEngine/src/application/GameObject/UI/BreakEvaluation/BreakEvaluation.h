@@ -29,6 +29,7 @@ public:
     //上に上がる
     void SetIsUp(const bool isUp) { isUp_ = isUp; };
     bool GetIsAddScore() { return isAddScore_; };
+    const Vector3 GetSignBoardPos();
 private:
     void BreakJudgement();
     //カウントが更新されたらアニメーションを開始する

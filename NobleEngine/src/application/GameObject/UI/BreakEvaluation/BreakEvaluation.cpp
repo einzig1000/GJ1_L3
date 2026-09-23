@@ -267,6 +267,11 @@ void BreakEvaluation::SetMaxBreakCount(const int32_t maxBreakCount)
 }
 
 
+const Vector3 BreakEvaluation::GetSignBoardPos()
+{
+    return breakSignboard_->GetWorldPos();
+}
+
 void BreakEvaluation::BreakJudgement()
 {
 

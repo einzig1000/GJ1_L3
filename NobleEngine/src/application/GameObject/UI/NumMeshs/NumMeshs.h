@@ -30,6 +30,7 @@ public:
 	int32_t GetValue() const { return value_; }
 
     void SetEulerTransform(const EulerTransforms& transform);
+    const Vector3 GetWorldPos();
 private:
     bool isMinus_ = false;
     int32_t value_ = 0;
