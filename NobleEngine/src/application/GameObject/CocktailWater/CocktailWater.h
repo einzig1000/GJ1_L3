@@ -96,10 +96,13 @@ public:
 
 	void SetTranslate(const Vector3& translate) { waterTransform_.translate = translate; }
 	//カラーのミックス具合をゲットする
-	float GetMixProgress() { return waterColorCB_.mixProgress; }
+	float GetMixProgress() {
+		//現在のミックス値を得る
+		return waterColorCB_.mixProgress; }
 	//カラーのミックス具合をセットする
-	void SetMixProgress(const float progress) { waterColorCB_.mixProgress = progress; }
+	void SetMixProgress(const float progress) { mixProgress_ = progress; }
 private:
+	float mixProgress_ = 0.0f;
 	std::unique_ptr<RenderObject> water_;
 	EulerTransforms waterTransform_;
 	WaterTransformCB waterTransformCB_;

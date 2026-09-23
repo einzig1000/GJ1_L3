@@ -39,7 +39,7 @@ void NumMeshs::Update(const int32_t cameraID)
     if (isUpdateValue_) {
 
         //カンスト処理
-        value_ = std::clamp(value_, 0, 1000000 - 1);
+        value_ = std::clamp(value_, -1000000+1, 1000000 - 1);
         int32_t tempBenefit = std::abs(value_);
 
         for (int digit = maxDigit_ - 1; digit >= 0; digit--) {
@@ -49,7 +49,6 @@ void NumMeshs::Update(const int32_t cameraID)
             numbers_[maxDigit_ - 1 - digit]->SetModelId(num);
             tempBenefit %= digitNum;
         }
-
 
     }
 

@@ -194,7 +194,13 @@ void BreakEvaluation::Update(const int32_t uiCameraId)
         } else {
             currentCountMesh_->SetEulerTransform(AnimationStart(numberAniTime_));
             if (numberAniTime_.isEnd) {
-                GameSESystem::PlaySE(GameSESystem::UI_BREAK);
+                if (evaluationString_ == "Bad") {
+                    //悪ければ違うSEを鳴らす
+                    GameSESystem::PlaySE(GameSESystem::SLIDE);
+                } else {
+                    GameSESystem::PlaySE(GameSESystem::UI_BREAK);
+                }
+             
             }
         }
     }

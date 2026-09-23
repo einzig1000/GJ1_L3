@@ -1,5 +1,8 @@
 #include "CocktailWater.h"
-
+namespace
+{
+	const float kMixProgressSpeed_ = 0.005f;
+}
 namespace
 {
 	/// <summary>
@@ -196,6 +199,8 @@ void CocktailWater::Update(int32_t cameraID)
 	waterWaveCB_.motionWaveTime += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
 	//waterWaveCB_.motionIntensity = motionIntensity_;   // グラスの速度から作った0〜1
 	//waterWaveCB_.motionIntensity = 0.5f; // 仮の値
+	//リニアでミックスする
+	waterColorCB_.mixProgress = Easing::F_LINEAR(waterColorCB_.mixProgress, mixProgress_, kMixProgressSpeed_);
 
 	waterColorCB_.motionWaveTime = waterWaveCB_.motionWaveTime;
 	waterColorCB_.motionIntensity = waterWaveCB_.motionIntensity;

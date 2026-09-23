@@ -55,7 +55,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 uint32_t particleIndex = gFreeList[freeListIndex];
                 // カウント分Particleを射出する
                 //スケールは固定値
-                gParticles[particleIndex].scale = (1.0f,1.0f,1.0f);
+                gParticles[particleIndex].scale = float3(1.0f,1.0f,1.0f);
         
                 gParticles[particleIndex].translate = gEmitter.translate + (generator.Generate3d() * 2.0f - 1.0f) * gEmitter.radius;
                 float3 randomDirection = generator.Generate3d();

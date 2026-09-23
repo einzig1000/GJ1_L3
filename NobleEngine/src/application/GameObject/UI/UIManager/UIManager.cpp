@@ -110,7 +110,7 @@ void UIManager::Initialize()
     Game::Camera::Setter::SetCenter({ 0.0f,-3.0,9.0f }, 0.0f, EaseType::LINEAR, uiCameraID_);
 
 
-    
+
 }
 
 void UIManager::Update()
@@ -152,7 +152,7 @@ void UIManager::Update()
 
 
     if (breakEvaluation_->GetIsAddScore()) {
-       
+
         int32_t tempBenefit = breakEvaluation_->GetBenefit();
         //ベネフィットを入れちゃおー
         benefitNumMesh_->AddValue(tempBenefit);
@@ -167,15 +167,17 @@ void UIManager::Update()
 
     if (isHitCustomer_) {
         // あるいはお客さんに届いた。
-        GameSESystem::PlaySE(GameSESystem::MONEY, true);
+
         //シェイク値によってボーナスをかけて　渡ったら規定値500円
         int32_t tempBenefit = shakeProgress_->GetShakeProgress() * shakeBonus + benefit;
         benefitNumMesh_->AddValue(tempBenefit);
         isHitCustomer_ = false;
         //お客様に提供されたらゼロに戻す
         shakeProgress_->SetShakeProgress(0.0f);
+
+        GameSESystem::PlaySE(GameSESystem::MONEY, true);
         //パーティクル
-        coinParticle_->Emit(tempBenefit*0.1f);
+        coinParticle_->Emit(tempBenefit * 0.1f);
     }
 
     //ブレイクカウントから利益までの位置をセットしたい。
@@ -212,7 +214,7 @@ void UIManager::DrawImGui()
     timeAndMoneySignboard_->DebugUI(i++);
     yenWord_->DebugUI(i++);
     timeWord_->DebugUI(i++);
-  
+
 
     benefitNumMesh_->DrawImGui("benefit");
     timeNumMesh_->DrawImGui("timeMesh");
