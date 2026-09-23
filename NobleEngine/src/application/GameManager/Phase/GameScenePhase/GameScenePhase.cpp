@@ -81,9 +81,8 @@ GameScenePhase::GameScenePhase()
     bar_ = std::make_unique<Bar>();
     bar_->SetLightData(&gameLight_->GetLightData());
 
-    gameSESystem_ = std::make_unique<GameSESystem>();
     //ロード
-    gameSESystem_->Load();
+    GameSESystem::Load(GameSESystem::Game);
 }
 
 GameScenePhase::~GameScenePhase() {}

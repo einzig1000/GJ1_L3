@@ -11,7 +11,6 @@ public:
 
 public:
     virtual ~ISESystem() = default;
-    virtual void Load() = 0;
     template <typename T>
     requires std::is_enum_v<T>
     static void PlaySE(T type,bool isOriginal = false);
@@ -44,6 +43,6 @@ inline void ISESystem::StopSE(T type)
     if (gameAudios_.size() <= static_cast<size_t>(type)) {
         return;
     }
-    Game::Audio::StopAudio(gameAudios_[static_cast<int32_t>(type)].id);
+    Game::Audio::StopAudio(gameAudios_[static_cast<int32_t>(type)].status_);
 
 }

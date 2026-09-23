@@ -10,12 +10,14 @@
 #include <GameManager/Phase/Tutorial/TutorialPhase.h>
 
 #include<System/GameBGMSystem/GameBGMSystem.h>
-
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 
 GameManager::GameManager() 
 {
 	//全部ロードしたいニキ
 	GameBGMSystem::GetInstance().Load();
+	GameSESystem::Set();
+	GameSESystem::Load(GameSESystem::Common);
 
 	JsonManager::LoadAll("assets/application/json");
 
@@ -25,7 +27,7 @@ GameManager::GameManager()
 	maskTextureCreator_->Initialize();
 	maskRenderTargetID_ = maskTextureCreator_->GetMaskTextureID();
 
-	Phase startUpPhase = Phase::Phase_GameScene;
+	Phase startUpPhase = Phase::Phase_Title;
 	currentPhase_ = CreatePhase(startUpPhase);
 	currentPhase_->SetContext(&phaseContext_);
 

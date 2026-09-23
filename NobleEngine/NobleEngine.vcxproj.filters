@@ -131,8 +131,6 @@
     <ClCompile Include="src\application\System\GameBGMSystem\GameBGMSystem.cpp" />
     <ClCompile Include="src\application\System\SESystem\ISESystem.cpp" />
     <ClCompile Include="src\application\System\SESystem\GameSESystem\GameSESystem.cpp" />
-    <ClCompile Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.cpp" />
-    <ClCompile Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.cpp" />
     <ClCompile Include="src\application\GameObject\UI\ShakeProgress\ShakeProgress.cpp" />
     <ClCompile Include="src\application\GameObject\Effect\CoinParticle\CoinParticle.cpp" />
   </ItemGroup>
@@ -429,8 +427,6 @@
     <ClInclude Include="src\application\System\GameBGMSystem\GameBGMSystem.h" />
     <ClInclude Include="src\application\System\SESystem\ISESystem.h" />
     <ClInclude Include="src\application\System\SESystem\GameSESystem\GameSESystem.h" />
-    <ClInclude Include="src\application\System\SESystem\ResultSESystem\ResultSESystem.h" />
-    <ClInclude Include="src\application\System\SESystem\TitleSESystem\TitleSESystem.h" />
     <ClInclude Include="src\application\GameObject\UI\ShakeProgress\ShakeProgress.h" />
     <ClInclude Include="src\application\GameObject\Effect\CoinParticle\CoinParticle.h" />
   </ItemGroup>

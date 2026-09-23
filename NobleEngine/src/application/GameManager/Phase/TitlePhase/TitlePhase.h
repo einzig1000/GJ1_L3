@@ -5,8 +5,6 @@
 #include <cstdint>
 #include <numbers>
 
-class TitleSESystem;
-
 
 class TitlePhase : public IPhase {
 public:
@@ -22,8 +20,6 @@ public:
 
 
 private:
-	//タイトルSEシステム
-	std::unique_ptr<TitleSESystem>titleSESystem_ = nullptr;
 
 	// ========================================
 	// Space長押しによる倍速
@@ -35,6 +31,9 @@ private:
 	void Update_SpaceTimeScale();
 
 	static constexpr int32_t kMaxLightCount_ = 20;
+
+	// だいぶSEの処理
+	bool isDive_ = false;
 
 	// ========================================
 	// Light

@@ -18,22 +18,31 @@ public:
     //利益の設定 
     void SetValue(const int32_t benefit)
     {
+        startValue_ = value_;
         targetValue_ = benefit;
         isUpdateValue_ = true;
+        timer_ = 0.0f;
     };
+
+
 	void AddValue(const int32_t benefit)
 	{
+        startValue_ = value_;
         targetValue_ += benefit;
 		isUpdateValue_ = true;
+        timer_ = 0.0f;
 	};
 
 	int32_t GetValue() const { return targetValue_; }
-
+    void SetIsEaseNum(const bool isEase) { isEase_ = isEase; }
     void SetEulerTransform(const EulerTransforms& transform);
     const Vector3 GetWorldPos();
 private:
+    bool isEase_ = false;
     bool isMinus_ = false;
     int32_t targetValue_ = 0;
+    int32_t startValue_ = 0;
+    float timer_ = 0.0f;
     int32_t value_ = 0;
     bool isUpdateValue_ = false;
     //6桁

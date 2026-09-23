@@ -19,6 +19,8 @@ UIManager::UIManager()
     uiCameraID_ = Game::Camera::AddCamera("UICamera");
 
     benefitNumMesh_ = std::make_unique<NumMeshs>();
+    benefitNumMesh_->SetIsEaseNum(true);
+
     timeNumMesh_ = std::make_unique<NumMeshs>();
 
     timeAndMoneySignboard_ = std::make_unique<UIModel>();
@@ -151,14 +153,14 @@ void UIManager::Update()
 
 
 
-    if (breakEvaluation_->GetIsAddScore()) {
+    if (breakEvaluation_->GetIsAddScore() && gameTimer_ < 60) {
 
         int32_t tempBenefit = breakEvaluation_->GetBenefit();
         //ベネフィットを入れちゃおー
         benefitNumMesh_->AddValue(tempBenefit);
         if (tempBenefit > 0) {
             //破壊数に応じて加算する あるいはお客さんに届いた。
-            GameSESystem::PlaySE(GameSESystem::MONEY, true);
+            GameSESystem::PlaySE(GameSESystem::MONEY,true);
             //パーティクル
             coinParticle_->Emit(tempBenefit * 0.1f);
         } else {
@@ -168,7 +170,7 @@ void UIManager::Update()
 
     }
 
-    if (isHitCustomer_) {
+    if (isHitCustomer_&& gameTimer_ < 60) {
         // あるいはお客さんに届いた。
 
         //シェイク値によってボーナスをかけて　渡ったら規定値500円
@@ -178,7 +180,7 @@ void UIManager::Update()
         //お客様に提供されたらゼロに戻す
         shakeProgress_->SetShakeProgress(0.0f);
 
-        GameSESystem::PlaySE(GameSESystem::MONEY, true);
+        GameSESystem::PlaySE(GameSESystem::MONEY,true);
         //パーティクル
         coinParticle_->Emit(tempBenefit * 0.1f);
     }

@@ -2,10 +2,6 @@
 #include"../Numbers/Numbers.h"
 #include<algorithm>
 
-namespace {
-    const float kSpeed = 0.05f;
-}
-
 NumMeshs::NumMeshs()
 {
     Numbers::Load();
@@ -26,6 +22,7 @@ NumMeshs::~NumMeshs()
 
 void NumMeshs::Initialize(const uint32_t maxDigit, const EulerTransforms& transform, Matrix4x4* parent)
 {
+
     maxDigit_ = maxDigit;
     for (uint32_t i = 0; i < maxDigit; ++i) {
         numbers_[i]->Initialize(0, transform.translate + Vector3{ i * transform.scale.x * 0.5f,0.0f,0.0f }, transform.rotate, transform.scale, parent);
@@ -42,7 +39,13 @@ void NumMeshs::Update(const int32_t cameraID)
 
     if (isUpdateValue_) {
 
-        value_ = Easing::F_LINEAR(value_, targetValue_, kSpeed);
+        if (isEase_) {
+            timer_ += Game::Time::GetScaledDeltaTimeMs() * 0.001f;
+            timer_ = std::clamp(timer_, 0.0f, 1.0f);
+            value_ = Easing::F_LINEAR(startValue_, targetValue_, timer_);
+        } else {
+            value_ = targetValue_;
+        }
 
         //カンスト処理
         value_ = std::clamp(value_, -1000000+1, 1000000 - 1);

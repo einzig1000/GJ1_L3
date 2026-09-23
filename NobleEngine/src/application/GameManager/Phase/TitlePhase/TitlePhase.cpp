@@ -8,8 +8,7 @@
 #include <numbers>
 #include <string>
 #include<System/GameBGMSystem/GameBGMSystem.h>
-#include<System/SESystem/TitleSESystem/TitleSESystem.h>
-
+#include<System/SESystem/GameSESystem/GameSESystem.h>
 
 TitlePhase::TitlePhase() {
 
@@ -52,14 +51,12 @@ TitlePhase::TitlePhase() {
 	glassModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Water/Water.png");
 	CocktailModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Cocktail/Cocktail.png");
 	ginModel_.textureID_ = Game::Asset::Texture::Load("assets/application/model/Alcohol/Gin/Gin.png");
+	
 	for (int32_t i = 0; i < kTitleSelectCount_; ++i) {
 		titleSelectModels_[i].textureID_ = Game::Asset::Texture::Load("assets/application/model/Title_Select/Title_Select.png");
 	}
 
-
-
-	titleSESystem_ = std::make_unique<TitleSESystem>();
-	titleSESystem_->Load();
+	GameSESystem::Load(GameSESystem::Title);
 }
 
 TitlePhase::~TitlePhase() {
@@ -75,7 +72,7 @@ void TitlePhase::Initialize() {
 	spaceHoldStartTime_ = std::chrono::steady_clock::time_point{};
 	isSpaceHoldTracking_ = false;
 	isSpaceFastForward_ = false;
-
+	isDive_ = false;
 	Initialize_LightModels();
 
 	GameBGMSystem::GetInstance().StopAllAudio();
@@ -1081,7 +1078,7 @@ void TitlePhase::Update_Animation() {
 				isIcePseudoPhysicsReleased_ = allIceReleased;
 
 				if (isIcePseudoPhysicsReleased_) {
-					TitleSESystem::PlaySE(TitleSESystem::ICE);
+					GameSESystem::PlaySE(GameSESystem::ICE);
 				}
 			}
 
@@ -1192,7 +1189,7 @@ void TitlePhase::Update_Animation() {
 	if (!isCocktailViewCameraStarted_) {
 		isCocktailViewCameraStarted_ = true;
 		Start_CocktailViewCameraAnimation();
-		TitleSESystem::PlaySE(TitleSESystem::WATER);
+		GameSESystem::PlaySE(GameSESystem::WATER);
 	}
 
 	ginAnimationElapsedTime_ += scaledDeltaTime;
@@ -1295,7 +1292,7 @@ void TitlePhase::Update_Animation() {
 			return;
 		}
 		//TitleSESystem::PlaySE(TitleSESystem::SLIDE);
-		TitleSESystem::PlaySE(TitleSESystem::ICE);
+		GameSESystem::PlaySE(GameSESystem::ICE);
 
 		isTitleSelectTransitionStarted_ = true;
 		// Selectへ入るまでは、最初のカクテル上のTitleRayを消しておく。
@@ -1426,19 +1423,19 @@ void TitlePhase::Update_TitleSelect() {
 		// Aキーまたは左矢印キーでZ=-60側を選択
 		if (Game::IO::Key::IsJustPressed('A') || Game::IO::Key::IsJustPressed(0x25)) {
 			selectedTitleIndex_ = 0;
-			TitleSESystem::PlaySE(TitleSESystem::LIGHT);
+			GameSESystem::PlaySE(GameSESystem::LIGHT);
 		}
 
 		// Dキーまたは右矢印キーでZ=-50側を選択
 		if (Game::IO::Key::IsJustPressed('D') || Game::IO::Key::IsJustPressed(0x27)) {
 			selectedTitleIndex_ = 1;
-			TitleSESystem::PlaySE(TitleSESystem::LIGHT);
+			GameSESystem::PlaySE(GameSESystem::LIGHT);
 		}
 
 		// Spaceキーで現在の選択を確定する
 		if (Game::IO::Key::IsJustPressed(0x20)) {
 			Start_SelectedCocktailAnimation();
-			TitleSESystem::PlaySE(TitleSESystem::DECIDE);
+			GameSESystem::PlaySE(GameSESystem::DECIDE);
 		}
 	}
 
@@ -1549,8 +1546,12 @@ void TitlePhase::Update_SelectedCocktailAnimation() {
 	float topMoveT = (selectionCameraElapsedTime_ - kSelectionCameraOrbitDuration_) / kSelectionCameraTopMoveDuration_;
 	if (topMoveT > 1.0f) {
 		if (topMoveT != 1.0f) {
-			//ダイビング！
-			TitleSESystem::PlaySE(TitleSESystem::DIVE,true);
+			if (!isDive_) {
+				//ダイビング！
+				GameSESystem::PlaySE(GameSESystem::DIVE, true);
+				isDive_ = true;
+			}
+		
 		}
 		topMoveT = 1.0f;
 		// 倍速中にフェーズが切り替わっても、次フェーズへ2倍速を持ち越さない。

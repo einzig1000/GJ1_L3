@@ -13,7 +13,7 @@ void GameBGMSystem::Load()
 void GameBGMSystem::StopAllAudio()
 {
     for (auto& audio : bgmAudios_) {
-        Game::Audio::StopAudio(audio.id);
+        Game::Audio::StopAudio(audio.status_);
     }
 }
 
@@ -24,7 +24,11 @@ void GameBGMSystem::Initialize(const BGMs& bgm)
     }
     
     bgmAudios_[bgm].volume = 0.0f;
-    bgmAudios_[bgm].status_ = -1;
+
+    if (Game::Audio::IsAudioPlaying(bgmAudios_[bgm].status_)) {
+        return;
+    }
+
     bgmAudios_[bgm].status_ =  Game::Audio::PlayAudio(bgmAudios_[bgm].id, true, bgmAudios_[bgm].volume);
 }
 
@@ -50,7 +54,7 @@ void GameBGMSystem::DownVolume(const BGMs& bgm)
         Game::Audio::SetAudioVolume(bgmAudios_[bgm].status_, bgmAudios_[bgm].volume);
     } else {
         bgmAudios_[bgm].volume = 0.0f;
-        Game::Audio::StopAudio(bgmAudios_[bgm].id);
+        Game::Audio::StopAudio(bgmAudios_[bgm].status_);
     }
 }
 
