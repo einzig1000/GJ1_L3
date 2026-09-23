@@ -41,7 +41,7 @@ public:
 private:
     //コンストラクタデストラクタの隠蔽
     GameBGMSystem() = default;
-    ~GameBGMSystem() = default;
+    ~GameBGMSystem();
   
 
 private:

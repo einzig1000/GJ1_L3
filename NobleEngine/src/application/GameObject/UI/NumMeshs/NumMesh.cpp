@@ -48,7 +48,8 @@ void NumMeshs::Update(const int32_t cameraID)
         }
 
         //カンスト処理
-        value_ = std::clamp(value_, -1000000+1, 1000000 - 1);
+        const int32_t maxNum = powf(10,maxDigit_);
+        value_ = std::clamp(value_, -maxNum +1, maxNum - 1);
         int32_t tempBenefit = std::abs(value_);
 
         for (int digit = maxDigit_ - 1; digit >= 0; digit--) {

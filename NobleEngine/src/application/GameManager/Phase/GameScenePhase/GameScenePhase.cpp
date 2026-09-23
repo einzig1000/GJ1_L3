@@ -183,17 +183,21 @@ void GameScenePhase::Update()
     glassManager_->Update(gameCameraManager_->GetCameraID());
     table_->Update(gameCameraManager_->GetCameraID());
     
-    if (deleteIndex >= 0)
+    if (deleteIndex >= 0 && deleteIndex < static_cast<int32_t>(obstacles_.size()))
     {
         obstacles_[deleteIndex] = std::move(obstacles_.back());
         obstacles_.pop_back();
         deleteIndex = -1;
+    } else
+    {
+        deleteIndex = -1; // 範囲外なら安全にリセット
     }
 
-    for (int32_t i = 0; i < obstacles_.size(); ++i)
-    {
-        obstacles_[i]->Update(gameCameraManager_->GetCameraID());
+
+    for (auto& obstacle : obstacles_) {
+        obstacle->Update(gameCameraManager_->GetCameraID());
     }
+
     
     glassParticle_->Update(gameCameraManager_->GetCameraID());
 
@@ -241,6 +245,15 @@ void GameScenePhase::Update()
  
     //コライダー更新
     if (isDebugDraw_) collisionManager_->DebugUpdate(gameCameraManager_->GetCameraID());
+
+    if (isLoadRequested_)
+    {
+        // 予約されたステージをロード
+        LoadObstacleData(requestLoadStage_);
+        // フラグを下ろす
+        isLoadRequested_ = false;
+    }
+
 }
 
 void GameScenePhase::Draw()
@@ -298,11 +311,15 @@ void GameScenePhase::DrawImGui()
     }
     currentStage_ = std::clamp(currentStage_, 0, 100);
 
-    // Save & Load
-    if (ImGui::Button("Load", ImVec2(50, 20)))
-    {
-        LoadObstacleData(currentStage_);
-    }
+
+        // 該当箇所を変更
+        if (ImGui::Button("Load", ImVec2(50, 20)))
+        {
+            // 即座にロードせず、リクエストだけ送る
+            isLoadRequested_ = true;
+            requestLoadStage_ = currentStage_;
+        }
+
     ImGui::SameLine();
     if (ImGui::Button("Save", ImVec2(50, 20)))
     {
@@ -586,6 +603,10 @@ void GameScenePhase::DrawMainScreen(const int32_t renderTexture)
 
 bool GameScenePhase::LoadObstacleData(int32_t stage)
 {
+
+    // ★追加: ステージ切り替え時は破棄予約インデックスをリセットする
+    deleteIndex = -1;
+
     int32_t count = 0;
     std::string path = "assets/application/json/StageData/Obstacles.json";
     std::string key = "/Stage" + std::to_string(stage) + "/Count";
@@ -605,7 +626,17 @@ bool GameScenePhase::LoadObstacleData(int32_t stage)
         key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/type";
         std::string typeStr;
         JsonManager::Load(path, key, typeStr);
-        obstacles_[i]->SetGlassTypeAndLoadModels(magic_enum::enum_cast<GlassType>(typeStr).value());
+
+        auto type = magic_enum::enum_cast<GlassType>(typeStr);
+        if (type.has_value()) {
+            obstacles_[i]->SetGlassTypeAndLoadModels(type.value());
+        } else {
+            // エラーログやデフォルト値の設定
+            //日本酒
+            obstacles_[i]->SetGlassTypeAndLoadModels(GlassType::JapaneseSake);
+        }
+
+  /*      obstacles_[i]->SetGlassTypeAndLoadModels(magic_enum::enum_cast<GlassType>(typeStr).value());*/
 
         key = "/Stage" + std::to_string(stage) + "/Obstacle" + std::to_string(i) + "/translate";
         Vector3 translate;
@@ -630,6 +661,12 @@ bool GameScenePhase::LoadObstacleData(int32_t stage)
         y++;
     }
     stageSum = y;
+
+
+    // ★追加: ロードによって旧障害物が破棄されたため、コライダーリストを即座にクリアする
+    if (collisionManager_) {
+        collisionManager_->ClearColliders();
+    }
 
     return true;
 }

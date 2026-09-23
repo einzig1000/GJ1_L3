@@ -58,19 +58,19 @@ void TableObject::Update(const int32_t cameraID)
     material_.diffuseColor = Vector3{ color_.x, color_.y, color_.z };
     material_.alpha = color_.w;
 
-
-}
-
-void TableObject::Draw(int32_t renderTargetID)
-{
-
     glassObj_->SetCBufferData(0, ShaderType::VertexShader, &wvpMatrix_);
     glassObj_->SetCBufferData(1, ShaderType::VertexShader, &worldMatrix_);
     glassObj_->SetCBufferData(0, ShaderType::PixelShader, &cameraPos_);
     glassObj_->SetCBufferData(1, ShaderType::PixelShader, lightData_);
     glassObj_->SetCBufferData(2, ShaderType::PixelShader, &material_);
     glassObj_->SetCBufferData(3, ShaderType::PixelShader, &textureID_);
+}
 
+void TableObject::Draw(int32_t renderTargetID)
+{
+    if (glassObj_ == nullptr&&glassObj_->modelID_ == -1) {
+        return;
+    }
     glassObj_->Draw(renderTargetID);
 }
 

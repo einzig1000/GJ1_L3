@@ -44,6 +44,8 @@ public:
     static void LoadCommon();
 
     static void Set();
+
+    ~GameSESystem();
 private:
     static std::unordered_map<Scene,std::function<void()>>LoadFunctions_;
     static void LoadTitle();

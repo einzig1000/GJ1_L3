@@ -58,3 +58,10 @@ void GameBGMSystem::DownVolume(const BGMs& bgm)
     }
 }
 
+GameBGMSystem::~GameBGMSystem()
+{
+    for (auto& audio : bgmAudios_) {
+        Game::Audio::StopAudio(audio.status_);
+    }
+}
+

@@ -94,4 +94,8 @@ private:
 	//プレイヤーがコントロール可能かどうか
 	bool canControll_ = true;
 
+
+	// ロード予約用フラグ
+	bool isLoadRequested_ = false;
+	int32_t requestLoadStage_ = 0;
 };
